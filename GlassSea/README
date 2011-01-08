@@ -1,0 +1,9 @@
+GlassSea is a helper system for running models. It is based on Dai Zhanpeng's "runpool" design for seperating different runs into different folder, so that they can run at the same time.
+
+GlassSea is often abrev....ed as G3S in the system.
+
+The name GlassSea comes from The Revelation to John 4:6
+
+	And before the throne there was a sea of glass like unto crystal ...
+
+
