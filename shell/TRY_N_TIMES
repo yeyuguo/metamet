@@ -26,7 +26,7 @@ if ( "$check_script" != ":" ) then
 endif
 
 set try_count = 1
-while ( $try_count <= $n_times )
+while ( $try_count != $n_times )
 	echo "Trying: $try_count "
 	$script_to_be_tried
 	set main_result = $?
@@ -40,7 +40,7 @@ while ( $try_count <= $n_times )
 
 	echo "Trying:        Failed with main: $main_result , check: $check_result"
 	sleep $delay_seconds
-	@try_count += 1
+@	try_count += 1
 end
 
 echo "Trying:        Finally failed"

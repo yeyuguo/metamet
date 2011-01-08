@@ -1,0 +1,27 @@
+#!/bin/csh -f
+
+set INTERVAL = 60
+set TIMES = -1
+if ( $#argv < 2 ) then
+	echo 'Usage: WAIT_FOR "CONDITION" "TODO" INTERVAL(seconds) TIMES'
+	exit 1 
+endif
+set CONDITION = "$1"
+set TODO = "$2"
+if ($#argv >= 3 ) then
+	set INTERVAL = $3
+endif
+if ($#argv >= 4 ) then
+	set TIMES = $4
+endif
+
+echo ${0:h}/TRY_N_TIMES '"'$CONDITION'"' $TIMES $INTERVAL
+${0:h}/TRY_N_TIMES "$CONDITION" $TIMES $INTERVAL
+if ( $? != 0 ) then
+	echo "Condition not fulfiled : $CONDITION"
+	exit 1
+endif
+
+"$TODO"
+exit $?
+
