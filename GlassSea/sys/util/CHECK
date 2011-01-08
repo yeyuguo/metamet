@@ -1,0 +1,41 @@
+#!/bin/csh -f
+
+if ( $#argv == 0 ) then
+	set checkfile = "./check"
+else
+	set checkfile = $1
+endif
+
+if ( -e "./status" ) then
+	set status = "`cat ./status`"
+	switch ( "$status" )
+	case "RUNNING":
+		echo RUNNING
+		breaksw
+	case "SUCCESS":
+		echo SUCCESS
+		breaksw
+	case "FAIL":
+		echo FAIL
+		breaksw
+	default:
+		echo UNKNOWN
+		breaksw
+	endsw
+	exit 0
+endif
+
+# #### if no status file
+# #### run the check file
+if ( -x $checkfile ) then
+	$checkfile
+	if $? == 0 then
+		echo SUCCESS
+	else
+		echo FAIL
+	endif
+	exit 0
+endif
+
+echo UNKNOWN
+exit 0
