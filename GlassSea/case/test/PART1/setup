@@ -1,4 +1,0 @@
-#!/bin/csh -f
-
-${GLASSSEAROOT}/sys/util/SETUP PART1_1
-

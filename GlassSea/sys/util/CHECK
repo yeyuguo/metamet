@@ -1,13 +1,13 @@
 #!/bin/csh -f
 
 if ( $#argv == 0 ) then
-	set checkfile = "./check"
+	set checkfile = "./G3S_check"
 else
 	set checkfile = $1
 endif
 
 if ( -e "./status" ) then
-	set status = "`cat ./status`"
+	set status = "`cat ./G3S_status`"
 	switch ( "$status" )
 	case "RUNNING":
 		echo RUNNING
@@ -15,8 +15,8 @@ if ( -e "./status" ) then
 	case "SUCCESS":
 		echo SUCCESS
 		breaksw
-	case "FAIL":
-		echo FAIL
+	case "FAILED":
+		echo FAILED
 		breaksw
 	default:
 		echo UNKNOWN
@@ -32,7 +32,7 @@ if ( -x $checkfile ) then
 	if $? == 0 then
 		echo SUCCESS
 	else
-		echo FAIL
+		echo FAILED
 	endif
 	exit 0
 endif

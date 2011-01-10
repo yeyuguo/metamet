@@ -1,5 +1,0 @@
-#!/bin/csh -f
-
-${GLASSSEAROOT}/sys/util/SETUP PART1
-
-${GLASSSEAROOT}/sys/util/SETUP PART2

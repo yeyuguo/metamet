@@ -1,0 +1,4 @@
+#!/bin/csh -f
+
+${G3S}/sys/util/SETUP PART1_1
+
