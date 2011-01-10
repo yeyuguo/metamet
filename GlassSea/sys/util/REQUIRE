@@ -1,0 +1,88 @@
+#!/usr/bin/env python
+
+import os, sys
+from metlib.shell import script_helper as sh
+
+def on_help():
+    print "Usage: REQUIRE reqfname"
+   
+def get_status(partname):
+    status_fname = '%s/runpool/%s/%s/G3S_status' % (g3s, runname,partname)
+    if os.path.exists(status_fname):
+        f = open(status_fname)
+        status = f.readline().strip()
+    else:
+        status = 'FAILED'
+    return status
+        
+if len(sys.argv) < 2:
+    on_help()
+    sys.exit(1)
+reqfname = sys.argv[1]
+if not os.path.exists(reqfname):
+    print "No requirements, passing"
+    sys.exit(0)
+
+#TODO: add expanduser expandvar for g3s, or add it to lib
+g3s = os.environ['G3S']
+runname = os.environ['RUNNAME']
+
+print 'Checking requirements'
+
+f = open(reqfname)
+for line in f:
+    line = line.strip()
+    if line == '' or line.startswith('#'):
+        continue
+    tokens = line.split()
+    partname = tokens[0]
+    print '    Part: %s' % (partname,)
+    #default retry interval is 1 minute
+    if len(tokens) >= 2:
+        interval = int(tokens[1])
+    else:
+        interval = 60         
+    #when the flag is FAILED, so we should run the part, try 3 times by default
+    if len(tokens) >= 3:
+        run_retry_times = int(tokens[2])
+    else:
+        run_retry_times = 3
+    #when the flag is RUNNING, so we should wait, try 120 times by default
+    if len(tokens) >= 4:
+        wait_retry_times = int(tokens[3])
+    else:
+        wait_retry_times = 120
+    
+    status = get_status(partname)
+    
+    try:
+        if status == 'FAILED':
+            sh.watchrun('%s/util/TRY_N_TIMES \
+                    "%s/sys/util/RUN" %s %s' % \
+                    (g3s, g3s, run_retry_times, interval), 
+                    err_message='Running Part %s' % partname,
+                    path='%s/runpool/%s/%s' % (g3s, runname, partname))
+        elif status == 'SUCCESS':
+            pass
+        elif status == 'RUNNING':
+            sh.watchrun('%s/util/TRY_N_TIMES "%s/sys/util/IS_SUCCESS %s" \
+                    %s %s' % \
+                    (g3s, g3s, partname, wait_retry_times, interval),
+                    err_message='Waiting for Part %s' % partname,
+                    path='%s/runpool/%s/%s' % (g3s, runname, partname))
+        else:
+            print '    Error: Status unknown'
+            raise ValueError, 'Unknown G3S status: ' % status
+    except sh.Script_Error, e:
+        print e
+    except ValueError, e:
+        print e
+
+    status = get_status(partname)
+    if status != 'SUCCESS':
+        print 'Part %s cannot be done, exiting' % partname
+        f.close()
+        sys.exit(1)
+
+f.close()
+sys.exit(0)
