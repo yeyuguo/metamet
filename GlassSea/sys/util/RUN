@@ -1,5 +1,16 @@
 #!/bin/csh -f
 
+if ( $#argv >= 1 ) then
+	# $1 is part name. 
+	cd $1
+endif
+
+echo ================== Part Info: ====================
+echo "    Part: `cat G3S_relative_position`"
+echo "        `date`"
+echo "        `pwd`"
+echo '          *   *   *   *   *   *   *   *   *  '
+
 ${G3S}/sys/util/REQUIRE ./G3S_require
 set reqres = $?
 if ( "$reqres" != "0" ) then

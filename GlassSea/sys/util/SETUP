@@ -3,12 +3,15 @@
 import sys, os
 from metlib.shell import script_helper as sh
 
-if len(sys.argv) < 2:
-    print "Usage: SETUP PARTNAME"
+if len(sys.argv) < 1:
+    print "Usage: SETUP [PARTNAME]"
     sys.exit(1)
 
-partname = sys.argv[1]
-os.chdir(partname)
+if len(sys.argv) >= 2:
+    partname = sys.argv[1]
+    os.chdir(partname)
+else:
+    partname = ''
 
 # ##### Determine G3S's path in `pwd` format
 current_path = os.getcwd()
@@ -60,7 +63,7 @@ relpos_file.write('/'.join(structs))
 relpos_file.close()
 
 # ##### some routine functions
-for item in ['G3S_require', 'G3S_check', 'G3S_run']:
+for item in ['G3S_require', 'G3S_check', 'G3S_run', 'G3S_runrc.csh']:
     script_file = '/'.join((current_path, item))
     if os.path.exists(script_file) and os.access(script_file, os.X_OK):
         sh.watchrun(cmd='cp -f %s %s/' % (item, destfolder),
