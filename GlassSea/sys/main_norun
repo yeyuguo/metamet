@@ -47,8 +47,4 @@ sh.watchrun(cmd='%s/sys/util/SETUP' % root_path,
     err_message='setting up case', \
     path='%s/case/%s' % (root_path, casename))
 
-# # run 
-#print "Running..."
-#sh.watchrun(cmd='%s/sys/util/RUN' % root_path, 
-#    err_message='running', path=rundir)
 
