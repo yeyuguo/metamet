@@ -22,10 +22,10 @@ if ( -e ./G3S_status ) then
 		exit 0
 	endif
 endif
+echo RUNNING > ./G3S_status
 
 if ( -x "./G3S_pre" ) then
 	echo "    Running this part's G3S_pre"
-	echo RUNNING > ./G3S_status
 	if ( -x "./G3S_runrc.csh" ) then
 		source ./G3S_runrc.csh
 	endif
@@ -53,7 +53,6 @@ endif
 
 if ( -x "./G3S_run" ) then
 	echo "    Running this part's G3S_run"
-	echo RUNNING > ./G3S_status
 	if ( -x "./G3S_runrc.csh" ) then
 		source ./G3S_runrc.csh
 	endif
