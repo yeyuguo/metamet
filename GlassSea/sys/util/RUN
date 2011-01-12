@@ -11,6 +11,18 @@ echo "        `date`"
 echo "        `pwd`"
 echo '          *   *   *   *   *   *   *   *   *  '
 
+echo "        Checking This Part's status before everything"
+if ( -e ./G3S_status ) then
+	set before_run_check = "`cat ./G3S_status`"
+	if ( "$before_run_check" == "RUNNING" ) then
+		echo "        This Part itself is being running, Exiting"
+		exit 1
+	else if ( "$before_run_check" == "SUCCESS" ) then
+		echo "        This Part has already be done, Exiting"
+		exit 0
+	endif
+endif
+
 if ( -x "./G3S_pre" ) then
 	echo "    Running this part's G3S_pre"
 	echo RUNNING > ./G3S_status
