@@ -18,7 +18,7 @@ endif
 echo ${0:h}/TRY_N_TIMES '"'$FLAGFILE'"' $TIMES $INTERVAL
 ${0:h}/TRY_N_TIMES "stat $FLAGFILE" $TIMES $INTERVAL
 if ( $? != 0 ) then
-	echo "Condition not fulfiled : $FLAGFILE"
+	echo "        Condition not fulfiled : $FLAGFILE"
 	exit 1
 endif
 
