@@ -20,14 +20,14 @@ if len(sys.argv) < 2:
     sys.exit(1)
 reqfname = sys.argv[1]
 if not os.path.exists(reqfname):
-    print "No requirements, passing"
+    print "        No requirements, passing"
     sys.exit(0)
 
 #TODO: add expanduser expandvar for g3s, or add it to lib
 g3s = os.environ['G3S']
 runname = os.environ['RUNNAME']
 
-print 'Checking requirements'
+print '        Checking requirements'
 
 f = open(reqfname)
 for line in f:
@@ -71,7 +71,7 @@ for line in f:
                     err_message='Waiting for Part %s' % partname,
                     path='%s/runpool/%s/%s' % (g3s, runname, partname))
         else:
-            print '    Error: Status unknown'
+            print 'Error: Status unknown'
             raise ValueError, 'Unknown G3S status: ' % status
     except sh.Script_Error, e:
         print e
