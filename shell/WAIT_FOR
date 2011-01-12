@@ -18,7 +18,7 @@ endif
 echo ${0:h}/TRY_N_TIMES '"'$CONDITION'"' $TIMES $INTERVAL
 ${0:h}/TRY_N_TIMES "$CONDITION" $TIMES $INTERVAL
 if ( $? != 0 ) then
-	echo "Condition not fulfiled : $CONDITION"
+	echo "        Condition not fulfiled : $CONDITION"
 	exit 1
 endif
 
