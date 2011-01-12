@@ -1,0 +1,37 @@
+syntax: glob
+*.pyc
+*.pyo
+
+*.zip
+*.rar
+*.tar
+*.bin
+
+.?*
+*~
+
+a.out
+*.o
+*.exe
+*.so
+*.a
+*.dll
+
+*.mp3
+*.wav
+*.png
+*.jpg
+*.gif
+*.mov
+
+*.pdf
+*.dvi
+*.aux
+*.nav
+*.out
+*.snm
+*.toc
+*.log
+
+syntax: regexp
+^[^\.]*$

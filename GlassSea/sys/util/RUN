@@ -1,0 +1,67 @@
+#!/bin/csh -f
+
+if ( $#argv >= 1 ) then
+	# $1 is part name. 
+	cd $1
+endif
+
+echo ================== Part Info: ====================
+echo "    Part: `cat G3S_relative_position`"
+echo "        `date`"
+echo "        `pwd`"
+echo '          *   *   *   *   *   *   *   *   *  '
+
+if ( -x "./G3S_pre" ) then
+	echo "    Running this part's G3S_pre"
+	echo RUNNING > ./G3S_status
+	if ( -x "./G3S_runrc.csh" ) then
+		source ./G3S_runrc.csh
+	endif
+	./G3S_pre
+	set pre_res = $?
+	if ( $pre_res != 0 ) then
+		echo "    Error running G3S_pre"
+		echo FAILED > ./G3S_status
+		exit $pre_res
+	endif
+endif
+
+${G3S}/sys/util/REQUIRE ./G3S_require
+set reqres = $?
+if ( "$reqres" != "0" ) then
+	echo '    Error: Requirement not fulfilled. Exiting.'
+	exit 1
+else
+	echo "    All requirements fulfilled, Running this part's job ... "
+endif
+
+if ( -x "./G3S_run" ) then
+	echo "    Running this part's G3S_run"
+	echo RUNNING > ./G3S_status
+	if ( -x "./G3S_runrc.csh" ) then
+		source ./G3S_runrc.csh
+	endif
+	./G3S_run
+	set runres = $?	
+else 
+	set runres = 0
+endif
+
+if ( -x "./G3S_check" ) then
+	echo "    Checking this part's result"
+	./G3S_check
+	set chkres = $?
+else
+	set chkres = 0
+endif
+
+if ( "$runres" == "0" && "$chkres" == "0" ) then
+	echo "    SUCCESS! "
+	echo SUCCESS > ./G3S_status
+	exit 0
+else
+	echo "    FAILED! "
+	echo FAILED > ./G3S_status
+	exit 1
+endif
+

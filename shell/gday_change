@@ -1,0 +1,11 @@
+#!/bin/csh -f
+
+set gday_orig = $1
+set add_days = $2
+
+set command = "${gday_orig} + $add_days days"
+set result = `date -d "$command" +"%Y%m%d"`
+echo $result
+
+exit
+
