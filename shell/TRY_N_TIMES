@@ -25,7 +25,7 @@ if ( "$check_script" != ":" ) then
 	echo "        Trying:             with a check script: '${check_script}' "
 endif
 
-set try_count = 1
+set try_count = 0
 while ( $try_count != $n_times )
 	echo "        Trying: Try number $try_count "
 	$script_to_be_tried
