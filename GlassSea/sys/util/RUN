@@ -32,7 +32,11 @@ if ( "$reqres" != "0" ) then
 	echo '    Error: Requirement not fulfilled. Exiting.'
 	exit 1
 else
-	echo "    All requirements fulfilled, Running this part's job ... "
+	echo "    All requirements fulfilled, back to this part:"
+	echo "    ---------------- Part Info: ------------------"
+	echo "    Part: `cat G3S_relative_position`"
+	echo "        `date`"
+	echo "        `pwd`"
 endif
 
 if ( -x "./G3S_run" ) then
