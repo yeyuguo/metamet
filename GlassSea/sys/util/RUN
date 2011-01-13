@@ -22,6 +22,7 @@ if ( -e ./G3S_status ) then
 		exit 0
 	endif
 endif
+echo "        This Part hasn't be runned successfully before"
 echo RUNNING > ./G3S_status
 
 if ( -x "./G3S_pre" ) then
