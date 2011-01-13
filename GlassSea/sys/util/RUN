@@ -43,6 +43,7 @@ ${G3S}/sys/util/REQUIRE ./G3S_require
 set reqres = $?
 if ( "$reqres" != "0" ) then
 	echo '    Error: Requirement not fulfilled. Exiting.'
+	echo FAILED > ./G3S_status
 	exit 1
 else
 	echo "    All requirements fulfilled, back to this part:"
