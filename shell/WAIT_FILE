@@ -15,8 +15,9 @@ if ($#argv >= 4 ) then
 	set TIMES = $4
 endif
 
-echo ${0:h}/TRY_N_TIMES '"'$FLAGFILE'"' $TIMES $INTERVAL
-${0:h}/TRY_N_TIMES "stat $FLAGFILE" $TIMES $INTERVAL
+set prefix = `dirname $0`
+echo ${prefix}/TRY_N_TIMES '"'$FLAGFILE'"' $TIMES $INTERVAL
+${prefix}/TRY_N_TIMES "stat $FLAGFILE" $TIMES $INTERVAL
 if ( $? != 0 ) then
 	echo "        Condition not fulfiled : $FLAGFILE"
 	exit 1
