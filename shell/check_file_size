@@ -1,0 +1,55 @@
+#!/usr/bin/env python
+"""check_file_size is a util script for checking the existance of some files in
+a check_list file that looks like this:
+    
+    FILE1 1024
+    FILE2 1200000
+
+    the fields are filename and minimum file size allowed
+
+Usage:
+    check_file_size filename [ -p prefix ]
+"""
+
+import os, sys
+import optparse
+
+p = optparse.OptionParser()
+p.add_option('--prefix', '-p', default=".")
+
+options, arguments = p.parse_args()
+
+if len(arguments) == 0:
+    check_list = sys.stdin
+else:
+    check_list = open(arguments[1])
+
+error_count = 0
+print "\t\t##### Start checking file size #####"
+for line in check_list:
+    line = line.strip()
+    if len(line) == 0 or line.startswith('#'):
+        continue
+    else:
+        tokens = line.split()
+        fname = '/'.join((options.prefix, tokens[0]))
+        try:
+            filesize = os.stat(fname).st_size
+        except OSError, e:
+            print "%s does not exist" % fname
+            error_count += 1
+            continue
+
+        if len(tokens) >= 2:
+            file_min_size = int(tokens[1])
+            if filesize < file_min_size:
+                print "%s 's size: %d is smaller than expected: %d" % ( fname, \
+                        filesize, file_min_size)
+                error_count += 1
+
+if error_count == 0:
+    print "\t\tEvery file is good."
+    sys.exit(0)
+else:
+    print "\t\t%d files are bad." % error_count
+    sys.exit(1)
