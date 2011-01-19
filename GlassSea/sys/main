@@ -49,6 +49,6 @@ sh.watchrun(cmd='%s/sys/util/SETUP' % root_path,
 
 # # run 
 print "Running..."
-sh.watchrun(cmd='./G3S_start' % root_path, 
+sh.watchrun(cmd='./G3S_start', 
     err_message='running', path=rundir)
 
