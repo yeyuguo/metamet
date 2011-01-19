@@ -15,13 +15,14 @@ if ($#argv >= 4 ) then
 	set TIMES = $4
 endif
 
-echo ${0:h}/TRY_N_TIMES '"'$CONDITION'"' $TIMES $INTERVAL
-${0:h}/TRY_N_TIMES "$CONDITION" $TIMES $INTERVAL
+set prefix = `dirname $0`
+echo ${prefix}/TRY_N_TIMES '"'$CONDITION'"' $TIMES $INTERVAL
+${prefix}/TRY_N_TIMES "$CONDITION" $TIMES $INTERVAL
 if ( $? != 0 ) then
 	echo "        Condition not fulfiled : $CONDITION"
 	exit 1
 endif
 
-"$TODO"
+$TODO
 exit $?
 
