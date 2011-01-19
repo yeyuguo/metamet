@@ -2,8 +2,8 @@
 """check_file_size is a util script for checking the existance of some files in
 a check_list file that looks like this:
     
-    FILE1 1024
-    FILE2 1200000
+    FILE1 > 1024
+    FILE2 == 1200000
 
     the fields are filename and minimum file size allowed
 
@@ -13,6 +13,7 @@ Usage:
 
 import os, sys
 import optparse
+import operator
 
 p = optparse.OptionParser()
 p.add_option('--prefix', '-p', default=".")
@@ -24,8 +25,18 @@ if len(arguments) == 0:
 else:
     check_list = open(arguments[1])
 
+funcs = {   '==':operator.eq, 
+            '>' :operator.gt,
+            '<' :operator.lt,
+            '>=':operator.ge,
+            '<=':operator.le,
+            '=' :operator.eq
+            }
+
 error_count = 0
 print "\t\t##### Start checking file size #####"
+
+
 for line in check_list:
     line = line.strip()
     if len(line) == 0 or line.startswith('#'):
@@ -39,13 +50,19 @@ for line in check_list:
             print "%s does not exist" % fname
             error_count += 1
             continue
-
-        if len(tokens) >= 2:
-            file_min_size = int(tokens[1])
-            if filesize < file_min_size:
-                print "%s 's size: %d is smaller than expected: %d" % ( fname, \
-                        filesize, file_min_size)
-                error_count += 1
+        try:
+            if len(tokens) >= 3:
+                op = tokens[1]
+                file_expect_size = int(tokens[2])
+#                print funcs[op], file_expect_size
+                if funcs[op](filesize, file_expect_size) == False:
+                    print "%s 's size: %d NOT %s expected: %d" % ( fname, \
+                            filesize, tokens[1], file_expect_size)
+                    error_count += 1
+        except Exception, e:
+            print e
+            print "Error check item: %s" % line
+            continue
 
 if error_count == 0:
     print "\t\tEvery file is good."
