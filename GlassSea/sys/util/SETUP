@@ -64,7 +64,7 @@ relpos_file.close()
 
 # ##### some routine functions
 for item in ['G3S_require', 'G3S_check', 'G3S_run', 'G3S_start', 'G3S_pre',
-    'G3S_runrc.csh']:
+    'G3S_onerror', 'G3S_runrc.csh']:
     script_file = '/'.join((current_path, item))
     if os.path.exists(script_file):
         sh.watchrun(cmd='cp -f %s %s/' % (item, destfolder),
