@@ -25,6 +25,11 @@ if ( "$check_script" != ":" ) then
 	echo "        Trying:             with a check script: '${check_script}' "
 endif
 
+if ( "$n_times" == "0" ) then 
+	echo "        Trying total number is set to 0, Exiting as SUCCESS"
+	exit 0
+endif
+
 set try_count = 0
 while ( $try_count != $n_times )
 	echo "        Trying: Try number $try_count "
