@@ -66,15 +66,19 @@ def get_status(partname):
         status = parse_status_file(status_fname)
     elif os.path.exists(check_fname) and os.access(check_fname, os.X_OK):
         try:
+            os.environ['G3S_MUTE_LOG'] = '1'
             sh.watchrun('./G3S_check', err_message="Checking Part: " + \
                     partname, path=part_path)
             status = 'SUCCESS'
+            os.environ['G3S_MUTE_LOG'] = '0'
         except sh.Script_Error, e:
             print e
             status = 'FAILED'
+            os.environ['G3S_MUTE_LOG'] = '0'
         except Exception, e:
             print e
             status = 'FAILED'
+            os.environ['G3S_MUTE_LOG'] = '0'
     else:
         status = 'FAILED' 
     return status
