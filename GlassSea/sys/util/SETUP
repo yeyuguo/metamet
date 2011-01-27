@@ -59,7 +59,7 @@ sh.watchrun(cmd='./G3S_setup', err_message='Setting up part: '+partname)
 # ##### generate relative_position file
 print 'Generating relative_position file'
 relpos_file = open(destfolder+'/G3S_relative_position', 'w')
-relpos_file.write('/'.join(structs))
+relpos_file.write('/' + '/'.join(structs))
 relpos_file.close()
 
 # ##### some routine functions

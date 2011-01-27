@@ -7,6 +7,11 @@ def on_help():
     print "Usage: REQUIRE reqfname"
 
 def parse_req_file(fname):
+    req_file_dir = os.path.dirname(fname)
+    if req_file_dir == '':
+        req_file_dir = '.'
+    relative_pos = open('/'.join((req_file_dir,
+        'G3S_relative_position'))).readline().strip()
     res = []
     f = open(fname)
     for line in f:
@@ -15,7 +20,10 @@ def parse_req_file(fname):
             continue
         r = dict()
         tokens = line.split()
-        r['partname'] = tokens[0]
+        partname = tokens[0]
+        if not partname.startswith('/'):
+            partname = '/'.join((relative_pos, partname))
+        r['partname'] = partname
         #default retry interval is 1 minute
         if len(tokens) >= 2:
             r['interval'] = int(tokens[1])
