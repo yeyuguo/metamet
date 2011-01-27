@@ -35,10 +35,12 @@ if ( "$1" == "--reset" ) then
 	echo "Reseting log file: $log_file"
 	rm -f $log_file
 else
-	echo `date`
-	echo "Writing to G3S log $log_file : "
-	echo "    $1"
-	date >> $log_file
-	echo "    $1" >> $log_file
-	echo "" >> $log_file
+	if ( $?G3S_MUTE_LOG == 0 || $G3S_MUTE_LOG == 0 ) then
+		echo `date`
+		echo "Writing to G3S log $log_file : "
+		echo "    $1"
+		date >> $log_file
+		echo "    $1" >> $log_file
+		echo "" >> $log_file
+	endif
 endif
