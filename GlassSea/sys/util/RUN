@@ -84,6 +84,11 @@ if ( "$runres" == "0" && "$chkres" == "0" ) then
 	${G3S}/sys/util/LOG "Success : $partname"
 	echo SUCCESS > ./G3S_status
 	exit 0
+else if ( "$runres" == "0" && "$chkres" == "255" ) then
+        echo "    Run SUCCESS, but Check returned 255, which means although check failed, but OK to go"
+        ${G3S}/sys/util/LOG "Half Success, going on: $partname"
+        echo SUCCESS > ./G3S_status
+        exit 0
 else
 	echo "    FAILED! "
 	${G3S}/sys/util/LOG "Failed : $partname, G3S_run returned $runres, G3S_check returned $chkres"
