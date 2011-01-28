@@ -52,10 +52,6 @@ except OSError, e:
 # ##### make the setup script knows where the dest is with $SETUPDEST
 os.environ['SETUPDEST'] = destfolder
 
-# ##### setup 
-print 'Setting up %s : %s' % (runname, ' - '.join(structs))
-sh.watchrun(cmd='./G3S_setup', err_message='Setting up part: '+partname)
-
 # ##### generate relative_position file
 print 'Generating relative_position file'
 relpos_file = open(destfolder+'/G3S_relative_position', 'w')
@@ -69,6 +65,10 @@ for item in ['G3S_require', 'G3S_check', 'G3S_run', 'G3S_start', 'G3S_pre',
     if os.path.exists(script_file):
         sh.watchrun(cmd='cp -f %s %s/' % (item, destfolder),
             err_message='Copying %s to %s/' % (item, destfolder))
+
+# ##### setup 
+print 'Setting up %s : %s' % (runname, ' - '.join(structs))
+sh.watchrun(cmd='./G3S_setup', err_message='Setting up part: '+partname)
 
 sys.exit(0)
 
