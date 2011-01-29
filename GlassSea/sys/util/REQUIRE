@@ -70,15 +70,18 @@ def get_status(partname):
             sh.watchrun('./G3S_check', err_message="Checking Part: " + \
                     partname, path=part_path)
             status = 'SUCCESS'
-            os.environ['G3S_MUTE_LOG'] = '0'
+            if 'G3S_MUTE_LOG' in os.environ:
+                del os.environ['G3S_MUTE_LOG']
         except sh.Script_Error, e:
             print e
             status = 'FAILED'
-            os.environ['G3S_MUTE_LOG'] = '0'
+            if 'G3S_MUTE_LOG' in os.environ:
+                del os.environ['G3S_MUTE_LOG']
         except Exception, e:
             print e
             status = 'FAILED'
-            os.environ['G3S_MUTE_LOG'] = '0'
+            if 'G3S_MUTE_LOG' in os.environ:
+                del os.environ['G3S_MUTE_LOG']
     else:
         status = 'FAILED' 
     return status
