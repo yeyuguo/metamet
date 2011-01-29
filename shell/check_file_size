@@ -16,7 +16,7 @@ import optparse
 import operator
 
 p = optparse.OptionParser()
-p.add_option('--prefix', '-p', default=".")
+p.add_option('--prefix', '-p', default=None)
 
 options, arguments = p.parse_args()
 
@@ -43,7 +43,13 @@ for line in check_list:
         continue
     else:
         tokens = line.split()
-        fname = '/'.join((options.prefix, tokens[0]))
+        if options.prefix == None:
+            if tokens[0].startswith('/'):
+                fname = tokens[0]
+            else:
+                fname = './' + tokens[0]
+        else:        
+            fname = '/'.join((options.prefix, tokens[0]))
         try:
             filesize = os.stat(fname).st_size
         except OSError, e:
