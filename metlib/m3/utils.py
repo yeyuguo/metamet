@@ -10,26 +10,26 @@ def get_m3_map(m3_file_obj, border_thick=0.5, dot=False):
     """
     # calculate corners
     imin = 0. - border_thick
-    imax = m3_file_obj.f.NCOLS - 1. + border_thick
+    imax = m3_file_obj.NCOLS - 1. + border_thick
     jmin = 0. - border_thick
-    jmax = m3_file_obj.f.NROWS - 1. + border_thick
+    jmax = m3_file_obj.NROWS - 1. + border_thick
 
     ll_lon, ll_lat = m3_file_obj.ij_to_lonlat(imin, jmin, dot=dot)
     ur_lon, ur_lat = m3_file_obj.ij_to_lonlat(imax, jmax, dot=dot)
     # calculate proper resolution
-    if m3_file_obj.f.XCELL >= 27000.0:
+    if m3_file_obj.XCELL >= 27000.0:
         proper_reso = 'i'
-    elif m3_file_obj.f.XCELL <= 3000.0:
+    elif m3_file_obj.XCELL <= 3000.0:
         proper_reso = 'f'
     else:
         proper_reso = 'h'
 
     # setup a map
     m = Basemap(projection='lcc', 
-            lat_0 = m3_file_obj.f.YCENT,
-            lon_0 = m3_file_obj.f.XCENT,
-            lat_1 = m3_file_obj.f.P_ALP,
-            lat_2 = m3_file_obj.f.P_BET,
+            lat_0 = m3_file_obj.YCENT,
+            lon_0 = m3_file_obj.XCENT,
+            lat_1 = m3_file_obj.P_ALP,
+            lat_2 = m3_file_obj.P_BET,
             llcrnrlat = ll_lat,
             llcrnrlon = ll_lon,
             urcrnrlat = ur_lat,
