@@ -66,3 +66,16 @@ class Simple_Expression(object):
         except ValueError:
             res = s
         return res
+
+def parse_simple_expression_file(fname):
+    res = list()
+    f = open(fname)
+    for line in f:
+        line = line.strip()
+        if line == '' or line.startswith('#'):
+            continue
+        expr = Simple_Expression(line)
+        res.append(expr)
+
+    return res
+
