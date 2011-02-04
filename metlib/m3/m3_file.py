@@ -20,10 +20,10 @@ class M3_File(Dataset):
 
     def __init__(self, fname, mode='r', **kwargs):
         Dataset.__init__(self, filename=fname, mode=mode, **kwargs)
-        print "Opening file %s" % fname
-        print "Done"
-#
-        print "Initing map"
+#        print "Opening file %s" % fname
+#        print "Done"
+
+#        print "Initing map"
         self.proj = Proj(
                 proj='lcc',
                 lat_0 = self.YCENT,
@@ -33,7 +33,7 @@ class M3_File(Dataset):
                 a=6370000.,
                 b=6370000.
                 )
-        print "Done"
+#        print "Done"
 
     def __setattr__(self, name, value):
         try:
