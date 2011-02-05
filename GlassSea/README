@@ -1,7 +1,63 @@
-GlassSea is a helper system for running models. It is based on Dai Zhanpeng's "runpool" design for seperating different runs into different folder, so that they can run at the same time.
+GlassSea is a helper system for running models. It is based on Dai Zhanpeng's "runpool" design for seperating different runs into their own folder, so that they can run at the same time.
 
 GlassSea is often abrev....ed as G3S in the system.
 
+-----------------------------------------------------------------------------
+Concepts:
+
+G3S: 
+	Environment variable G3S is required to tell the root path of the GlassSea system.
+
+CASE:
+	A set of model configurations is called a CASE.
+
+PART:
+	The modules of a model is called a PART. A PART may contain several sub PARTs. 
+	For the M3 system, its sub parts are MM5(or WRF), MCIP, SMOKE, CMAQ, etc. For MM5, its sub parts are GTS_DECODER, REGRID, LITTLE_R, INTERPF, MM5 etc, and for REGRID, its sub parts are pregrid and regridder. For CMAQ, its sub parts are BCON, ICON, JPROC, CCTM etc. 
+
+RUN:
+	A single run of a case. Usually identified with the date of the run.
+
+RUNTIME:
+	The date to identify a single RUN of a CASE.
+
+RUNNAME:
+	A compound of CASE and RUNTIME: CASE.RUNTIME
+
+RUNPOOL:
+	The folder that contains all runs as subfolder.
+
+
+------------------------------------------------------------------------------
+Setting up a case:
+
+1. Choose a name for the case, and make a folder in ${G3S}/case/ with that name.
+
+2. Put the parts in that folder. And edit the scripts of each part, so that they are able to run in a folder in the form of:
+	${G3S}/runpool/${RUNNAME}/PATH/TO/THE/PART. 
+   Available G3S system environment variables: 
+	$G3S, $CASENAME, $RUNTIME, $RUNNAME
+
+3. Add some special files to each part. Described in the following part
+
+4. 
+
+-------------------------------------------------------------------------------
+Special files for G3S system:
+
+G3S_require
+
+G3S_run , G3S_pre
+
+G3S_runrc.csh
+
+G3S_check
+
+G3S_relative_position
+
+G3S_setup
+
+-------------------------------------------------------------------------------
 The name GlassSea comes from The Revelation to John 4:6
 
 	And before the throne there was a sea of glass like unto crystal ...
