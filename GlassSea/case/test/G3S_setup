@@ -1,5 +1,0 @@
-#!/bin/csh -f
-
-${G3S}/sys/util/SETUP PART1
-
-${G3S}/sys/util/SETUP PART2
