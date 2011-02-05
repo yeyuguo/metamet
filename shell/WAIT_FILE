@@ -1,5 +1,6 @@
 #!/bin/csh -f
-
+#Usage: WAIT_FILE "FLAG FILE" "TODO" INTERVAL(seconds) TIMES
+#by claydodo
 set INTERVAL = 60
 set TIMES = -1
 if ( $#argv < 2 ) then

@@ -2,9 +2,9 @@
 
 # TRY_N_TIMES
 
-# A script wrapper for Trying a script several times until succeeded
-# Usage : TRY_N_TIMES "script_to_be_tried" n_times delay_seconds ["check_script"]
-# Succeed is defined as "Both the script to be tried and the optional check_scripts exit with 0"
+# A script wrapper for Trying a command several times until succeeded
+# Usage : TRY_N_TIMES "command_to_be_tried" n_times delay_seconds ["check_command"]
+# Succeed is defined as "Both the command to be tried and the optional check_command exit with 0"
 # by claydodo
 
 if ( $#argv < 3) then

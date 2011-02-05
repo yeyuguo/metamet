@@ -1,14 +1,29 @@
 #!/usr/bin/env python
-"""check_file_size is a util script for checking the existance of some files in
-a check_list file that looks like this:
-    
+"""check_file_size is for checking the size of some files in a check_list file that looks like this:
+
+    # Begin of the example check list file
     FILE1 > 1024
     FILE2 == 1200000
+    FILE3 >= 255
+    FILE3 <= 512
+    # End of the example check list file
 
-    the fields are filename and minimum file size allowed
+    The fields are {File name (Absolute path or relative path)} {Compare operator} {File size in bytes}
+    Lines starts with '#' and blank lines will be ignored.
 
-Usage:
-    check_file_size filename [ -p prefix ]
+Usage detail:
+    check_file_size CHECK_LIST [ -p prefix ]
+        or
+    echo "Filename >= 1024" | check_file_size [ -p prefix ]
+        or
+    cat << EOF | check_file_size [ -p prefix ]
+    FILE1 == 256
+    FILE2 >= 0
+    EOF
+    
+Return Value:
+    exit with 0 when all files pass the check.
+    exit with 1 when some file fails.
 """
 
 import os, sys
@@ -16,7 +31,8 @@ import optparse
 import operator
 
 p = optparse.OptionParser()
-p.add_option('--prefix', '-p', default=None)
+p.usage = __doc__
+p.add_option('--prefix', '-p', help='Use this option when all files are in the same path (the prefix), to shorten the file names.', default=None)
 
 options, arguments = p.parse_args()
 
