@@ -1,11 +1,21 @@
-#!/bin/csh -f
+#!/usr/bin/env python
+import sys
+from datetime import datetime, timedelta
+try:
+    gday_orig = sys.argv[1]
+    add_days = sys.argv[2]
 
-set gday_orig = $1
-set add_days = $2
+    year = int(gday_orig[0:4])
+    month = int(gday_orig[4:6])
+    day = int(gday_orig[6:8])
 
-set command = "${gday_orig} + $add_days days"
-set result = `date -d "$command" +"%Y%m%d"`
-echo $result
+    days = int(add_days)
 
-exit
+    date_result = datetime(year, month, day) + timedelta(days=days)
 
+    print date_result.strftime("%Y%m%d")
+except:
+    print "Usage: gday_change gday_orig  add_days"
+    sys.exit(1)
+
+sys.exit(0)
