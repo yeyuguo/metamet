@@ -1,3 +1,5 @@
+import re
+
 class Simple_Expression(object):
     """Simple_Expression can deal with expressions with terms in the form of
     'VAR', 'float_coef * VAR' and '+' only.
@@ -28,12 +30,21 @@ class Simple_Expression(object):
         else:
             raise ValueError, "Too many '='s: %s" % expr_str
 
+        match_res = re.search('([^()\s]*)(\s*\(\s*)(.*\S+)(\s*\))', self.name)
+        if match_res == None:
+            self.unit = ''
+        else:
+            self.name = match_res.groups()[0]
+            self.unit = match_res.groups()[2]
 
     def __str__(self):
         str_t = [ (str(t1), str(t2)) for t1, t2 in self.terms]
         ts = [' * '.join(t) for t in str_t]
         expr = ' + '.join(ts)
-        return "%s = %s" % (self.name , expr)
+        if self.unit == '':
+            return "%s = %s" % (self.name, expr)
+        else:
+            return "%s ( %s ) = %s" % (self.name, self.unit, expr)
 
     def eval(self, var_dict):
         result = 0.0
