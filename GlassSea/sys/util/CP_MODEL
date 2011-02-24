@@ -32,5 +32,5 @@ if ( $? ) then
 endif
 
 echo "Copying  ${model_path}  To  ${cp_to_path}"
-cp -rf ${G3S}/model/${model_path}/* ${cp_to_path}/
+cp -rfu ${G3S}/model/${model_path}/* ${cp_to_path}/
 exit $?
