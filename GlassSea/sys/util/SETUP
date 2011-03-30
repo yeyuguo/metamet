@@ -43,6 +43,8 @@ runroot = g3sroot_path + '/runpool/' + runname
 
 destfolder = runroot + '/' + '/'.join(structs)
 
+print 'Setting up %s : %s' % (runname, ' - '.join(structs))
+
 try:
     os.makedirs(destfolder)
 except OSError, e:
@@ -67,8 +69,8 @@ for item in ['G3S_require', 'G3S_check', 'G3S_run', 'G3S_start', 'G3S_pre',
             err_message='Copying %s to %s/' % (item, destfolder))
 
 # ##### setup 
-print 'Setting up %s : %s' % (runname, ' - '.join(structs))
-sh.watchrun(cmd='./G3S_setup', err_message='Setting up part: '+partname)
+if os.path.exists('./G3S_setup') and os.access('./G3S_setup', os.X_OK):
+    sh.watchrun(cmd='./G3S_setup', err_message='Setting up part: '+partname)
 
 sys.exit(0)
 
