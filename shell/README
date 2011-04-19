@@ -47,4 +47,6 @@ Misc:
 		e.g.
 		rangefmt 0:72:6 "%02d"  will generate:
 			00 06 12 18 24 30 36 42 48 54 60 66 72
-	
+
+	arangefmt:
+		like rangefmt, but can handle float number. requires python-numpy.	
