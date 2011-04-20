@@ -12,6 +12,7 @@ class lookup_table(object):
         """arr is the big ndarray of lookup_table,
         dims is a list of name, values tuple:
         [('dim1',[0.1,0.2,0.3,0.4,0.5]), ('dim2',[35.,40.,50.]),...]
+        any dim name is OK.
         """
         self.arr = arr
         # # check
@@ -34,8 +35,8 @@ class lookup_table(object):
         
 
     def lookup(self, **kwargs):
-        """lt.lookup(dim1=?.?, dim2=?.?,..., dimn=?.?)
-        if len(dims) - len(kwargs) == 1, return a scaler value, 
+        """lt.lookup(dim1=xxx, dim2=xxx,..., dimn=xxx)
+        if len(dims) == len(kwargs), return a scaler value, 
         else, return a lookup_table with len(dims) - len(kwargs) dims.
         """
         order = []
@@ -111,17 +112,20 @@ class lookup_table(object):
 
 
 if __name__ == '__main__':
-    dim1 = np.arange(0.1,0.51,0.1)
+    # # Test code
+    dim1 = np.array([0.1,0.2,0.3,0.4,0.5])
     dim2 = np.array([35,40,50])
     lt_arr = np.arange(len(dim1)*len(dim2)).reshape((len(dim1),len(dim2)))
     lt = lookup_table(lt_arr, [('dim1',dim1), ('dim2',dim2)])
     print dim1, dim2
     print lt_arr
-    res1 = lt.lookup(dim1=0.6, dim2=45.0)
-    res2 = lt.lookup(dim1=0.35)
+    res1 = lt.lookup(dim1=0.45, dim2=45.0)
     print res1
+
+    res2 = lt.lookup(dim1=0.35)  # res2 is a smaller lookup_table
     print res2.arr
     print res2.dims
+    print res2.lookup(dim2=38.0)
     # # The follow line will trigger an exception 
     # # because there's no dimension named 'dim3'
     res3 = res2.lookup(dim3=45.0)
