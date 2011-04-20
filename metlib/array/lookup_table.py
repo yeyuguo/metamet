@@ -38,13 +38,11 @@ class lookup_table(object):
         if len(dims) - len(kwargs) == 1, return a scaler value, 
         else, return a lookup_table with len(dims) - len(kwargs) dims.
         """
-        print kwargs
         order = []
         for name in self.dimnames:
             if name in kwargs:
                 order.append(name)
 
-        # # TODO: add check with self.dims and length check and range check
         if len(order) != len(kwargs):
             raise ValueError("""Dim names not match.
     Lookup Table's dim names: %s
