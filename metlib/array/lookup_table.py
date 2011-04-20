@@ -122,6 +122,8 @@ if __name__ == '__main__':
     print res1
     print res2.arr
     print res2.dims
+    # # The follow line will trigger an exception 
+    # # because there's no dimension named 'dim3'
     res3 = res2.lookup(dim3=45.0)
     print res3
 
