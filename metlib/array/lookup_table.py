@@ -30,7 +30,9 @@ class lookup_table(object):
             raise ValueError("Lookup Table's array and dim mismatch: %s vs %s" \
                     % (self.arr.shape, tuple(shape_checker)))
 
-        self.dims = dims
+        self.dims = []
+        for d in dims:
+            self.dims.append((d[0], np.array(d[1])))
         self.dimnames = [item[0] for item in dims]
         
 
@@ -110,6 +112,34 @@ class lookup_table(object):
                     new_dims.append(d)
             return lookup_table(small_arr, new_dims)
 
+    def reverse_lookup(self, value, span_num=11):
+        """find corresponding dim position for the value.
+    only for 1d lookup table.
+    when 2 adjacent values are identical, 
+    return span_num values between the 2 dim values"""
+        if len(self.dims) != 1:
+            raise RuntimeError("lookup_table.reverse_lookup(value) only \
+works for 1-d lookup_tables. This one is %d-d." % len(self.dims))
+        if span_num <= 1:
+            span_num = 2
+        res = []
+        diffs = self.arr[1:] - self.arr[:-1]
+        for i in range(len(self.arr)-1):
+            if value >= np.min(self.arr[i:i+2]) and \
+                    value <= np.max(self.arr[i:i+2]):
+                try:
+                    left_ratio = (self.arr[i+1] - value) / diffs[i]
+                    right_ratio = (value - self.arr[i]) / diffs[i]
+                    dim_value = self.dims[0][1][i] * left_ratio + \
+                            self.dims[0][1][i+1] * right_ratio
+                    if np.isfinite(dim_value):
+                        res.append(dim_value)
+                    else: 
+                        raise ZeroDivisionError
+                except ZeroDivisionError:
+                    res.extend(np.linspace(self.dims[0][1][i],
+                        self.dims[0][1][i+1],span_num))
+        return np.unique(np.array(res))
 
 if __name__ == '__main__':
     # # Test code
@@ -126,6 +156,9 @@ if __name__ == '__main__':
     print res2.arr
     print res2.dims
     print res2.lookup(dim2=38.0)
+    print res2.reverse_lookup(8.1)
+    print res2.reverse_lookup(8.2)
+    print res2.reverse_lookup(8.3)
     # # The follow line will trigger an exception 
     # # because there's no dimension named 'dim3'
     res3 = res2.lookup(dim3=45.0)
