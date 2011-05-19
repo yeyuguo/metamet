@@ -42,7 +42,7 @@ _0d_attrs = ( ('lidarname', str),
 
 class LidarDataset(object):
     """doc"""
-    def __init__(self, fnames, **kwargs):
+    def __init__(self, fnames, bin_num=None, **kwargs):
         """doc
         kwargs:
             bin_num
@@ -50,9 +50,10 @@ class LidarDataset(object):
         self.orig_fnames = []
         self._vars_inited = False
         self.dims = dict()
+        self.dims['BIN'] = bin_num
         self.append_files(fnames, **kwargs)
     
-    def append_files(self, fnames, bin_num=None):
+    def append_files(self, fnames):
         _tmp_pool = dict()
         if type(fnames) is str:
             fnames = fnames.split(',')
@@ -71,7 +72,7 @@ class LidarDataset(object):
                 all_start_datetime = attrs['start_datetime']
             if i == len(fnames) - 1:
                 all_end_datetime = attrs['end_datetime']
-
+        bin_num = self.dims['BIN']
         if bin_num is None:
             bin_num = orig_bin_nums.min()
         else:
@@ -131,16 +132,17 @@ class LidarDataset(object):
             self._vars_inited = True
         else:
             for vname, t in _3d_time_channel_bin_varnames:
-                self.vars[vname] = np.vstack(self.vars[vname], _tmp_pool[vname])
+                self.vars[vname] = np.vstack((self.vars[vname], _tmp_pool[vname]))
             for vname, t in _2d_time_channel_varnames:
-                self.vars[vname] = np.vstack(self.vars[vname], _tmp_pool[vname])
+                self.vars[vname] = np.vstack((self.vars[vname], _tmp_pool[vname]))
             for vname, t, dname in _2d_time_other_varnames:
-                self.vars[vname] = np.vstack(self.vars[vname], _tmp_pool[vname])
+                self.vars[vname] = np.vstack((self.vars[vname], _tmp_pool[vname]))
             for vname, t in _1d_time_varnames:
-                self.vars[vname] = np.hstack(self.vars[vname], _tmp_pool[vname])
+                self.vars[vname] = np.hstack((self.vars[vname], _tmp_pool[vname]))
 
             self.vars['end_datetime'] = _tmp_pool['end_datetime']
             self.vars['number_records'] += _tmp_pool['number_records']
+        self.orig_fnames.extend(fnames)
 
     def _peek_file_info(self, fname):
         """returns attrs and dim_lens"""
@@ -190,6 +192,6 @@ class LidarDataset(object):
             else:
                 f.setncattr(attr, self.vars[attr])
         f.close()
-
+    
 if __name__ == '__main__':
     pass
