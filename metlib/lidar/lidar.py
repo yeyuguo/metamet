@@ -9,6 +9,7 @@
 from datetime import datetime, timedelta
 import numpy as np
 from netCDF4 import Dataset
+from metlib.datetime.datetime_bin import datetime_bin
 
 _std_datetime_fmt = "%Y-%m-%d %H:%M:%S"
 _3d_time_channel_bin_varnames = ( ('data', 'f4'),
@@ -51,7 +52,13 @@ class LidarDataset(object):
         self._vars_inited = False
         self.dims = dict()
         self.dims['BIN'] = bin_num
+        self.desc = "No description available"
         self.append_files(fnames, **kwargs)
+        if len(self.orig_fnames) != 0:
+            f = Dataset(self.orig_fnames[0])
+            if 'desc' in f.ncattrs():
+                self.desc = "%s" % (f.getncattr('desc'), )
+            f.close()
     
     def append_files(self, fnames):
         _tmp_pool = dict()
@@ -191,7 +198,88 @@ class LidarDataset(object):
                 f.setncattr(attr, self.vars[attr].strftime(_std_datetime_fmt))
             else:
                 f.setncattr(attr, self.vars[attr])
+        f.setncattr('desc', self.desc)
         f.close()
+
+    def time_average(self, tdelta, starttime=None, endtime=None):
+        if type(tdelta) is not timedelta:
+            tdelta = timedelta(minutes=tdelta)
+        dts = self.vars['datetime']
+        tbins, info = datetime_bin(dts, tdelta, starttime=starttime, endtime=endtime, return_bin_info=True)
+        new_time_steps = len(tbins)
+        tmp = dict()
+        for vname, t in _3d_time_channel_bin_varnames:
+            tmp[vname] = np.zeros((new_time_steps, self.dims['CHANNEL'], self.dims['BIN']), dtype=self.vars[vname].dtype)
+        for vname, t in _2d_time_channel_varnames:
+            tmp[vname] = np.zeros((new_time_steps, self.dims['CHANNEL']), dtype=self.vars[vname].dtype)
+        for vname, t, dname in _2d_time_other_varnames:
+            tmp[vname] = np.zeros((new_time_steps, self.dims[dname]), dtype=self.vars[vname].dtype)
+        for vname, t, in _1d_time_varnames:
+            tmp[vname] = np.zeros((new_time_steps, ), dtype=self.vars[vname].dtype)
+
+        for i, w in enumerate(tbins):
+            if len(w[0]) == 0:
+                flag = True
+            else:
+                flag = False
+            for vname, t, in _1d_time_varnames:
+                if vname == 'datetime':
+                    tmp[vname][i] = info[i][0]
+                elif flag:
+                    if t not in ('f4', 'f8', 'd', float):
+                        tmp[vname][i] = 0
+                    else:
+                        tmp[vname][i] = np.nan
+                else:
+                    if vname in ('shots_sum',):
+                    # add , not average. 
+                        tmp[vname][i] = self.vars[vname][w].sum(axis=0)
+                    else:
+                        tmp[vname][i] = self.vars[vname][w].mean(axis=0) 
+            for vname, t in _3d_time_channel_bin_varnames:
+                if flag:
+                    if t not in ('f4', 'f8', 'd', float):
+                        tmp[vname][i] = 0
+                    else:
+                        tmp[vname][i] = np.nan
+                else:
+                    tmp[vname][i] = self.vars[vname][w].sum(axis=0) 
+            for vname, t in _2d_time_channel_varnames:
+                if flag:
+                    if t not in ('f4', 'f8', 'd', float):
+                        tmp[vname][i] = 0
+                    else:
+                        tmp[vname][i] = np.nan
+                else:
+                    if vname in ('background', 'energy'):
+                        tmp[vname][i] = self.vars[vname].sum(axis=0)
+                    elif vname == 'background_std_dev':
+                        tmp[vname][i] = np.sqrt(np.mean(self.vars[vname][w] ** 2, axis=0))
+                    else:
+                        tmp[vname][i] = self.vars[vname][w].mean(axis=0) 
+            for vname, t, dname in _2d_time_other_varnames:
+                if flag:
+                    if t not in ('f4', 'f8', 'd', float):
+                        tmp[vname][i] = 0
+                    else:
+                        tmp[vname][i] = np.nan
+                else:
+                    tmp[vname][i] = self.vars[vname][w].mean(axis=0) 
+
+        self.vars.update(tmp)
+        self.vars['number_records'] = len(tbins)
+        self.dims['TIME'] = len(tbins)
     
+    def resize_bin(self, start_i, end_i):
+        if end_i > self.vars['number_bins']:
+            pass
+        else:
+            self.vars['data'] = self.vars['data'][:,:,start_i:end_i]
+            self.vars['distance'] = self.vars['distance'][start_i:end_i]
+            self.vars['number_bins'] = np.max(end_i - start_i, 0)
+            self.vars['first_data_bin'] -= start_i
+
+            self.dims['BIN'] = self.vars['number_bins']
+
 if __name__ == '__main__':
     pass
