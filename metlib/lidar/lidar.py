@@ -42,11 +42,12 @@ _0d_attrs = ( ('lidarname', str),
         )
 
 class LidarDataset(object):
-    """doc"""
+    """Representing Lidar's Dataset"""
     def __init__(self, fnames, bin_num=None, **kwargs):
         """doc
         kwargs:
-            bin_num
+            fnames: a seq of filenames or a single filename or a str of filenames seperated with comma.
+            bin_num: clipping in BIN dimesion when loading files.
         """
         self.orig_fnames = []
         self._vars_inited = False
@@ -61,6 +62,8 @@ class LidarDataset(object):
             f.close()
     
     def append_files(self, fnames):
+        """append one or more files to the dataset
+        fnames: a seq of filenames or a single filename or a str of filenames seperated with comma."""
         _tmp_pool = dict()
         if type(fnames) is str:
             fnames = fnames.split(',')
@@ -165,7 +168,7 @@ class LidarDataset(object):
         return attrs, dim_lens
 
     def save(self, fname):
-        """doc"""
+        """Save into a netCDF4 file"""
         f = Dataset(fname, 'w', format='NETCDF4')
         for dname, length in self.dims.items():
             if dname == 'TIME':
@@ -202,6 +205,13 @@ class LidarDataset(object):
         f.close()
 
     def time_average(self, tdelta, starttime=None, endtime=None):
+        """Averaging in TIME dimesion.
+        tdelta is a datetime.timedelta object or an int of minutes.
+        starttime and endtime works in the same way as metlib.datetime.datetime_bin.datetime_bin .
+
+        Notice: Some variables are summed instead of averaged. Including:
+        data, energy, background, etc.
+        """
         if type(tdelta) is not timedelta:
             tdelta = timedelta(minutes=tdelta)
         dts = self.vars['datetime']
@@ -271,6 +281,8 @@ class LidarDataset(object):
         self.dims['TIME'] = len(tbins)
     
     def resize_bin(self, start_i, end_i):
+        """resize data's BIN dim in python's manner: data[start_i:end_i]
+        """
         if end_i > self.vars['number_bins']:
             pass
         else:
