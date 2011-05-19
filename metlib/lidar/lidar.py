@@ -293,5 +293,17 @@ class LidarDataset(object):
 
             self.dims['BIN'] = self.vars['number_bins']
 
+    def __str__(self):
+        return """    lidarname: %s
+    time period: %s - %s
+    dims: %s
+    vars: %s
+    desc: %s
+    """ % ( self.vars['lidarname'],
+            self.vars['start_datetime'], self.vars['end_datetime'],
+            self.dims, 
+            self.vars.keys(),
+            self.desc)
+
 if __name__ == '__main__':
     pass
