@@ -4,6 +4,7 @@
 # lidar.py
 """class LidarDataset is a container for lidar data.
     TODO: add support for loading short lines.
+    TODO: make 'must'/'optional' work
 """
 
 from datetime import datetime, timedelta
@@ -12,34 +13,35 @@ from netCDF4 import Dataset
 from metlib.datetime.datetime_bin import datetime_bin
 
 _std_datetime_fmt = "%Y-%m-%d %H:%M:%S"
-_3d_time_channel_bin_varnames = ( ('data', 'f4'),
+# # Table driven:
+# # varname, format, dim shape, 'must'/'optional', average method
+_varnames = (
+        ('data', 'f4', ('TIME', 'CHANNEL', 'BIN'), 'must', 'sum'),
+        ('datetime', str, ('TIME',), 'must', 'special'),
+        ('shots_sum', 'u4', ('TIME',), 'optional', 'sum'),
+        ('trigger_frequency', 'i4', ('TIME', ), 'optional', 'mean'),
+        ('dead_time_corrected', 'u2', ('TIME', ), 'optional', 'first'),
+        ('azimuth_angle', 'f4', ('TIME', ), 'optional', 'mean'),
+        ('elevation_angle', 'f4', ('TIME',), 'optional', 'mean'),
+        ('cloud_base_height', 'f4', ('TIME',), 'optional', 'mean'),
+        ('distance', 'f4', ('BIN',), 'must', 'special'),
+        ('background', 'f4', ('TIME', 'CHANNEL'), 'must', 'sum'),
+        ('background_std_dev', 'f4', ('TIME', 'CHANNEL'), 'optional', 'sqr_mean_sqrt'),
+        ('energy', 'f4', ('TIME', 'CHANNEL'), 'must', 'sum'),
+        ('temp', 'f4', ('TIME','TEMP'), 'optional', 'mean'),
         )
-_1d_time_varnames = ( ('datetime', str),
-        ('shots_sum', 'u4'),
-        ('trigger_frequency', 'i4'),
-#            ('dead_time_corrected', 'u2'),
-        ('azimuth_angle', 'f4'),
-        ('elevation_angle', 'f4'),
-        ('cloud_base_height', 'f4'),
+_attrs = (
+        ('lidarname', str, 'must'),
+        ('bin_time', 'f4', 'must'),
+        ('bin_size', 'f4', 'must'),
+        ('first_data_bin', 'i4', 'must'),
+        ('start_datetime', str, 'must'),
+        ('end_datetime', str, 'must'),
+        ('number_records', 'i4', 'must'),
+        ('number_bins', 'i4', 'must'),
+        ('number_channels', 'i4', 'must'),
         )
-_1d_bin_varnames = ( ('distance', 'f4'),
-        )
-_2d_time_channel_varnames = ( ('background', 'f4'),
-        ('background_std_dev', 'f4'),
-        ('energy', 'f4'),
-        )
-_2d_time_other_varnames = (('temp', 'f4', 'TEMP'), 
-        )
-_0d_attrs = ( ('lidarname', str),
-        ('bin_time', 'f4'),
-        ('bin_size', 'f4'),
-        ('first_data_bin', 'i4'),
-        ('start_datetime', str),
-        ('end_datetime', str),
-        ('number_records', 'i4'),
-        ('number_bins', 'i4'),
-        ('number_channels', 'i4'),
-        )
+
 
 class LidarDataset(object):
     """Representing Lidar's Dataset"""
@@ -70,7 +72,6 @@ class LidarDataset(object):
         self.orig_fnames.extend(fnames)
         record_nums = np.zeros(len(fnames), dtype='i4')
         orig_bin_nums = np.zeros(len(fnames), dtype='i4')
-        
 
         for i, fname in enumerate(fnames):
             attrs, dim_lens = self._peek_file_info(fname)
@@ -91,47 +92,29 @@ class LidarDataset(object):
         proper_dims['TIME'] = record_nums.sum()
         self.dims.update(proper_dims)
         # # create the arrays for each var
-        for vname, t in _3d_time_channel_bin_varnames:
+        for vname, t, dimnames, choice, aver_method in _varnames:
             if t is str:
                 t = 'O'
-            _tmp_pool[vname] = np.zeros((proper_dims['TIME'], proper_dims['CHANNEL'], proper_dims['BIN']), dtype=t)
-        for vname, t in _2d_time_channel_varnames:
-            if t is str:
-                t = 'O'
-            _tmp_pool[vname] = np.zeros((proper_dims['TIME'], proper_dims['CHANNEL']), dtype=t)
-        for vname, t, dname in _2d_time_other_varnames:
-            if t is str:
-                t = 'O'
-            _tmp_pool[vname] = np.zeros((proper_dims['TIME'], proper_dims[dname]), dtype=t)
-        for vname, t in _1d_time_varnames:
-            if t is str:
-                t = 'O'
-            _tmp_pool[vname] = np.zeros((proper_dims['TIME'], ), dtype=t)
-        for vname, t in _1d_bin_varnames:
-            if t is str:
-                t = 'O'
-            _tmp_pool[vname] = np.zeros((proper_dims['BIN'], ), dtype=t)
-        
+            _tmp_pool[vname] = np.zeros(tuple([proper_dims[d] for d in dimnames]), dtype=t)
+
         start_is = np.hstack((0, record_nums.cumsum()[:-1]))
         end_is = start_is + record_nums
         for i, fname in enumerate(fnames):
             f = Dataset(fname)
-            if i == 0:
-                for vname, t in _1d_bin_varnames:
-                    _tmp_pool[vname][:] = f.variables[vname][:proper_dims['BIN']]
-            for vname, t in _3d_time_channel_bin_varnames:
-                _tmp_pool[vname][start_is[i]:end_is[i],:,:] = f.variables[vname][:,:,:proper_dims['BIN']]
-            for vname, t in _2d_time_channel_varnames:
-                _tmp_pool[vname][start_is[i]:end_is[i],:] = f.variables[vname][:]
-            for vname, t, dname in _2d_time_other_varnames:
-                _tmp_pool[vname][start_is[i]:end_is[i]] = f.variables[vname][:]
-            for vname, t in _1d_time_varnames:
-                _tmp_pool[vname][start_is[i]:end_is[i]] = f.variables[vname][:]
+            
+            for vname, t, dimnames, choice, aver_method in _varnames:
+                if dimnames == ('BIN',):
+                    if i == 1:
+                        _tmp_pool[vname][:] = f.variables[vname][:proper_dims['BIN']]
+                elif 'BIN' in dimnames:
+                    _tmp_pool[vname][start_is[i]:end_is[i]] = f.variables[vname][:, ... ,:proper_dims['BIN']]
+                else:
+                    _tmp_pool[vname][start_is[i]:end_is[i]] = f.variables[vname][:]
             f.close()
  
         _tmp_pool['datetime'] = np.array([datetime.strptime(datestr, _std_datetime_fmt) for datestr in _tmp_pool['datetime']])
 
-        for attr, t in _0d_attrs:
+        for attr, t, choice in _attrs:
             _tmp_pool[attr] = ref_attrs[attr]
         _tmp_pool['start_datetime'] = all_start_datetime
         _tmp_pool['end_datetime'] = all_end_datetime
@@ -141,15 +124,13 @@ class LidarDataset(object):
             self.vars = _tmp_pool
             self._vars_inited = True
         else:
-            for vname, t in _3d_time_channel_bin_varnames:
-                self.vars[vname] = np.vstack((self.vars[vname], _tmp_pool[vname]))
-            for vname, t in _2d_time_channel_varnames:
-                self.vars[vname] = np.vstack((self.vars[vname], _tmp_pool[vname]))
-            for vname, t, dname in _2d_time_other_varnames:
-                self.vars[vname] = np.vstack((self.vars[vname], _tmp_pool[vname]))
-            for vname, t in _1d_time_varnames:
-                self.vars[vname] = np.hstack((self.vars[vname], _tmp_pool[vname]))
-
+            for vname, t, dimnames, choice, aver_method in _varnames:
+                if 'TIME' not in dimnames:
+                    continue
+                if len(dimnames) > 1:
+                    self.vars[vname] = np.vstack((self.vars[vname], _tmp_pool[vname]))
+                else:
+                    self.vars[vname] = np.hstack((self.vars[vname], _tmp_pool[vname]))
             self.vars['end_datetime'] = _tmp_pool['end_datetime']
             self.vars['number_records'] += _tmp_pool['number_records']
         self.orig_fnames.extend(fnames)
@@ -175,28 +156,16 @@ class LidarDataset(object):
                 f.createDimension(dname)
             else:
                 f.createDimension(dname, length)
-        
-        for vname, t in _3d_time_channel_bin_varnames:
-            f.createVariable(vname, t, ('TIME', 'CHANNEL', 'BIN'))
-            f.variables[vname][:] = self.vars[vname]
-        for vname, t in _2d_time_channel_varnames:
-            f.createVariable(vname, t, ('TIME', 'CHANNEL'))
-            f.variables[vname][:] = self.vars[vname]
-        for vname, t, dname in _2d_time_other_varnames:
-            f.createVariable(vname, t, ('TIME', dname))
-            f.variables[vname][:] = self.vars[vname]
-        for vname, t, in _1d_time_varnames:
-            f.createVariable(vname, t, ('TIME',))
+        for vname, t, dimnames, choice, aver_method in _varnames:
+            f.createVariable(vname, t, dimnames)
             if vname == 'datetime':
                 for i, dt in enumerate(self.vars[vname]):
                     f.variables[vname][i] = dt.strftime(_std_datetime_fmt)
             else:
+                print vname, f.variables[vname].shape, self.vars[vname].shape
                 f.variables[vname][:] = self.vars[vname]
-        for vname, t, in _1d_bin_varnames:
-            f.createVariable(vname, t, ('BIN',))
-            f.variables[vname][:] = self.vars[vname]
     
-        for attr, t in _0d_attrs:
+        for attr, t, choice in _attrs:
             if attr in ('start_datetime', 'end_datetime'):
                 f.setncattr(attr, self.vars[attr].strftime(_std_datetime_fmt))
             else:
@@ -218,63 +187,37 @@ class LidarDataset(object):
         tbins, info = datetime_bin(dts, tdelta, starttime=starttime, endtime=endtime, return_bin_info=True)
         new_time_steps = len(tbins)
         tmp = dict()
-        for vname, t in _3d_time_channel_bin_varnames:
-            tmp[vname] = np.zeros((new_time_steps, self.dims['CHANNEL'], self.dims['BIN']), dtype=self.vars[vname].dtype)
-        for vname, t in _2d_time_channel_varnames:
-            tmp[vname] = np.zeros((new_time_steps, self.dims['CHANNEL']), dtype=self.vars[vname].dtype)
-        for vname, t, dname in _2d_time_other_varnames:
-            tmp[vname] = np.zeros((new_time_steps, self.dims[dname]), dtype=self.vars[vname].dtype)
-        for vname, t, in _1d_time_varnames:
-            tmp[vname] = np.zeros((new_time_steps, ), dtype=self.vars[vname].dtype)
+
+        for vname, t, dimnames, choice, aver_method in _varnames:
+            if 'TIME' not in dimnames:
+                continue
+            new_shape = [self.dims[d] for d in dimnames]
+            new_shape[0] = new_time_steps
+            tmp[vname] = np.zeros(tuple(new_shape), dtype=self.vars[vname].dtype)
 
         for i, w in enumerate(tbins):
-            if len(w[0]) == 0:
-                flag = True
-            else:
-                flag = False
-            for vname, t, in _1d_time_varnames:
+            for vname, t, dimnames, choice, aver_method in _varnames:
+                if 'TIME' not in dimnames:
+                    continue
                 if vname == 'datetime':
+                    # # using each tbins' starttime as datetime
                     tmp[vname][i] = info[i][0]
-                elif flag:
-                    if t not in ('f4', 'f8', 'd', float):
+                elif len(w[0]) == 0:
+                    # # filling with nan or 0
+                    if t not in ('f4', 'f8', 'd', 'g', float, np.float32, np.float64, np.float_, np.single, np.double):
                         tmp[vname][i] = 0
                     else:
                         tmp[vname][i] = np.nan
                 else:
-                    if vname in ('shots_sum',):
-                    # add , not average. 
+                    if aver_method == 'sum':
                         tmp[vname][i] = self.vars[vname][w].sum(axis=0)
-                    else:
-                        tmp[vname][i] = self.vars[vname][w].mean(axis=0) 
-            for vname, t in _3d_time_channel_bin_varnames:
-                if flag:
-                    if t not in ('f4', 'f8', 'd', float):
-                        tmp[vname][i] = 0
-                    else:
-                        tmp[vname][i] = np.nan
-                else:
-                    tmp[vname][i] = self.vars[vname][w].sum(axis=0) 
-            for vname, t in _2d_time_channel_varnames:
-                if flag:
-                    if t not in ('f4', 'f8', 'd', float):
-                        tmp[vname][i] = 0
-                    else:
-                        tmp[vname][i] = np.nan
-                else:
-                    if vname in ('background', 'energy'):
-                        tmp[vname][i] = self.vars[vname].sum(axis=0)
-                    elif vname == 'background_std_dev':
+                    elif aver_method == 'mean':
+                        tmp[vname][i] = self.vars[vname][w].mean(axis=0)
+                    elif aver_method == 'first':
+                        tmp[vname][i] = self.vars[vname][w][0]
+                    elif aver_method == 'sqr_mean_sqrt':
+                        # # for std_dev 
                         tmp[vname][i] = np.sqrt(np.mean(self.vars[vname][w] ** 2, axis=0))
-                    else:
-                        tmp[vname][i] = self.vars[vname][w].mean(axis=0) 
-            for vname, t, dname in _2d_time_other_varnames:
-                if flag:
-                    if t not in ('f4', 'f8', 'd', float):
-                        tmp[vname][i] = 0
-                    else:
-                        tmp[vname][i] = np.nan
-                else:
-                    tmp[vname][i] = self.vars[vname][w].mean(axis=0) 
 
         self.vars.update(tmp)
         self.vars['number_records'] = len(tbins)
