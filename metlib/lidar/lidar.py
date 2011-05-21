@@ -162,7 +162,6 @@ class LidarDataset(object):
                 for i, dt in enumerate(self.vars[vname]):
                     f.variables[vname][i] = dt.strftime(_std_datetime_fmt)
             else:
-                print vname, f.variables[vname].shape, self.vars[vname].shape
                 f.variables[vname][:] = self.vars[vname]
     
         for attr, t, choice in _attrs:
