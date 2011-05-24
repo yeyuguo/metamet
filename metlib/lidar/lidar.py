@@ -13,6 +13,7 @@ from netCDF4 import Dataset
 from metlib.datetime.datetime_bin import datetime_bin
 
 _std_datetime_fmt = "%Y-%m-%d %H:%M:%S"
+_NO_DESC_STR = "No description available"
 # # Table driven:
 # # varname, format, dim shape, 'must'/'optional', average method
 _varnames = (
@@ -55,7 +56,7 @@ class LidarDataset(object):
         self._vars_inited = False
         self.dims = dict()
         self.dims['BIN'] = bin_num
-        self.desc = "No description available"
+        self.desc = _NO_DESC_STR
         self.append_files(fnames, **kwargs)
         if len(self.orig_fnames) != 0:
             f = Dataset(self.orig_fnames[0])
