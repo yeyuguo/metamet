@@ -91,15 +91,27 @@ class lookup_table(object):
                 info = good_info[dimname]
                 magic += '%d:%d,' % (info['left_i'], info['right_i']+1)
         magic = magic.rstrip(',') + ']'
+        print magic
         small_arr = eval(magic)
+        print order
+        # # TODO: debug the following lines
+        shift = 0
         for dimname in order:
             info = good_info[dimname]
-            if len(small_arr.shape) > 1:
-                small_arr = small_arr[0,:] * info['left_ratio'] + \
-                        small_arr[1,:] * info['right_ratio']
-            else:
-                small_arr = small_arr[0] * info['left_ratio'] + \
-                        small_arr[1] * info['right_ratio']
+            pos_left_str=[':'] * len(small_arr.shape)
+            pos_right_str=[':'] * len(small_arr.shape)
+            pos_left_str[info['dim_i']-shift] = '0'
+            pos_right_str[info['dim_i']-shift] = '1'
+            magic = "small_arr[%s] * info['left_ratio'] + small_arr[%s] * info['right_ratio']" % ( ','.join(pos_left_str), ','.join(pos_right_str) )
+            print magic
+#            if len(small_arr.shape) > 1:
+#                small_arr = small_arr[0,:] * info['left_ratio'] + \
+#                        small_arr[1,:] * info['right_ratio']
+            small_arr = eval(magic)
+#            else:
+#                small_arr = small_arr[0] * info['left_ratio'] + \
+#                        small_arr[1] * info['right_ratio']
+            shift += 1
 
         if len(order) == len(self.dimnames):
             # in this case, small_arr is already a scaler
@@ -110,6 +122,8 @@ class lookup_table(object):
             for d in self.dims:
                 if d[0] not in order:
                     new_dims.append(d)
+            print self.arr.shape
+            print small_arr.shape
             return lookup_table(small_arr, new_dims)
 
     def fast_lookup(self, pos):
