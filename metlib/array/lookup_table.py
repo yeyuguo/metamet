@@ -91,10 +91,9 @@ class lookup_table(object):
                 info = good_info[dimname]
                 magic += '%d:%d,' % (info['left_i'], info['right_i']+1)
         magic = magic.rstrip(',') + ']'
-        print magic
+#        print magic
         small_arr = eval(magic)
-        print order
-        # # TODO: debug the following lines
+#        print order
         shift = 0
         for dimname in order:
             info = good_info[dimname]
@@ -103,14 +102,8 @@ class lookup_table(object):
             pos_left_str[info['dim_i']-shift] = '0'
             pos_right_str[info['dim_i']-shift] = '1'
             magic = "small_arr[%s] * info['left_ratio'] + small_arr[%s] * info['right_ratio']" % ( ','.join(pos_left_str), ','.join(pos_right_str) )
-            print magic
-#            if len(small_arr.shape) > 1:
-#                small_arr = small_arr[0,:] * info['left_ratio'] + \
-#                        small_arr[1,:] * info['right_ratio']
+#            print magic
             small_arr = eval(magic)
-#            else:
-#                small_arr = small_arr[0] * info['left_ratio'] + \
-#                        small_arr[1] * info['right_ratio']
             shift += 1
 
         if len(order) == len(self.dimnames):
@@ -122,8 +115,8 @@ class lookup_table(object):
             for d in self.dims:
                 if d[0] not in order:
                     new_dims.append(d)
-            print self.arr.shape
-            print small_arr.shape
+#            print self.arr.shape
+#            print small_arr.shape
             return lookup_table(small_arr, new_dims)
 
     def fast_lookup(self, pos):
@@ -151,16 +144,20 @@ class lookup_table(object):
             right_ratio[d_i] = 1.0 - left_ratio[d_i]
         
         # # make a small array for interp
+        # # Time 100 / 430 mu s
         magic = 'self.arr['
         for d_i in range(dimlen):
             magic += '%d:%d,' % (left_i[d_i], right_i[d_i]+1)
         magic = magic.rstrip(',') + ']'
         small_arr = eval(magic)
+# #        small_arr = self.arr
+        # # Time 70 / 430 mu s
         for d_i in range(dimlen-1):
             small_arr = small_arr[0,:] * left_ratio[d_i] + \
                         small_arr[1,:] * right_ratio[d_i]
         small_arr = small_arr[0] * left_ratio[d_i] + \
                         small_arr[1] * right_ratio[d_i]
+        # # Time
         return small_arr
 
     def reverse_lookup(self, value, span_num=11):
