@@ -141,6 +141,63 @@ works for 1-d lookup_tables. This one is %d-d." % len(self.dims))
                         self.dims[0][1][i+1],span_num))
         return np.unique(np.array(res))
 
+def nc2lut(ncfname):
+    pass
+
+def bin2lut(descfname, **kwargs):
+    """Load a raw binary file as lut directly. 
+    Parameters:
+        descfname: a description txt file in the format below:
+            # Comment lines starts with #
+            binary_file : /path/to/binary_file
+            dtype : datatype of the lut, a character in 'cb1silfdFD'
+            dimname1 : 1 2 3 4 5
+            dimname2 : 10.0, 20.0, 30.0, 40.0
+            ...
+            # dims can either be seperated with ',' or ' '
+        kwargs: 
+            mem_type:
+                a character in 'cb1silfdFD'
+            byteswap:
+                0 : no swap
+                1 : swap
+"""
+    from scipy.io.numpyio import fread
+    descf_folder_path = os.path.dirname(descfname)
+    descf_basename = os.path.basename(descfname)
+    descf = open(descfname)
+    dims = []
+    shp = []
+    binary_file = '%s.bin' % descf_basename
+    dtype = 'f'
+    for l in descf:
+        l = l.strip()
+        if len(l) == 0 or l.startswith('#'):
+            continue
+        name, value = l.split(':', 1)
+        name = name.strip()
+        value = value.strip()
+        if name == 'binary_file':
+            binary_file = value
+        elif name == 'dtype':
+            dtype = value
+        else:
+            if ',' in value:
+                sep = ','
+            else:
+                sep = ' '
+            arrayvalue = np.fromstring(value, sep=sep, dtype='f4')
+            dims.append((name, arrayvalue))
+            shp.append(arrayvalue.shape[0])
+    total_elements_num = np.multiply.reduce(shp)
+    shp = tuple(shp)
+    binary_file_abspath = os.path.join(descf_folder_path, binary_file)
+    f = open(binary_file_abspath, 'rb')
+    lut_arr = fread(f, total_elements_num, dtype).reshape(shp)
+    f.close()
+    lut = lookup_table(lut_arr, dims)
+    return lut
+
 if __name__ == '__main__':
     # # Test code
     dim1 = np.array([0.1,0.2,0.3,0.4,0.5])
