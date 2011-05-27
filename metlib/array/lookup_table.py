@@ -112,6 +112,43 @@ class lookup_table(object):
                     new_dims.append(d)
             return lookup_table(small_arr, new_dims)
 
+    def fast_lookup(self, pos):
+        """lt.lookup(pos)
+        pos is a seq of position value in each dim.
+        this function does NOT assert whether pos is good.
+        And assumes that all dims are in acsending order.
+        However, it's not much faster than lookup yet.
+        """
+        dimlen = len(self.dims)
+        left_i = np.zeros(dimlen, dtype='i4')
+        right_i = np.zeros(dimlen, dtype='i4')
+        left_ratio = np.zeros(dimlen, dtype='f4')
+        right_ratio = np.zeros(dimlen, dtype='f4')
+        for d_i in range(dimlen):
+            now_value = pos[d_i]
+            dim_value = self.dims[d_i][1]
+            # find layer's index in the dim
+            for i in range(len(dim_value)-1):
+                if dim_value[i]<=now_value and now_value<=dim_value[i+1]:
+                    left_i[d_i], right_i[d_i] = i, i+1
+                    break
+            left_value, right_value = dim_value[i], dim_value[i+1]
+            left_ratio[d_i] = (right_value - now_value) / (right_value - left_value)
+            right_ratio[d_i] = 1.0 - left_ratio[d_i]
+        
+        # # make a small array for interp
+        magic = 'self.arr['
+        for d_i in range(dimlen):
+            magic += '%d:%d,' % (left_i[d_i], right_i[d_i]+1)
+        magic = magic.rstrip(',') + ']'
+        small_arr = eval(magic)
+        for d_i in range(dimlen-1):
+            small_arr = small_arr[0,:] * left_ratio[d_i] + \
+                        small_arr[1,:] * right_ratio[d_i]
+        small_arr = small_arr[0] * left_ratio[d_i] + \
+                        small_arr[1] * right_ratio[d_i]
+        return small_arr
+
     def reverse_lookup(self, value, span_num=11):
         """find corresponding dim position for the value.
     only for 1d lookup table.
@@ -207,7 +244,8 @@ if __name__ == '__main__':
     print dim1, dim2
     print lt_arr
     res1 = lt.lookup(dim1=0.45, dim2=45.0)
-    print res1
+    res1_fast = lt.fast_lookup((0.45, 45.0))
+    print res1, res1_fast
 
     res2 = lt.lookup(dim1=0.35)  # res2 is a smaller lookup_table
     print res2.arr
