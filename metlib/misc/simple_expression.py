@@ -36,6 +36,8 @@ class Simple_Expression(object):
         else:
             self.name = match_res.groups()[0]
             self.unit = match_res.groups()[2]
+            if len(tokens) == 1:
+                self.terms[0] = (self.name, 1.0)
 
     def __str__(self):
         str_t = [ (str(t1), str(t2)) for t1, t2 in self.terms]
