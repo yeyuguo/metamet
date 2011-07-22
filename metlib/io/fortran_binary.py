@@ -20,6 +20,7 @@ class FortranBinary(object):
         self._rec_num = 0
         self._f.seek(0,2)
         self._filesize = self._f.tell()
+        self._last_rec_len = 0
         self.rewind()
         while self._f.tell() != self._filesize :
             self._bypass_rec()
@@ -41,20 +42,24 @@ class FortranBinary(object):
             #TODO: implement all PyArray types
         rec_len = self._read_rec_len()
         tmp = sp_fread(self._f, rec_len / s, dtype, dtype, self._byteswap)
+        self._read_rec_len()
         if shape is None:
             return tmp
         else:
             return tmp.reshape(shape)
 
     def _read_rec_len(self):
-        rec_len = sp_fread(self._f, 1, 'i', 'i', self._byteswap)[0]
-        return rec_len
+        self._last_rec_len = sp_fread(self._f, 1, 'i', 'i', self._byteswap)[0]
+        return self._last_rec_len
 
     def _bypass_rec(self):
         rec_len = self._read_rec_len()
         self._f.seek(rec_len + 4, 1)
 
-    def rewind(self):
-        self._f.seek(0, 0)
+    def rewind(self, to_beginning = True):
+        if to_beginning:
+            self._f.seek(0, 0)
+        else:
+            self._f.seek(1, -(8+self._last_rec_len))
 
 
