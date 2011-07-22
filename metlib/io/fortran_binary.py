@@ -60,6 +60,6 @@ class FortranBinary(object):
         if to_beginning:
             self._f.seek(0, 0)
         else:
-            self._f.seek(1, -(8+self._last_rec_len))
+            self._f.seek(-(8+self._last_rec_len), 1)
 
 
