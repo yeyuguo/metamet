@@ -62,4 +62,4 @@ class FortranBinary(object):
         else:
             self._f.seek(-(8+self._last_rec_len), 1)
 
-
+# TODO: add rec index, etc.
