@@ -39,7 +39,7 @@ options, arguments = p.parse_args()
 if len(arguments) == 0:
     check_list = sys.stdin
 else:
-    check_list = open(arguments[1])
+    check_list = open(arguments[0])
 
 funcs = {   '==':operator.eq, 
             '>' :operator.gt,
