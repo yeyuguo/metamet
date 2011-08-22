@@ -143,6 +143,9 @@ for r in reqs:
             print e
         except ValueError, e:
             print e
+        status = get_status(r['partname'])
+        if status == 'SUCCESS':
+            break
         time.sleep(r['interval'])
         status = get_status(r['partname'])
 
