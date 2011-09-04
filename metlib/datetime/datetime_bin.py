@@ -12,7 +12,7 @@ import numpy as np
 #import matplotlib.pyplot as plt
 #from mpl_toolkits.basemap import Basemap
 #from matplotlib import mlab
-
+__all__ = ['datetime_bin'] 
 def datetime_bin(datetimes, tdelta, starttime=None, endtime=None, return_bin_info=False):
     """This function parti...TODO a serie of datetime objects into equal timedelta bin. 
     Returns a list of np.where style tuples. If return_bin_info is True, also returns a list of (bin_start, bin_end) tuples.
