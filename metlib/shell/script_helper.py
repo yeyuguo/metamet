@@ -2,6 +2,9 @@
 
 import os
 import sys
+import subprocess
+
+__all__ = ['Script_Error', 'watchrun', 'parse_cshrc', 'get_output']
 
 class Script_Error(Exception):
     def __init__(self, value):
@@ -29,3 +32,6 @@ def parse_cshrc(fname):
                 value = value.strip('"')
             os.environ[tokens[1]] = value
 
+def get_output(cmd):
+    return subprocess.check_output(cmd, shell=True)
+    
