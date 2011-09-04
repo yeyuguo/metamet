@@ -3,6 +3,9 @@
 from datetime import datetime, timedelta
 import numpy as np
 
+__all__ = ['year_is', 'month_is', 'hour_is', 'weekday_is',
+        'season_is', 'year_season_is', 'datetime_is_between']
+
 _s_m = {1:(3,4,5),2:(6,7,8),3:(9,10,11),4:(12,1,2),
         'spring':(3,4,5), 'summer':(6,7,8),
         'autumn':(9,10,11), 'winter':(12,1,2),

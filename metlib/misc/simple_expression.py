@@ -1,5 +1,5 @@
 import re
-
+__all__ = ['Simple_Expression', 'parse_simple_expression_file']
 class Simple_Expression(object):
     """Simple_Expression can deal with expressions with terms in the form of
     'VAR', 'float_coef * VAR' and '+' only.

@@ -11,6 +11,7 @@ import numpy as np
 #import matplotlib.pyplot as plt
 #from mpl_toolkits.basemap import Basemap
 #from matplotlib import mlab
+__all__ = ['month2season']
 
 def month2season(month, outformat='0123'):
     """Converts month number ( 1-12 ) to season number or names.

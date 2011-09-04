@@ -7,6 +7,8 @@ import os, sys
 import numpy as np
 import scipy as sp
 
+__all__ = ['lookup_table', 'nc2lut', 'bin2lut']
+
 class lookup_table(object):
     def __init__(self, arr, dims):
         """arr is the big ndarray of lookup_table,

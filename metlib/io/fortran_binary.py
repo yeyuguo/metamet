@@ -13,6 +13,7 @@ from scipy.io.numpyio import fread as sp_fread
 #from mpl_toolkits.basemap import Basemap
 #from matplotlib import mlab
 
+__all__ = ['FortranBinary']
 class FortranBinary(object):
     def __init__(self, fname, byteswap=False):
         self._f = open(fname, 'rb')
