@@ -1,5 +1,6 @@
 import matplotlib
 import matplotlib.pyplot as plt
+__all__ = ['plot_lidar']
 
 def plot_lidar(dts, height, data, 
         vmin=None, vmax=None, max_height=5000,
