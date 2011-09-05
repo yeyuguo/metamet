@@ -12,6 +12,7 @@ import numpy as np
 from netCDF4 import Dataset
 from metlib.datetime.datetime_bin import datetime_bin
 
+__all__ = ['LidarDataset']
 _std_datetime_fmt = "%Y-%m-%d %H:%M:%S"
 _NO_DESC_STR = "No description available"
 # # Table driven:
@@ -104,8 +105,10 @@ class LidarDataset(object):
             f = Dataset(fname)
             
             for vname, t, dimnames, choice, aver_method in _varnames:
+                if choice is 'optional' and vname not in f.variables:
+                    continue
                 if dimnames == ('BIN',):
-                    if i == 1:
+                    if i == 0:
                         _tmp_pool[vname][:] = f.variables[vname][:proper_dims['BIN']]
                 elif 'BIN' in dimnames:
                     _tmp_pool[vname][start_is[i]:end_is[i]] = f.variables[vname][:, ... ,:proper_dims['BIN']]
@@ -116,6 +119,8 @@ class LidarDataset(object):
         _tmp_pool['datetime'] = np.array([datetime.strptime(datestr, _std_datetime_fmt) for datestr in _tmp_pool['datetime']])
 
         for attr, t, choice in _attrs:
+            if choice is 'optional' and attr not in ref_attrs:
+                continue
             _tmp_pool[attr] = ref_attrs[attr]
         _tmp_pool['start_datetime'] = all_start_datetime
         _tmp_pool['end_datetime'] = all_end_datetime
