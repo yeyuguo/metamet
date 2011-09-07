@@ -13,7 +13,8 @@ import numpy as np
 #from matplotlib import mlab
 from lidar import LidarDataset
 __all__ = ['correct_background', 'correct_afterpulse',
-        'correct_overlap', 'correct_distance']
+        'correct_overlap', 'correct_distance',
+        'zero_blind_range']
 
 def correct_background(data, sample_number=None):
     """corrects background noise.
@@ -36,6 +37,8 @@ def correct_afterpulse(data, ap_data):
     data: a LidarDataset object.
     ap_data: afterpulse data. 
     """
+    min_len = np.min((data.dims['BIN'], ap_data.shape[-1]))
+    data.vars['data'][...,:min_len] *= ap_data[..., :min_len]
     data.vars['data'] -= ap_data
     data.desc += ',afterpulse corrected'
 
@@ -44,7 +47,8 @@ def correct_overlap(data, ol_data):
     data: a LidarDataset object.
     ol_data: overlap data.
     """
-    data.vars['data'] *= ol_data
+    min_len = np.min((data.dims['BIN'], ol_data.shape[-1]))
+    data.vars['data'][...,:min_len] *= ol_data[..., :min_len]
     data.desc += ',overlap corrected'
 
 def correct_distance(data):
@@ -53,6 +57,16 @@ def correct_distance(data):
     """
     data.vars['data'] *= (data.vars['distance'] ** 2)
     data.desc += ',distance corrected'
+
+def zero_blind_range(data):
+    """make the blind range zero.
+    data: a LidarDataset object.
+    """
+    try:
+        start_i = data.vars['first_data_bin']
+    except:
+        start_i = 0
+    data.vars['data'][...,:start_i] = 0.0
 
 
 if __name__ == '__main__':
