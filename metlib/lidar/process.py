@@ -32,14 +32,17 @@ def correct_background(data, sample_number=None):
     data.vars['data'] -= bg
     data.desc += ',background corrected'
 
-def correct_afterpulse(data, ap_data):
+def correct_afterpulse(data, ap_data, zero_check_max_index=30):
     """correct afterpulse noise.
     data: a LidarDataset object.
     ap_data: afterpulse data. 
     """
     min_len = np.min((data.dims['BIN'], ap_data.shape[-1]))
-    data.vars['data'][...,:min_len] *= ap_data[..., :min_len]
-    data.vars['data'] -= ap_data
+    zcmi = np.min((min_len, zero_check_max_index))
+    d = data.vars['data']
+    d[...,:min_len] -= ap_data[..., :min_len]
+    d[...,:zcmi][np.where(d[...,:zcmi] < 0.0)] = 0.0
+    
     data.desc += ',afterpulse corrected'
 
 def correct_overlap(data, ol_data):
@@ -55,7 +58,7 @@ def correct_distance(data):
     """correct distance.
     data: a LidarDataset object.
     """
-    data.vars['data'] *= (data.vars['distance'] ** 2)
+    data.vars['data'] *= (data.vars['distance'] ** 2 * 1E-6)
     data.desc += ',distance corrected'
 
 def zero_blind_range(data):

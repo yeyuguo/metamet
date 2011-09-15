@@ -13,7 +13,7 @@ import numpy as np
 #from matplotlib import mlab
 from lidar import LidarDataset
 
-__all__ = ['AtmosProfile', 'interp_p_t_profile', 'calc_betam', 'int_betam',
+__all__ = ['AtmosProfile', 'interp_p_t_profile', 'calc_betam',
         'prof_midlatitude_summer', 'prof_midlatitude_winter',
         'prof_subarctic_summer', 'prof_subarctic_winter', 'prof_tropical',
         'prof_us1976']
@@ -62,18 +62,8 @@ def calc_betam(p, t, l=523.0, rho_n=0.02842):
     #and n0^2-1 can be written into 2(n0-1)
     #where N0=2.547e25 , T0=288, P0=1013.25, rho_n=0.0284, lambda=523?
     #and PI^2/N0 * T0/P0 =1.1014e-25
-    betam = 1.1014e-25 * np.power((2.0*n0_minus_1),2)/pow(l*1.0e-9,4) * (6.0+3.0*rho_n) / (6.0-7.0*rho_n) * p / t 
+    betam = 1.1014e-25 * np.power((2.0*n0_minus_1),2)/pow(l*1.0e-9,4) * (6.0+3.0*rho_n) / (6.0-7.0*rho_n) * p / t * 1000.0
     return betam
-
-def int_betam(betam, start_i, dz):
-    """integrate betam for later computation.
-    betam: array of betam
-    start_i: starting index
-    dz: bin size of lidar
-    """
-    intbm = np.zeros_like(betam)
-    intbm[..., start_i:] = np.add.accumulate(betam[..., start_i:]*dz)
-    return intbm
 
 _real_dir = os.path.dirname(__file__)
 
