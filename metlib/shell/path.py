@@ -17,7 +17,11 @@ def sorted_walk(top, **kwarg):
 def list_all_file(top, dir_pattern=r'.*', fname_pattern=r'.*', **kwarg):
     """returns every filename that matches the 2 patterns in a flat list, 
     kwargs: os.path's kwargs, i.e. topdown=True[, onerror=None[, followlinks=False]]"""
-    walktuplelist = sorted_walk(top, **kwarg)
+    try:
+        newtop = os.path.expanduser(os.path.expandvars(top))
+    except:
+        newtop = top
+    walktuplelist = sorted_walk(newtop, **kwarg)
     filelist = []
     for walktuple in walktuplelist:
         d = walktuple[0]
