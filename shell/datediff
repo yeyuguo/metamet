@@ -33,6 +33,6 @@ try:
 
     dt = date1 - date2
     print dt.days
-except Exception as e:
-    print e
+except Exception, e:
+    print "Error detail: ", e
     on_error()
