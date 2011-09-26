@@ -23,6 +23,9 @@ Datetime:
 		e.g. jday_change 2010364 5 -> 2011004
 		e.g. jday_change 2010001 -3 -> 2009363
 	
+	datediff:
+		datediff YYYYMMDD1 YYYYMMDD2
+
 Repeat or wait:
 
 	TRY_N_TIMES:
