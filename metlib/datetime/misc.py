@@ -5,13 +5,13 @@
 
 #import os, sys
 #import re
-#from datetime import datetime, timedelta
+from datetime import datetime, timedelta
 import numpy as np
 #import scipy as sp
 #import matplotlib.pyplot as plt
 #from mpl_toolkits.basemap import Basemap
 #from matplotlib import mlab
-__all__ = ['month2season']
+__all__ = ['month2season', 'str2datetime']
 
 def month2season(month, outformat='0123'):
     """Converts month number ( 1-12 ) to season number or names.
@@ -33,4 +33,26 @@ def month2season(month, outformat='0123'):
     season_index = (np.array(month, dtype=int)+9) / 3 % 4
     return season_names[season_index]
 
+def str2datetime(fmt='%Y-%m-%d %H:%M:%S', *arrays ):
+    """Converts str arrays into datetime arrays.
+    Parameters:
+        fmt: datetime format string. When using more than one array as input, extra white space should be added. 
+        arrays: string arrays to parse.
+    Returns:
+        datetime array
+    """
+    n = len(arrays)
+    l = len(arrays[0])
+    res = np.zeros(l, dtype='O')
+    for i in range(l):
+        try:
+            datestrs = []
+            for j in range(n):
+                datestrs.append(str(arrays[j][i]))
+            datestr = ' '.join(datestrs)
+            res[i] = datetime.strptime(datestr, fmt)
+        except Exception, e:
+            print e
+            res[i] = None
+    return res
 
