@@ -225,9 +225,36 @@ class LidarDataset(object):
                         tmp[vname][i] = np.sqrt(np.mean(self.vars[vname][w] ** 2, axis=0))
 
         self.vars.update(tmp)
+        if starttime is not None:
+            self.vars['start_datetime'] = self.vars['datetime'][0]
+        if endtime is not None:
+            self.vars['end_datetime'] = self.vars['datetime'][-1]
         self.vars['number_records'] = len(tbins)
         self.dims['TIME'] = len(tbins)
     
+    def trim_period(self, starttime, endtime):
+        """Trim unwanted data, leaving data between start_time and end_time only.
+        """
+        dts = self.vars['datetime']
+        tbins, info = datetime_bin(dts, None, starttime=starttime, endtime=endtime, return_bin_info=True)
+        choosen_w = tbins[0]
+        new_time_steps = len(tbins[0][0])
+        tmp = dict()
+        for vname, t, dimnames, choice, aver_method in _varnames:
+            if 'TIME' not in dimnames:
+                continue
+            tmp[vname] = self.vars[vname][choosen_w]
+
+        self.vars.update(tmp)
+        self.vars['number_records'] = new_time_steps
+        if starttime is not None:
+            self.vars['start_datetime'] = self.vars['datetime'][0]
+        if endtime is not None:
+            self.vars['end_datetime'] = self.vars['datetime'][-1]
+        self.dims['TIME'] = new_time_steps
+
+
+
     def resize_bin(self, start_i, end_i):
         """resize data's BIN dim in python's manner: data[start_i:end_i]
         """
