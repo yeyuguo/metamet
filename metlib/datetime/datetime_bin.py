@@ -25,7 +25,10 @@ def datetime_bin(datetimes, tdelta, starttime=None, endtime=None, return_bin_inf
     if starttime is None:
         starttime = datetimes[0]
     if endtime is None:
-        endtime = datetimes[-1] + tdelta / 2
+        endtime = datetimes[-1] # + tdelta / 2
+    if tdelta is None:
+        tdelta = endtime - starttime
+
     tmpbin_start = starttime
     result = []
     bin_info = []
