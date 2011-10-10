@@ -25,12 +25,11 @@ class FortranBinary(object):
         self._f = open(fname, 'rb')
         self._f.seek(0,2)
         self._filesize = self._f.tell()
-        self.rewind()
         now_pos=0
         while now_pos != self._filesize :
             recsize = np.memmap(self._f, dtype=rechead_dtype, mode='c', offset=now_pos, shape=(1,))[0]
             now_pos += 4   # rechead size
-            self.arrays.append(np.memmap(self._f, dtype=dtype, mode='c', offset=now_pos, shape=(recsize / self.dtype.itemsize,)))
+            self.records.append(np.memmap(self._f, dtype=dtype, mode='c', offset=now_pos, shape=(recsize / self.dtype.itemsize,)))
             now_pos += recsize
             now_pos += 4   # rechead size
 
