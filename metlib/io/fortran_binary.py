@@ -37,4 +37,7 @@ class FortranBinary(object):
     def __len__(self):
         return len(self.records)
 
+    def __getitem__(self, i):
+        return self.records[i]
+
 # TODO: add rec index, etc.
