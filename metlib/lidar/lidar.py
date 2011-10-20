@@ -85,6 +85,8 @@ class LidarDataset(object):
                 all_start_datetime = attrs['start_datetime']
             if i == len(fnames) - 1:
                 all_end_datetime = attrs['end_datetime']
+            del attrs
+            del dim_lens
         bin_num = self.dims['BIN']
         if bin_num is None:
             bin_num = orig_bin_nums.min()
@@ -139,6 +141,7 @@ class LidarDataset(object):
                     self.vars[vname] = np.hstack((self.vars[vname], _tmp_pool[vname]))
             self.vars['end_datetime'] = _tmp_pool['end_datetime']
             self.vars['number_records'] += _tmp_pool['number_records']
+        del _tmp_pool
         self.orig_fnames.extend(fnames)
 
     def _peek_file_info(self, fname):
@@ -279,6 +282,6 @@ class LidarDataset(object):
             self.dims, 
             self.vars.keys(),
             self.desc)
-
+    
 if __name__ == '__main__':
     pass
