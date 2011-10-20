@@ -9,11 +9,12 @@
 
 from datetime import datetime, timedelta
 import numpy as np
-from netCDF4 import Dataset
+from netCDF4 import Dataset, date2num, num2date
 from metlib.datetime.datetime_bin import datetime_bin
 
 __all__ = ['LidarDataset']
 _std_datetime_fmt = "%Y-%m-%d %H:%M:%S"
+_std_datetime_units = "seconds since 1970-01-01 00:00:00"
 _NO_DESC_STR = "No description available"
 # # Table driven:
 # # varname, format, dim shape, 'must'/'optional', average method
@@ -117,8 +118,11 @@ class LidarDataset(object):
                 else:
                     _tmp_pool[vname][start_is[i]:end_is[i]] = f.variables[vname][:]
             f.close()
- 
-        _tmp_pool['datetime'] = np.array([datetime.strptime(datestr, _std_datetime_fmt) for datestr in _tmp_pool['datetime']])
+        datetime_type = type(_tmp_pool['datetime'][0])
+        if datetime_type == np.string_ or datetime_type == str:
+            _tmp_pool['datetime'] = np.array([datetime.strptime(datestr, _std_datetime_fmt) for datestr in _tmp_pool['datetime']])
+        else:
+            _tmp_pool['datetime'] = num2date(_tmp_pool['datetime'], units=_std_datetime_units)
 
         for attr, t, choice in _attrs:
             if choice is 'optional' and attr not in ref_attrs:
@@ -157,7 +161,7 @@ class LidarDataset(object):
         attrs['end_datetime'] = datetime.strptime(attrs['end_datetime'], _std_datetime_fmt)
         return attrs, dim_lens
 
-    def save(self, fname):
+    def save(self, fname, use_datetime_str=True):
         """Save into a netCDF4 file"""
         f = Dataset(fname, 'w', format='NETCDF4')
         for dname, length in self.dims.items():
@@ -166,11 +170,17 @@ class LidarDataset(object):
             else:
                 f.createDimension(dname, length)
         for vname, t, dimnames, choice, aver_method in _varnames:
-            f.createVariable(vname, t, dimnames)
             if vname == 'datetime':
-                for i, dt in enumerate(self.vars[vname]):
-                    f.variables[vname][i] = dt.strftime(_std_datetime_fmt)
+                if use_datetime_str:
+                    f.createVariable(vname, t, dimnames)
+                    for i, dt in enumerate(self.vars[vname]):
+                        f.variables[vname][i] = self.vars[vname][i].strftime(_std_datetime_fmt)
+                else:
+                    f.createVariable(vname, 'i4', dimnames)
+                    f.variables[vname].setncattr('units', _std_datetime_units)
+                    f.variables[vname][:] = date2num(self.vars[vname], _std_datetime_units)
             else:
+                f.createVariable(vname, t, dimnames)
                 f.variables[vname][:] = self.vars[vname]
     
         for attr, t, choice in _attrs:
