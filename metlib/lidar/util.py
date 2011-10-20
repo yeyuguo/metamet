@@ -23,7 +23,7 @@ def height_to_index(height, data, elev_angle, use_float_index=False):
     if use_float_index:
         return float_index
     else:
-        return np.round(float_index)
+        return np.round(float_index).astype('i')
 
 if __name__ == '__main__':
     pass
