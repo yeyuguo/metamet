@@ -8,5 +8,6 @@ from .lidar_ratio import *
 from .util import *
 from .io import *
 from .plot import *
+from .filter_cloud  import *
 
 __all__ = filter(lambda s: not s.startswith('_'), dir())
