@@ -37,7 +37,7 @@ def get_lidar_ratio(data, aod, lidar_constant, betam, C_contains_E=False, search
     check_i_end = height_to_index(300.0, data, elev_angle)
 #    print check_i_beg, check_i_end
     #print max_index
-    dz = data.vars['bin_size'] * 1E-3
+    dz = data.vars['bin_size'] * 1E-3 * np.sin(np.deg2rad(elev_angle))
     for i in range(len(test_sa)):
         sigma_a = fernald(data, lidar_constant, test_sa[i], betam, C_contains_E=C_contains_E, apply_on_data=False)
         to_check = sigma_a[..., check_i_beg:check_i_end]
