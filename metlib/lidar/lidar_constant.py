@@ -37,7 +37,7 @@ def get_lidar_constant(data, aod, height_range, betam, elev_angle, aod_ratio=1.0
 #    print expIntSigmam
     low_index, high_index = height_to_index(height_range, data, elev_angle)
 #    print low_index, high_index
-    CE_pool = d[:,:,low_index:high_index] / (betam[low_index:high_index] * expIntSigmam[low_index:high_index] * np.exp(-2.0 * aod * aod_ratio)) 
+    CE_pool = d[:,:,low_index:high_index] / (betam[low_index:high_index] * expIntSigmam[low_index:high_index] * np.exp(-2.0 * aod * aod_ratio / np.sin(np.deg2rad(elev_angle))) ) 
 #    print CE_pool
     lc_lines = np.array(ma.masked_invalid(CE_pool).mean(axis=-1)) / data.vars['energy']
 #    print lc_lines
