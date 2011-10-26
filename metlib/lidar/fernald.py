@@ -82,6 +82,7 @@ def fernald(data, lidar_constant, lidar_ratio, betam, fill_index=0, fill_aver_nu
     ba = XexpIntBm / bottom_term - betam 
     ba[...,:start_i] = 0.0
     sigma_a = ba * lidar_ratio
+    fill_lower_part(sigma_a, fill_index, fill_aver_num)
 #    print "ba: ", ba.shape
 #   plt.figure()
 #   plt.pcolormesh(ma.masked_invalid(ba[:,0,:]), vmin=0.0, vmax=0.0005)
@@ -160,7 +161,6 @@ def fernald_backward(data, lidar_constant, lidar_ratio, betam, C_contains_E=Fals
     ba = XexpIntBm / bottom_term - betam 
     ba[...,:start_i] = 0.0
     sigma_a = ba * lidar_ratio
-    fill_lower_part(sigma_a, fill_index, fill_aver_num)
 #    print "ba: ", ba.shape
 #   plt.figure()
 #   plt.pcolormesh(ma.masked_invalid(ba[:,0,:]), vmin=0.0, vmax=0.0005)
