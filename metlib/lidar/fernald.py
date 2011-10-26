@@ -95,8 +95,8 @@ def fernald(data, lidar_constant, lidar_ratio, betam, fill_index=0, fill_aver_nu
     return sigma_a.copy()
 
 
-def fernald_back(data, lidar_constant, lidar_ratio, betam, C_contains_E=False, apply_on_data=False):
-    # TODO: implement fernald_back
+def fernald_backward(data, lidar_constant, lidar_ratio, betam, C_contains_E=False, apply_on_data=False):
+    # TODO: implement fernald_backward
     """fernald 1984's retrieval method.
     data: a LidarDataset object which contains normalized data.
     lidar_constant: lidar constant.
