@@ -14,6 +14,7 @@ import numpy as np
 from lidar import LidarDataset
 __all__ = ['correct_background', 'correct_afterpulse',
         'correct_overlap', 'correct_distance',
+        'fill_lower_part',
         'zero_blind_range']
 
 def correct_background(data, sample_number=None):
@@ -60,6 +61,20 @@ def correct_distance(data):
     """
     data.vars['data'] *= (data.vars['distance'] ** 2 * 1E-6)
     data.desc += ',distance corrected'
+
+def fill_lower_part(data, index, aver_num=3):
+    """fill the lower part with value above.
+    data: a LidarDataset object or an array
+    index: to be filled data ends here, valid data starts here.
+    aver_num: use data[..., index:index+aver_num].mean as fill value.
+    """
+    if type(data) is LidarDataset:
+        d = data.vars['data']
+    else:
+        d = data
+    to_fill = np.ma.masked_invalid(d[..., index:index+aver_num]).mean(axis=-1)[..., np.newaxis]
+    d[..., :index] = to_fill
+
 
 def zero_blind_range(data):
     """make the blind range zero.

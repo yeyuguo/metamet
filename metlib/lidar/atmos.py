@@ -11,7 +11,7 @@ import numpy as np
 #import matplotlib.pyplot as plt
 #from mpl_toolkits.basemap import Basemap
 #from matplotlib import mlab
-from lidar import LidarDataset
+from .lidar import LidarDataset
 
 __all__ = ['AtmosProfile', 'interp_p_t_profile', 'calc_betam',
         'prof_midlatitude_summer', 'prof_midlatitude_winter',
