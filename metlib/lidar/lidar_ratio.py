@@ -16,11 +16,13 @@ from .util import height_to_index
 
 __all__ = ['get_lidar_ratio']
 
-def get_lidar_ratio(data, aod, lidar_constant, betam, C_contains_E=False, search_range=(10.0, 100.0, 0.1), maxheight=5000.0, elev_angle=90.0):
+def get_lidar_ratio(data, aod, lidar_constant, betam, fill_index=0, fill_aver_num=1, C_contains_E=False, search_range=(10.0, 100.0, 0.1), maxheight=5000.0, elev_angle=90.0):
     """calculate lidar_ratio from aod data.
     data: a LidarDataset object
     aod: aod
     lidar_constant: lidar constant
+    betam: molecular backscatter
+    fill_index, fill_aver_num: data below this index will be filled with fill_aver_num samples above
     search_range: tuple of start, end, step of lidar ratio value to be tried.
 
     returns an array of lidar_ratios with the same length of data.
@@ -39,7 +41,7 @@ def get_lidar_ratio(data, aod, lidar_constant, betam, C_contains_E=False, search
     #print max_index
     dz = data.vars['bin_size'] * 1E-3 * np.sin(np.deg2rad(elev_angle))
     for i in range(len(test_sa)):
-        sigma_a = fernald(data, lidar_constant, test_sa[i], betam, C_contains_E=C_contains_E, apply_on_data=False)
+        sigma_a = fernald(data, lidar_constant, test_sa[i], betam, fill_index, fill_aver_num, C_contains_E=C_contains_E, apply_on_data=False)
         to_check = sigma_a[..., check_i_beg:check_i_end]
         if np.any(to_check <= 0.0) or np.any(to_check > 0.8):
 #            print "Warning: %s " % ( test_sa[i] ,)
