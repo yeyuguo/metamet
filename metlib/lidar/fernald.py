@@ -115,7 +115,7 @@ def fernald_ref(data, lidar_ratio, betam, ref_height, ref_sigma_a, ref_aver_num,
         start_i = 0
     dz = data.vars['bin_size'] / 1000.0    # convert to km
 
-    ref_index = height_to_index(ref_height, data, elev_angle)[0]
+    ref_index = height_to_index(ref_height, data, elev_angle)
     ref_beg_index = ref_index - ref_aver_num / 2
     ref_end_index = ref_beg_index + ref_aver_num
     Xref = np.ma.masked_invalid(data.vars['data'][..., ref_beg_index:ref_end_index]).mean(axis=-1)[..., np.newaxis]
