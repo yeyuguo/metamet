@@ -5,7 +5,7 @@
 
 import os, sys
 #import re
-#from datetime import datetime, timedelta
+from datetime import datetime, timedelta
 import numpy as np
 #import scipy as sp
 #from scipy.io.numpyio import fread as sp_fread
@@ -133,8 +133,10 @@ class Calmet6Dataset(object):
             self.COMMENT.append(comment)
         tmp, now_pos = self._read_record(now_pos, 'S', convert_type=_CalmetControlParas, add_to_dataset=True)
         self.NCELLFACE = self.NZ + 1
+        self.BEGTIME = datetime(self.IBYR, self.IBMO, self.IBDY, self.IBHR) + timedelta(seconds=int(self.IBSEC))
+        self.ENDTIME = datetime(self.IEYR, self.IEMO, self.IEDY, self.IEHR) + timedelta(seconds=int(self.IESEC))
         self.parameters.extend([n for n, t in _CalmetControlParas])
-        self.parameters.append('NCELLFACE')
+        self.parameters.extend(['NCELLFACE', 'BEGTIME', 'ENDTIME'])
         tmp, now_pos = self._read_record(now_pos, 'S', convert_type=_CalmetCellFaceHeights, add_to_dataset=True)
 
         if self.NSSTA >= 1:
