@@ -187,7 +187,7 @@ class Calmet6Dataset(object):
             if tmpW is not None:
                 self.CLABW = tmpW[0]
         if tmpU is not None:
-            self.NDATHRB, self.IBSEC, self.NDATHRE, self.IESEC = tmpU[1:5]
+            self.NDATHRB, self.IBSEC, self.NDATHRE, self.IESEC = list(tmpU)[1:5]
         self.var3d.extend(['U', 'V'])
         if self.LCALGRD:
             self.var3d.append('W')
