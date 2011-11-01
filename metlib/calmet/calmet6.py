@@ -91,8 +91,10 @@ class Calmet6Dataset(object):
     Some helper attrs: 
     data.parameters: list of parameters like 'NX', 'NY', etc, 
     invar: list of other header invariables
-    var2d: 2d vars like 'USTAR', 'RHO', 'ZI', etc
-    var3d: 3d vars like 'U', 'V', 'W', 'ZTEMP'
+    var2d: list of 2d vars like 'USTAR', 'RHO', 'ZI', etc
+    var3d: list of 3d vars like 'U', 'V', 'W', 'ZTEMP'
+    BEGTIME: begin time as a python datetime object
+    ENDTIME: end time as a python datetime object
     """
     
     def __init__(self, fname, bit=32):
