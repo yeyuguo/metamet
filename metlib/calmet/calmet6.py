@@ -16,9 +16,19 @@ import numpy as np
 #__all__ = ['CalmetDataset']
 _Calmet2DLabVar = [
         ('SC', 'IPGT'), ('US', 'USTAR'), ('ZI', 'ZI'), 
-        ('L', 'EL'), ('WS', 'WSTAR'), ('RMM', 'RMM'),
+        ('L', 'EL'), ('WS', 'WSTAR'), 
+        ('RMM', 'RMM'),
         ('TK', 'TEMPK'), ('D', 'RHO'), ('Q', 'QSW'),
-        ('RH', 'IRH'), ('PC', 'IPCODE')
+        ('RH', 'IRH'), 
+        ('PC', 'IPCODE')
+        ]
+_Calmet2DLabVarCALGRD = [
+        ('SC', 'IPGT'), ('US', 'USTAR'), ('ZI', 'ZI'), 
+        ('L', 'EL'), ('WS', 'WSTAR'), 
+        #('RMM', 'RMM'),
+        ('TK', 'TEMPK'), ('D', 'RHO'), ('Q', 'QSW'),
+        ('RH', 'IRH'), 
+        #('PC', 'IPCODE')
         ]
 _CalmetFileDecl = [
         ('DATASET', 'S16'), ('DATAVER','S16'), ('DATAMOD','S64')
@@ -93,8 +103,11 @@ class Calmet6Dataset(object):
     invar: list of other header invariables
     var2d: list of 2d vars like 'USTAR', 'RHO', 'ZI', etc
     var3d: list of 3d vars like 'U', 'V', 'W', 'ZTEMP'
-    BEGTIME: begin time as a python datetime object
-    ENDTIME: end time as a python datetime object
+    vartime: list of time vars: 'BEGTIME', 'ENDTIME'
+    TOTAL_BEGTIME: begin time as a python datetime object
+    TOTAL_ENDTIME: end time as a python datetime object
+    BEGTIME: array of each timestep's begin time
+    ENDTIME: array of each timestep's end time
     """
     
     def __init__(self, fname, bit=32):
@@ -135,10 +148,10 @@ class Calmet6Dataset(object):
             self.COMMENT.append(comment)
         tmp, now_pos = self._read_record(now_pos, 'S', convert_type=_CalmetControlParas, add_to_dataset=True)
         self.NCELLFACE = self.NZ + 1
-        self.BEGTIME = datetime(self.IBYR, self.IBMO, self.IBDY, self.IBHR) + timedelta(seconds=int(self.IBSEC))
-        self.ENDTIME = datetime(self.IEYR, self.IEMO, self.IEDY, self.IEHR) + timedelta(seconds=int(self.IESEC))
+        self.TOTAL_BEGTIME = datetime(self.IBYR, self.IBMO, self.IBDY, self.IBHR) + timedelta(seconds=int(self.IBSEC))
+        self.TOTAL_ENDTIME = datetime(self.IEYR, self.IEMO, self.IEDY, self.IEHR) + timedelta(seconds=int(self.IESEC))
         self.parameters.extend([n for n, t in _CalmetControlParas])
-        self.parameters.extend(['NCELLFACE', 'BEGTIME', 'ENDTIME'])
+        self.parameters.extend(['NCELLFACE', 'TOTAL_BEGTIME', 'TOTAL_ENDTIME'])
         tmp, now_pos = self._read_record(now_pos, 'S', convert_type=_CalmetCellFaceHeights, add_to_dataset=True)
 
         if self.NSSTA >= 1:
@@ -162,53 +175,72 @@ class Calmet6Dataset(object):
             self.invar.append('NEARS')
 
         # # Read Data
-        # # UVW
+        # # Option LCALGRD
+        MET2D_LIST = _Calmet2DLabVarCALGRD if self.LCALGRD else _Calmet2DLabVar
+        # # Create arrays
         UVW_jumpsize = 8 + 4 * np.dtype(self.INTTYPE).itemsize + self.NX * self.NY * np.dtype(self.REALTYPE).itemsize
-        self.U = np.zeros((self.NZ,self.NY,self.NX), dtype=self.REALTYPE)
-        self.V = np.zeros((self.NZ,self.NY,self.NX), dtype=self.REALTYPE)
-        if self.LCALGRD:
-            self.W = np.zeros((self.NZ,self.NY,self.NX), dtype=self.REALTYPE)
-        for k in range(self.NZ):
-            tmpU, now_pos = self._read_record(now_pos, 'S', convert_type=_CalmetData, jumpsize=UVW_jumpsize)
-            tmpV, now_pos = self._read_record(now_pos, 'S', convert_type=_CalmetData, jumpsize=UVW_jumpsize)
-            if tmpU is not None:
-                self.U[k] = tmpU[5]
-            if tmpV is not None:
-                self.V[k] = tmpV[5]
-            if self.LCALGRD:
-                tmpW, now_pos = self._read_record(now_pos, 'S', convert_type=_CalmetData, jumpsize=UVW_jumpsize)
-                if tmpW is not None:
-                    self.W[k] = tmpW[5]
-        if tmpU is not None:
-            self.CLABU = tmpU[0]
-        if tmpV is not None:
-            self.CLABV = tmpV[0]
-        if self.LCALGRD:
-            if tmpW is not None:
-                self.CLABW = tmpW[0]
-        if tmpU is not None:
-            self.NDATHRB, self.IBSEC, self.NDATHRE, self.IESEC = list(tmpU)[1:5]
+        self.U = np.zeros((self.IRLG,self.NZ,self.NY,self.NX), dtype=self.REALTYPE)
+        self.V = np.zeros((self.IRLG,self.NZ,self.NY,self.NX), dtype=self.REALTYPE)
         self.var3d.extend(['U', 'V'])
         if self.LCALGRD:
+            self.W = np.zeros((self.IRLG,self.NZ,self.NY,self.NX), dtype=self.REALTYPE)
             self.var3d.append('W')
-        # # Temperature
         if self.LCALGRD and self.IRTYPE == 1:
-            self.ZTEMP = np.zeros((self.NZ,self.NY,self.NX), dtype=self.REALTYPE)
-            for k in range(self.NZ):
-                tmpZTEMP, now_pos = self._read_record(now_pos, 'S', convert_type=_CalmetData, jumpsize=UVW_jumpsize)
-                if tmpZTEMP is not None:
-                    self.ZTEMP[k] = tmpZTEMP[5]
-            if tmpZTEMP is not None:
-                self.CLABT = tmpZTEMP[0]
+            self.ZTEMP = np.zeros((self.IRLG,self.NZ,self.NY,self.NX), dtype=self.REALTYPE)
             self.var3d.append('ZTEMP')
-        # # 2D Met Fields
         if self.IRTYPE == 1:
-            for labelname, varname in _Calmet2DLabVar:
-                dt = _CalmetDataI if varname.startswith('I') else _CalmetData
-                tmp, now_pos = self._read_record(now_pos, 'S', convert_type=dt)
-                self.__dict__['CLAB%s' % labelname] = tmp[0]
-                self.__dict__[varname] = tmp[5]
+            for labelname, varname in MET2D_LIST:
+                dt = 'i4' if varname.startswith('I') else 'f4'
+                self.__dict__[varname] = np.zeros((self.IRLG,self.NY,self.NX), dtype=dt)
                 self.var2d.append(varname)
+
+        # # BEGTIME and ENDTIME are datetime arrays, with shape (IRLG, )
+        self.BEGTIME = np.zeros((self.IRLG,), dtype='O')
+        self.ENDTIME = np.zeros((self.IRLG,), dtype='O')
+        self.vartime = ['BEGTIME', 'ENDTIME']
+
+        # # UVW
+        for t in range(self.IRLG):
+            for k in range(self.NZ):
+                tmpU, now_pos = self._read_record(now_pos, 'S', convert_type=_CalmetData, jumpsize=UVW_jumpsize)
+                tmpV, now_pos = self._read_record(now_pos, 'S', convert_type=_CalmetData, jumpsize=UVW_jumpsize)
+                if tmpU is not None:
+                    self.U[t,k] = tmpU[5]
+                if tmpV is not None:
+                    self.V[t,k] = tmpV[5]
+                if self.LCALGRD:
+                    tmpW, now_pos = self._read_record(now_pos, 'S', convert_type=_CalmetData, jumpsize=UVW_jumpsize)
+                    if tmpW is not None:
+                        self.W[t,k] = tmpW[5]
+            if tmpU is not None:
+                NDATHRB, IBSEC, NDATHRE, IESEC = list(tmpU)[1:5]
+                self.BEGTIME[t] = datetime.strptime(str(NDATHRB),"%Y%j%H") + timedelta(seconds=int(IBSEC))
+                self.ENDTIME[t] = datetime.strptime(str(NDATHRE),"%Y%j%H") + timedelta(seconds=int(IESEC))
+#                print self.BEGTIME[t], self.ENDTIME[t], now_pos
+            # # Temperature
+            if self.LCALGRD and self.IRTYPE == 1:
+                for k in range(self.NZ):
+                    tmpZTEMP, now_pos = self._read_record(now_pos, 'S', convert_type=_CalmetData, jumpsize=UVW_jumpsize)
+                    if tmpZTEMP is not None:
+                        self.ZTEMP[t,k] = tmpZTEMP[5]
+            # # 2D Met Fields
+            if self.IRTYPE == 1:
+                for labelname, varname in MET2D_LIST:
+                    dt = _CalmetDataI if varname.startswith('I') else _CalmetData
+                    tmp, now_pos = self._read_record(now_pos, 'S', convert_type=dt)
+#                    self.__dict__['CLAB%s' % labelname] = tmp[0]
+                    self.__dict__[varname][t] = tmp[5]
+        # # Useless Labels
+#        if tmpU is not None:
+#            self.CLABU = tmpU[0]
+#        if tmpV is not None:
+#            self.CLABV = tmpV[0]
+#        if self.LCALGRD:
+#            if tmpW is not None:
+#                self.CLABW = tmpW[0]
+#        if self.LCALGRD and self.IRTYPE == 1:
+#            if tmpZTEMP is not None:
+#                self.CLABT = tmpZTEMP[0]
 
     def _read_record(self, pos, dtype, shape=1, convert_type=None, add_to_dataset=False, jumpsize=0):
         recsize = np.memmap(self._f, dtype='i%d' % self._recheadlen, mode='c', offset=pos, shape=(1,))[0]
@@ -236,8 +268,9 @@ class Calmet6Dataset(object):
             data = np.fromfile(self._f, dtype=new_cv_type, count=1)[0]
             if add_to_dataset is True:
                 for i, cp in enumerate(new_cv_type):
-                    if not cp[0].startswith('IDUM'):
+                    if not cp[0].startswith('IDUM') and not cp[0].startswith('CLAB'):
                         self.__dict__[cp[0]] = data[i]
+#        print pos + recsize + self._recheadlen * 2
         return data, pos + recsize + self._recheadlen * 2
 
 
