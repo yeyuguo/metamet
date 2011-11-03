@@ -14,6 +14,7 @@ import numpy as np
 from lidar import LidarDataset
 __all__ = ['correct_background', 'correct_afterpulse',
         'correct_overlap', 'correct_distance',
+        'correct_energy',
         'fill_lower_part',
         'zero_blind_range']
 
@@ -61,6 +62,13 @@ def correct_distance(data):
     """
     data.vars['data'] *= (data.vars['distance'] ** 2 * 1E-6)
     data.desc += ',distance corrected'
+
+def correct_energy(data):
+    """correct energy.
+    data: a LidarDataset object.
+    """
+    data.vars['data'] /= data.vars['energy'][..., np.newaxis]
+    data.desc += ',energy corrected'
 
 def fill_lower_part(data, index, aver_num=3):
     """fill the lower part with value above.
