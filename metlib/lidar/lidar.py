@@ -159,6 +159,7 @@ class LidarDataset(object):
             attrs[attrname] = f.getncattr(attrname)
         attrs['start_datetime'] = datetime.strptime(attrs['start_datetime'], _std_datetime_fmt)
         attrs['end_datetime'] = datetime.strptime(attrs['end_datetime'], _std_datetime_fmt)
+        f.close()
         return attrs, dim_lens
 
     def save(self, fname, use_datetime_str=True):
