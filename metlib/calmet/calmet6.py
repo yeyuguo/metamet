@@ -247,6 +247,7 @@ class Calmet6Dataset(object):
     #            if tmpZTEMP is not None:
     #                self.CLABT = tmpZTEMP[0]
             except CalmetStopIteration:
+                sys.stderr.write("Warning: Calmet output file %s may be incomplete!\n" % self.fname)
                 break
 
     def _read_record(self, pos, dtype, shape=1, convert_type=None, add_to_dataset=False, jumpsize=0):
