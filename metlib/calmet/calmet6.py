@@ -14,6 +14,10 @@ import numpy as np
 #from matplotlib import mlab
 
 #__all__ = ['CalmetDataset']
+
+class CalmetStopIteration(Exception):
+    pass
+
 _Calmet2DLabVar = [
         ('SC', 'IPGT'), ('US', 'USTAR'), ('ZI', 'ZI'), 
         ('L', 'EL'), ('WS', 'WSTAR'), 
@@ -201,49 +205,56 @@ class Calmet6Dataset(object):
 
         # # UVW
         for t in range(self.IRLG):
-            for k in range(self.NZ):
-                tmpU, now_pos = self._read_record(now_pos, 'S', convert_type=_CalmetData, jumpsize=UVW_jumpsize)
-                tmpV, now_pos = self._read_record(now_pos, 'S', convert_type=_CalmetData, jumpsize=UVW_jumpsize)
-                if tmpU is not None:
-                    self.U[t,k] = tmpU[5]
-                if tmpV is not None:
-                    self.V[t,k] = tmpV[5]
-                if self.LCALGRD:
-                    tmpW, now_pos = self._read_record(now_pos, 'S', convert_type=_CalmetData, jumpsize=UVW_jumpsize)
-                    if tmpW is not None:
-                        self.W[t,k] = tmpW[5]
-            if tmpU is not None:
-                NDATHRB, IBSEC, NDATHRE, IESEC = list(tmpU)[1:5]
-                self.BEGTIME[t] = datetime.strptime(str(NDATHRB),"%Y%j%H") + timedelta(seconds=int(IBSEC))
-                self.ENDTIME[t] = datetime.strptime(str(NDATHRE),"%Y%j%H") + timedelta(seconds=int(IESEC))
-#                print self.BEGTIME[t], self.ENDTIME[t], now_pos
-            # # Temperature
-            if self.LCALGRD and self.IRTYPE == 1:
+            try:
                 for k in range(self.NZ):
-                    tmpZTEMP, now_pos = self._read_record(now_pos, 'S', convert_type=_CalmetData, jumpsize=UVW_jumpsize)
-                    if tmpZTEMP is not None:
-                        self.ZTEMP[t,k] = tmpZTEMP[5]
-            # # 2D Met Fields
-            if self.IRTYPE == 1:
-                for labelname, varname in MET2D_LIST:
-                    dt = _CalmetDataI if varname.startswith('I') else _CalmetData
-                    tmp, now_pos = self._read_record(now_pos, 'S', convert_type=dt)
-#                    self.__dict__['CLAB%s' % labelname] = tmp[0]
-                    self.__dict__[varname][t] = tmp[5]
-        # # Useless Labels
-#        if tmpU is not None:
-#            self.CLABU = tmpU[0]
-#        if tmpV is not None:
-#            self.CLABV = tmpV[0]
-#        if self.LCALGRD:
-#            if tmpW is not None:
-#                self.CLABW = tmpW[0]
-#        if self.LCALGRD and self.IRTYPE == 1:
-#            if tmpZTEMP is not None:
-#                self.CLABT = tmpZTEMP[0]
+                    tmpU, now_pos = self._read_record(now_pos, 'S', convert_type=_CalmetData, jumpsize=UVW_jumpsize)
+                    tmpV, now_pos = self._read_record(now_pos, 'S', convert_type=_CalmetData, jumpsize=UVW_jumpsize)
+                    if tmpU is not None:
+                        self.U[t,k] = tmpU[5]
+                    if tmpV is not None:
+                        self.V[t,k] = tmpV[5]
+                    if self.LCALGRD:
+                        tmpW, now_pos = self._read_record(now_pos, 'S', convert_type=_CalmetData, jumpsize=UVW_jumpsize)
+                        if tmpW is not None:
+                            self.W[t,k] = tmpW[5]
+                if tmpU is not None:
+                    NDATHRB, IBSEC, NDATHRE, IESEC = list(tmpU)[1:5]
+                    self.BEGTIME[t] = datetime.strptime(str(NDATHRB),"%Y%j%H") + timedelta(seconds=int(IBSEC))
+                    self.ENDTIME[t] = datetime.strptime(str(NDATHRE),"%Y%j%H") + timedelta(seconds=int(IESEC))
+    #                print self.BEGTIME[t], self.ENDTIME[t], now_pos
+                # # Temperature
+                if self.LCALGRD and self.IRTYPE == 1:
+                    for k in range(self.NZ):
+                        tmpZTEMP, now_pos = self._read_record(now_pos, 'S', convert_type=_CalmetData, jumpsize=UVW_jumpsize)
+                        if tmpZTEMP is not None:
+                            self.ZTEMP[t,k] = tmpZTEMP[5]
+                # # 2D Met Fields
+                if self.IRTYPE == 1:
+                    for labelname, varname in MET2D_LIST:
+                        dt = _CalmetDataI if varname.startswith('I') else _CalmetData
+                        tmp, now_pos = self._read_record(now_pos, 'S', convert_type=dt)
+    #                    self.__dict__['CLAB%s' % labelname] = tmp[0]
+                        self.__dict__[varname][t] = tmp[5]
+            # # Useless Labels
+    #        if tmpU is not None:
+    #            self.CLABU = tmpU[0]
+    #        if tmpV is not None:
+    #            self.CLABV = tmpV[0]
+    #        if self.LCALGRD:
+    #            if tmpW is not None:
+    #                self.CLABW = tmpW[0]
+    #        if self.LCALGRD and self.IRTYPE == 1:
+    #            if tmpZTEMP is not None:
+    #                self.CLABT = tmpZTEMP[0]
+            except CalmetStopIteration:
+                break
 
     def _read_record(self, pos, dtype, shape=1, convert_type=None, add_to_dataset=False, jumpsize=0):
-        recsize = np.memmap(self._f, dtype='i%d' % self._recheadlen, mode='c', offset=pos, shape=(1,))[0]
+        try:
+            recsize = np.memmap(self._f, dtype='i%d' % self._recheadlen, mode='c', offset=pos, shape=(1,))[0]
+        except ValueError:
+            raise CalmetStopIteration
+
         if recsize == 0:
             return None, pos + jumpsize + self._recheadlen * 2
         if convert_type is None:
