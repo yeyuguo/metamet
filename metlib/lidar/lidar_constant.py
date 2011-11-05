@@ -13,7 +13,7 @@ import numpy.ma as ma
 #from mpl_toolkits.basemap import Basemap
 #from matplotlib import mlab
 from .constant import lidar_sm
-from .util import height_to_index
+from .lidarutil import height_to_index
 
 __all__ = ['get_lidar_constant']
 

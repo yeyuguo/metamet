@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 #from mpl_toolkits.basemap import Basemap
 #from matplotlib import mlab
 from .constant import lidar_sm
-from .util import height_to_index
+from .lidarutil import height_to_index
 from .process import fill_lower_part
 
 __all__ = ['fernald', 'fernald_ref']

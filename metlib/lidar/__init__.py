@@ -5,9 +5,9 @@ from .process import *
 from .fernald import *
 from .lidar_constant import *
 from .lidar_ratio import *
-from .util import *
+from .lidarutil import *
 from .io import *
-from .plot import *
+from .lidarplot import *
 from .filter_cloud  import *
 
 __all__ = filter(lambda s: not s.startswith('_'), dir())
