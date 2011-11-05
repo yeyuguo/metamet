@@ -12,7 +12,7 @@ import numpy as np
 #from mpl_toolkits.basemap import Basemap
 #from matplotlib import mlab
 from .fernald import fernald
-from .util import height_to_index
+from .lidarutil import height_to_index
 
 __all__ = ['get_lidar_ratio']
 

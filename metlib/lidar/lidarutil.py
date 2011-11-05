@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
-# util.py
+# lidarutil.py
 
 import os, sys
 #import re
