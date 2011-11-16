@@ -241,15 +241,16 @@ class LidarDataset(object):
                     elif aver_method == 'sqr_mean_sqrt':
                         # # for std_dev 
                         tmp[vname][i] = np.sqrt(np.mean(self.vars[vname][w] ** 2, axis=0))
-
         self.vars.update(tmp)
-        if starttime is not None:
-            self.vars['start_datetime'] = self.vars['datetime'][0]
-        if endtime is not None:
-            self.vars['end_datetime'] = self.vars['datetime'][-1]
-        self.vars['number_records'] = len(tbins)
-        self.dims['TIME'] = len(tbins)
-    
+        self._recheck_time()
+
+    def _recheck_time(self):
+        n_tbins = len(self.vars['datetime'])
+        self.vars['start_datetime'] = self.vars['datetime'][0]
+        self.vars['end_datetime'] = self.vars['datetime'][-1] + timedelta(seconds = int(self.vars['shots_sum'][-1] / self.vars['trigger_frequency'][-1]))
+        self.vars['number_records'] = n_tbins
+        self.dims['TIME'] = n_tbins
+
     def trim_period(self, starttime, endtime):
         """Trim unwanted data, leaving data between start_time and end_time only.
         """
@@ -264,14 +265,7 @@ class LidarDataset(object):
             tmp[vname] = self.vars[vname][choosen_w]
 
         self.vars.update(tmp)
-        self.vars['number_records'] = new_time_steps
-        if starttime is not None:
-            self.vars['start_datetime'] = self.vars['datetime'][0]
-        if endtime is not None:
-            self.vars['end_datetime'] = self.vars['datetime'][-1]
-        self.dims['TIME'] = new_time_steps
-
-
+        self._recheck_time()
 
     def resize_bin(self, start_i, end_i):
         """resize data's BIN dim in python's manner: data[start_i:end_i]
