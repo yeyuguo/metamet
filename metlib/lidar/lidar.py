@@ -251,6 +251,29 @@ class LidarDataset(object):
         self.vars['number_records'] = n_tbins
         self.dims['TIME'] = n_tbins
 
+    def get_timedeltas(self, return_seconds=True):
+        """Get array of each record's time span. 
+        if return_seconds is True: return in seconds
+        else: return in timedelta objects.
+        """
+        seconds = (self.vars['shots_sum'] / self.vars['trigger_frequency']).astype('i8')
+        if return_seconds:
+            return seconds
+        else:
+            tds = np.array([timedelta(seconds = int(s)) for s in seconds])
+            return tds
+
+    def get_end_datetimes(self):
+        """Get array of each record's end datetimes"""
+        tds = self.get_timedeltas(return_seconds=False)
+        return self.vars['datetime'] + tds
+
+    def get_mid_datetimes(self):
+        """Get array of each record's mid datetimes"""
+        tds = self.get_timedeltas(return_seconds=False)
+        return self.vars['datetime'] + tds / 2
+
+
     def trim_period(self, starttime, endtime):
         """Trim unwanted data, leaving data between start_time and end_time only.
         """
