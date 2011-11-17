@@ -37,6 +37,16 @@ _varnames = (
         ('background_std_dev', 'f4', ('TIME', 'CHANNEL'), 'optional', 'sqr_mean_sqrt'),
         ('energy', 'f4', ('TIME', 'CHANNEL'), 'must', 'sum'),
         ('temp', 'f4', ('TIME','TEMP'), 'optional', 'mean'),
+        ('iflag1', 'i4', ('TIME', 'CHANNEL'), 'optional', 'mean'),
+        ('iflag2', 'i4', ('TIME', 'CHANNEL'), 'optional', 'mean'),
+        ('iflag3', 'i4', ('TIME', 'CHANNEL'), 'optional', 'mean'),
+        ('iflag4', 'i4', ('TIME', 'CHANNEL'), 'optional', 'mean'),
+        ('iflag5', 'i4', ('TIME', 'CHANNEL'), 'optional', 'mean'),
+        ('fflag1', 'f4', ('TIME', 'CHANNEL'), 'optional', 'mean'),
+        ('fflag2', 'f4', ('TIME', 'CHANNEL'), 'optional', 'mean'),
+        ('fflag3', 'f4', ('TIME', 'CHANNEL'), 'optional', 'mean'),
+        ('fflag4', 'f4', ('TIME', 'CHANNEL'), 'optional', 'mean'),
+        ('fflag5', 'f4', ('TIME', 'CHANNEL'), 'optional', 'mean'),
         )
 _attrs = (
         ('lidarname', str, 'must'),
@@ -48,6 +58,22 @@ _attrs = (
         ('number_records', 'i4', 'must'),
         ('number_bins', 'i4', 'must'),
         ('number_channels', 'i4', 'must'),
+        ('data_aver_method', str, 'optional'),
+        ('iattr1', 'i4', 'optional'),
+        ('iattr2', 'i4', 'optional'),
+        ('iattr3', 'i4', 'optional'),
+        ('iattr4', 'i4', 'optional'),
+        ('iattr5', 'i4', 'optional'),
+        ('fattr1', 'f4', 'optional'),
+        ('fattr2', 'f4', 'optional'),
+        ('fattr3', 'f4', 'optional'),
+        ('fattr4', 'f4', 'optional'),
+        ('fattr5', 'f4', 'optional'),
+        ('sattr1', str, 'optional'),
+        ('sattr2', str, 'optional'),
+        ('sattr3', str, 'optional'),
+        ('sattr4', str, 'optional'),
+        ('sattr5', str, 'optional'),
         )
 
 
@@ -61,8 +87,7 @@ class LidarDataset(object):
         """
         self.orig_fnames = []
         self._vars_inited = False
-        self._used_vnames = set()
-        self._used_attrs = set()
+        self._used_var_attr_names = set()
         self.dims = dict()
         self.dims['BIN'] = bin_num
         self.desc = _NO_DESC_STR
@@ -71,6 +96,9 @@ class LidarDataset(object):
             f = Dataset(self.orig_fnames[0])
             if 'desc' in f.ncattrs():
                 self.desc = "%s" % (f.getncattr('desc'), )
+            if 'data_aver_method' not in f.ncattrs():
+                self.vars['data_aver_method'] = 'sum'
+                self._used_var_attr_names.add('data_aver_method')
             f.close()
 
     def copy(self):
@@ -121,7 +149,7 @@ class LidarDataset(object):
                 if choice is 'optional' and vname not in f.variables:
                     continue
                 else:
-                    self._used_vnames.add(vname)
+                    self._used_var_attr_names.add(vname)
                 if dimnames == ('BIN',):
                     if i == 0:
                         _tmp_pool[vname][:] = f.variables[vname][:proper_dims['BIN']]
@@ -140,7 +168,7 @@ class LidarDataset(object):
             if choice is 'optional' and attr not in ref_attrs:
                 continue
             else:
-                self._used_attrs.add(attr)
+                self._used_var_attr_names.add(attr)
             _tmp_pool[attr] = ref_attrs[attr]
         _tmp_pool['start_datetime'] = all_start_datetime
         _tmp_pool['end_datetime'] = all_end_datetime
@@ -185,7 +213,7 @@ class LidarDataset(object):
             else:
                 f.createDimension(dname, length)
         for vname, t, dimnames, choice, aver_method in _varnames:
-            if vname not in self._used_vnames:
+            if vname not in self._used_var_attr_names:
                 continue
             if vname == 'datetime':
                 if use_datetime_str:
@@ -201,7 +229,7 @@ class LidarDataset(object):
                 f.variables[vname][:] = self.vars[vname]
     
         for attr, t, choice in _attrs:
-            if attr not in self._used_attrs:
+            if attr not in self._used_var_attr_names:
                 continue
             if attr in ('start_datetime', 'end_datetime'):
                 f.setncattr(attr, self.vars[attr].strftime(_std_datetime_fmt))
@@ -239,6 +267,13 @@ class LidarDataset(object):
                 if vname == 'datetime':
                     # # using each tbins' starttime as datetime
                     tmp[vname][i] = info[i][0]
+                elif vname == 'data':
+                    if self.vars['data_aver_method'] == 'sum':
+                        tmp[vname][i] = self.vars[vname][w].sum(axis=0)
+                    elif self.vars['data_aver_method'] == 'mean':
+                        tmp[vname][i] = self.vars[vname][w].mean(axis=0)
+                    else:
+                        sys.stderr.write('Lidar data average method: %s not implemented\n' % self.vars['data_aver_method'])
                 elif len(w[0]) == 0:
                     # # filling with nan or 0
                     if t not in ('f4', 'f8', 'd', 'g', float, np.float32, np.float64, np.float_, np.single, np.double):
@@ -330,6 +365,13 @@ class LidarDataset(object):
             return new_data
         elif isinstance(key, (str, unicode)):
             return self.vars[key]
+
+    def __setitem__(self, key, value):
+        if isinstance(key, (str, unicode)):
+            self.vars[key] = value
+            self._used_var_attr_names.add(key)
+        else:
+            sys.stderr.write('Warning: key is not str, not setting LidarDataset property\n')
             
     def resize_bin(self, start_i, end_i):
         """resize data's BIN dim in python's manner: data[start_i:end_i]
