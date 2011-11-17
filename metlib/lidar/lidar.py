@@ -8,6 +8,7 @@
 """
 
 from datetime import datetime, timedelta
+from copy import copy, deepcopy
 import numpy as np
 from netCDF4 import Dataset, date2num, num2date
 from metlib.datetime.datetime_bin import datetime_bin
@@ -60,6 +61,8 @@ class LidarDataset(object):
         """
         self.orig_fnames = []
         self._vars_inited = False
+        self._used_vnames = set()
+        self._used_attrs = set()
         self.dims = dict()
         self.dims['BIN'] = bin_num
         self.desc = _NO_DESC_STR
@@ -69,7 +72,10 @@ class LidarDataset(object):
             if 'desc' in f.ncattrs():
                 self.desc = "%s" % (f.getncattr('desc'), )
             f.close()
-    
+
+    def copy(self):
+        return deepcopy(self)
+
     def append_files(self, fnames):
         """append one or more files to the dataset
         fnames: a seq of filenames or a single filename or a str of filenames seperated with comma."""
@@ -114,6 +120,8 @@ class LidarDataset(object):
             for vname, t, dimnames, choice, aver_method in _varnames:
                 if choice is 'optional' and vname not in f.variables:
                     continue
+                else:
+                    self._used_vnames.add(vname)
                 if dimnames == ('BIN',):
                     if i == 0:
                         _tmp_pool[vname][:] = f.variables[vname][:proper_dims['BIN']]
@@ -131,6 +139,8 @@ class LidarDataset(object):
         for attr, t, choice in _attrs:
             if choice is 'optional' and attr not in ref_attrs:
                 continue
+            else:
+                self._used_attrs.add(attr)
             _tmp_pool[attr] = ref_attrs[attr]
         _tmp_pool['start_datetime'] = all_start_datetime
         _tmp_pool['end_datetime'] = all_end_datetime
@@ -175,6 +185,8 @@ class LidarDataset(object):
             else:
                 f.createDimension(dname, length)
         for vname, t, dimnames, choice, aver_method in _varnames:
+            if vname not in self._used_vnames:
+                continue
             if vname == 'datetime':
                 if use_datetime_str:
                     f.createVariable(vname, t, dimnames)
@@ -189,6 +201,8 @@ class LidarDataset(object):
                 f.variables[vname][:] = self.vars[vname]
     
         for attr, t, choice in _attrs:
+            if attr not in self._used_attrs:
+                continue
             if attr in ('start_datetime', 'end_datetime'):
                 f.setncattr(attr, self.vars[attr].strftime(_std_datetime_fmt))
             else:
@@ -244,6 +258,9 @@ class LidarDataset(object):
         self.vars.update(tmp)
         self._recheck_time()
 
+    def __len__(self):
+        return self.dims['TIME']
+
     def _recheck_time(self):
         n_tbins = len(self.vars['datetime'])
         self.vars['start_datetime'] = self.vars['datetime'][0]
@@ -290,6 +307,29 @@ class LidarDataset(object):
         self.vars.update(tmp)
         self._recheck_time()
 
+    def __getitem__(self, key):
+        """return a new LidarDataset object that contains the slice (in TIME dimension) if key is slice or integer. 
+        return corresponding data if key is str
+        """
+        if isinstance(key, slice):
+            new_data = self.copy()
+            for vname, t, dimnames, choice, aver_method in _varnames:
+                if 'TIME' not in dimnames:
+                    continue
+                new_data.vars[vname] = new_data.vars[vname][key]
+            new_data._recheck_time()
+            return new_data
+        elif isinstance(key, (int, long, np.integer)):
+            new_data = self.copy()
+            for vname, t, dimnames, choice, aver_method in _varnames:
+                if 'TIME' not in dimnames:
+                    continue
+                new_data.vars[vname] = np.array(new_data.vars[vname][key])[np.newaxis, ...]
+            new_data._recheck_time()
+            return new_data
+        elif isinstance(key, (str, unicode)):
+            return self.vars[key]
+            
     def resize_bin(self, start_i, end_i):
         """resize data's BIN dim in python's manner: data[start_i:end_i]
         """
