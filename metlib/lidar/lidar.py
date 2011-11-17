@@ -256,12 +256,13 @@ class LidarDataset(object):
                         # # for std_dev 
                         tmp[vname][i] = np.sqrt(np.mean(self.vars[vname][w] ** 2, axis=0))
         self.vars.update(tmp)
-        self._recheck_time()
+        self.recheck_time()
 
     def __len__(self):
         return self.dims['TIME']
 
-    def _recheck_time(self):
+    def recheck_time(self):
+        """recheck stuffs about time dimension"""
         n_tbins = len(self.vars['datetime'])
         self.vars['start_datetime'] = self.vars['datetime'][0]
         self.vars['end_datetime'] = self.vars['datetime'][-1] + timedelta(seconds = int(self.vars['shots_sum'][-1] / self.vars['trigger_frequency'][-1]))
@@ -305,7 +306,7 @@ class LidarDataset(object):
             tmp[vname] = self.vars[vname][choosen_w]
 
         self.vars.update(tmp)
-        self._recheck_time()
+        self.recheck_time()
 
     def __getitem__(self, key):
         """return a new LidarDataset object that contains the slice (in TIME dimension) if key is slice or integer. 
@@ -317,7 +318,7 @@ class LidarDataset(object):
                 if 'TIME' not in dimnames:
                     continue
                 new_data.vars[vname] = new_data.vars[vname][key]
-            new_data._recheck_time()
+            new_data.recheck_time()
             return new_data
         elif isinstance(key, (int, long, np.integer)):
             new_data = self.copy()
@@ -325,7 +326,7 @@ class LidarDataset(object):
                 if 'TIME' not in dimnames:
                     continue
                 new_data.vars[vname] = np.array(new_data.vars[vname][key])[np.newaxis, ...]
-            new_data._recheck_time()
+            new_data.recheck_time()
             return new_data
         elif isinstance(key, (str, unicode)):
             return self.vars[key]
@@ -345,15 +346,19 @@ class LidarDataset(object):
 
     def __str__(self):
         return """    lidarname: %s
+    desc: %s
     time period: %s - %s
     dims: %s
     vars: %s
-    desc: %s
     """ % ( self.vars['lidarname'],
+            self.desc,
             self.vars['start_datetime'], self.vars['end_datetime'],
             self.dims, 
             self.vars.keys(),
-            self.desc)
+            )
+
+    def __repr__(self):
+        return __str__(self)
     
 if __name__ == '__main__':
     pass
