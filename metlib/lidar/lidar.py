@@ -358,7 +358,7 @@ class LidarDataset(object):
             )
 
     def __repr__(self):
-        return __str__(self)
+        return self.__str__()
     
 if __name__ == '__main__':
     pass
