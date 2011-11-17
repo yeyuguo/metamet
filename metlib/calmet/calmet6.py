@@ -13,7 +13,7 @@ import numpy as np
 #from mpl_toolkits.basemap import Basemap
 #from matplotlib import mlab
 
-#__all__ = ['CalmetDataset']
+__all__ = ['Calmet6Dataset']
 
 class CalmetStopIteration(Exception):
     pass
