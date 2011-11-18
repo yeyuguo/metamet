@@ -30,12 +30,13 @@ def filter_cloud(data, gate, repeat=1, start_index=0, fillvalue=np.nan):
     det = cr[..., repeat-1:].copy()
     for i in range(1,repeat):
         det = det & cr[..., repeat-1-i:-i]
+    # treat as cloud if any channel has cloud
     final = np.logical_or.accumulate(det, axis=1)
     if start_index < repeat :
         start_index = repeat 
     # The trick of including one pixel under start_index makes that if there's no True value, 
-    # it will return the index below start_index, which is filtered by the compare below
-    indexs = (final[..., start_index-1:].argmax(axis=-1) + start_index - 1 + repeat - 1).reshape(final.shape[0])
+    # it will return the index below start_index, which is filtered by the tricky compare below. Using start_index-1 to cope with the situation when all False(no cloud), then in the following check: if index[i] >= start_index..., start_index-1 will be filter out. Too tricky anyway.
+    indexs = (final[..., start_index-1:].argmax(axis=-1) + start_index - 1).reshape(final.shape[0])
 #    print indexs
     
     newdata = data.copy()
