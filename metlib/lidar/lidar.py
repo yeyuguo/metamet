@@ -6,7 +6,7 @@
     TODO: add support for loading short lines.
     TODO: make 'must'/'optional' work
 """
-
+import sys
 from datetime import datetime, timedelta
 from copy import copy, deepcopy
 import numpy as np
@@ -50,6 +50,14 @@ _attrs = (
         ('number_channels', 'i4', 'must'),
         ('data_aver_method', str, 'optional'),
         )
+
+_important_attrs = set([
+    'lidarname', 'bin_time', 'bin_size', 
+    'first_data_bin', 'start_datetime', 'end_datetime', 
+    'number_records', 'number_bins', 'number_channels',
+    'max_range',
+    'data_aver_method','desc'
+    ])
 
 
 class LidarDataset(object):
@@ -343,7 +351,23 @@ class LidarDataset(object):
             self._used_attr_names.add(key)
         else:
             sys.stderr.write('Warning: key is not str, not setting LidarDataset property\n')
-            
+
+    def __delitem__(self, key):
+        if isinstance(key, (str, unicode)):
+            if key in self._used_attr_names:
+                if key in _important_attrs:
+                    sys.stderr.write("Warning: Not deleting important attr: %s \n" % key)
+                    return
+                try:
+                    del self.vars[key]
+                    self._used_attr_names.remove(key)
+                except:
+                    sys.stderr.write("Warning: cannot delete attr: %s \n" % key)
+            elif key in self._used_var_names:
+                sys.stderr.write("Warning: Not deleting LidarDataset's Variable %s \n" % key)
+            else:
+                sys.stderr.write("Warning: no such attr: %s \n" % key)
+
     def resize_bin(self, start_i, end_i):
         """resize data's BIN dim in python's manner: data[start_i:end_i]
         """
