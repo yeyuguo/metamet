@@ -6,7 +6,7 @@
     TODO: add support for loading short lines.
     TODO: make 'must'/'optional' work
 """
-
+import sys
 from datetime import datetime, timedelta
 from copy import copy, deepcopy
 import numpy as np
@@ -37,16 +37,6 @@ _varnames = (
         ('background_std_dev', 'f4', ('TIME', 'CHANNEL'), 'optional', 'sqr_mean_sqrt'),
         ('energy', 'f4', ('TIME', 'CHANNEL'), 'must', 'sum'),
         ('temp', 'f4', ('TIME','TEMP'), 'optional', 'mean'),
-        ('iflag1', 'i4', ('TIME', 'CHANNEL'), 'optional', 'mean'),
-        ('iflag2', 'i4', ('TIME', 'CHANNEL'), 'optional', 'mean'),
-        ('iflag3', 'i4', ('TIME', 'CHANNEL'), 'optional', 'mean'),
-        ('iflag4', 'i4', ('TIME', 'CHANNEL'), 'optional', 'mean'),
-        ('iflag5', 'i4', ('TIME', 'CHANNEL'), 'optional', 'mean'),
-        ('fflag1', 'f4', ('TIME', 'CHANNEL'), 'optional', 'mean'),
-        ('fflag2', 'f4', ('TIME', 'CHANNEL'), 'optional', 'mean'),
-        ('fflag3', 'f4', ('TIME', 'CHANNEL'), 'optional', 'mean'),
-        ('fflag4', 'f4', ('TIME', 'CHANNEL'), 'optional', 'mean'),
-        ('fflag5', 'f4', ('TIME', 'CHANNEL'), 'optional', 'mean'),
         )
 _attrs = (
         ('lidarname', str, 'must'),
@@ -59,22 +49,15 @@ _attrs = (
         ('number_bins', 'i4', 'must'),
         ('number_channels', 'i4', 'must'),
         ('data_aver_method', str, 'optional'),
-        ('iattr1', 'i4', 'optional'),
-        ('iattr2', 'i4', 'optional'),
-        ('iattr3', 'i4', 'optional'),
-        ('iattr4', 'i4', 'optional'),
-        ('iattr5', 'i4', 'optional'),
-        ('fattr1', 'f4', 'optional'),
-        ('fattr2', 'f4', 'optional'),
-        ('fattr3', 'f4', 'optional'),
-        ('fattr4', 'f4', 'optional'),
-        ('fattr5', 'f4', 'optional'),
-        ('sattr1', str, 'optional'),
-        ('sattr2', str, 'optional'),
-        ('sattr3', str, 'optional'),
-        ('sattr4', str, 'optional'),
-        ('sattr5', str, 'optional'),
         )
+
+_important_attrs = set([
+    'lidarname', 'bin_time', 'bin_size', 
+    'first_data_bin', 'start_datetime', 'end_datetime', 
+    'number_records', 'number_bins', 'number_channels',
+    'max_range',
+    'data_aver_method','desc'
+    ])
 
 
 class LidarDataset(object):
@@ -87,7 +70,8 @@ class LidarDataset(object):
         """
         self.orig_fnames = []
         self._vars_inited = False
-        self._used_var_attr_names = set()
+        self._used_var_names = set()
+        self._used_attr_names = set()
         self.dims = dict()
         self.dims['BIN'] = bin_num
         self.desc = _NO_DESC_STR
@@ -98,7 +82,7 @@ class LidarDataset(object):
                 self.desc = "%s" % (f.getncattr('desc'), )
             if 'data_aver_method' not in f.ncattrs():
                 self.vars['data_aver_method'] = 'sum'
-                self._used_var_attr_names.add('data_aver_method')
+                self._used_attr_names.add('data_aver_method')
             f.close()
 
     def copy(self):
@@ -149,7 +133,7 @@ class LidarDataset(object):
                 if choice is 'optional' and vname not in f.variables:
                     continue
                 else:
-                    self._used_var_attr_names.add(vname)
+                    self._used_var_names.add(vname)
                 if dimnames == ('BIN',):
                     if i == 0:
                         _tmp_pool[vname][:] = f.variables[vname][:proper_dims['BIN']]
@@ -164,11 +148,8 @@ class LidarDataset(object):
         else:
             _tmp_pool['datetime'] = num2date(_tmp_pool['datetime'], units=_std_datetime_units)
 
-        for attr, t, choice in _attrs:
-            if choice is 'optional' and attr not in ref_attrs:
-                continue
-            else:
-                self._used_var_attr_names.add(attr)
+        for attr in ref_attrs.keys():
+            self._used_attr_names.add(attr)
             _tmp_pool[attr] = ref_attrs[attr]
         _tmp_pool['start_datetime'] = all_start_datetime
         _tmp_pool['end_datetime'] = all_end_datetime
@@ -213,7 +194,7 @@ class LidarDataset(object):
             else:
                 f.createDimension(dname, length)
         for vname, t, dimnames, choice, aver_method in _varnames:
-            if vname not in self._used_var_attr_names:
+            if vname not in self._used_var_names:
                 continue
             if vname == 'datetime':
                 if use_datetime_str:
@@ -228,10 +209,8 @@ class LidarDataset(object):
                 f.createVariable(vname, t, dimnames)
                 f.variables[vname][:] = self.vars[vname]
     
-        for attr, t, choice in _attrs:
-            if attr not in self._used_var_attr_names:
-                continue
-            if attr in ('start_datetime', 'end_datetime'):
+        for attr in self._used_attr_names:
+            if isinstance(self.vars[attr], datetime):
                 f.setncattr(attr, self.vars[attr].strftime(_std_datetime_fmt))
             else:
                 f.setncattr(attr, self.vars[attr])
@@ -369,10 +348,26 @@ class LidarDataset(object):
     def __setitem__(self, key, value):
         if isinstance(key, (str, unicode)):
             self.vars[key] = value
-            self._used_var_attr_names.add(key)
+            self._used_attr_names.add(key)
         else:
             sys.stderr.write('Warning: key is not str, not setting LidarDataset property\n')
-            
+
+    def __delitem__(self, key):
+        if isinstance(key, (str, unicode)):
+            if key in self._used_attr_names:
+                if key in _important_attrs:
+                    sys.stderr.write("Warning: Not deleting important attr: %s \n" % key)
+                    return
+                try:
+                    del self.vars[key]
+                    self._used_attr_names.remove(key)
+                except:
+                    sys.stderr.write("Warning: cannot delete attr: %s \n" % key)
+            elif key in self._used_var_names:
+                sys.stderr.write("Warning: Not deleting LidarDataset's Variable %s \n" % key)
+            else:
+                sys.stderr.write("Warning: no such attr: %s \n" % key)
+
     def resize_bin(self, start_i, end_i):
         """resize data's BIN dim in python's manner: data[start_i:end_i]
         """
