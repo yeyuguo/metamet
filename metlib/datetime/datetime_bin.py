@@ -12,9 +12,9 @@ import numpy as np
 #import matplotlib.pyplot as plt
 #from mpl_toolkits.basemap import Basemap
 #from matplotlib import mlab
-__all__ = ['datetime_bin'] 
+__all__ = ['datetime_bin', 'datetime_period'] 
 def datetime_bin(datetimes, tdelta, starttime=None, endtime=None, return_bin_info=False):
-    """This function parti...TODO a serie of datetime objects into equal timedelta bin. 
+    """This function partition a serie of datetime objects into equal timedelta bin. 
     Returns a list of np.where style tuples. If return_bin_info is True, also returns a list of (bin_start, bin_end) tuples.
     Parameters:
     datetimes is a seq of datetime objects, 
@@ -51,6 +51,50 @@ def datetime_bin(datetimes, tdelta, starttime=None, endtime=None, return_bin_inf
         return result, bin_info
     else:
         return result
+
+def datetime_period(datetimes, splitpoints, starttime=None, endtime=None, return_bin_info=False, include_period_before_first_splitpoint=False):
+    """This function partition a serie of datetime objects into periods according to splitpoints. 
+    Returns a list of np.where style tuples. If return_bin_info is True, also returns a list of (bin_start, bin_end) tuples.
+    Parameters:
+    datetimes is a seq of datetime objects, 
+    splitpoints is a seq of datetime objects as splitpoints,
+    starttime is a datetime object or None. When it's None, use the first datetime in the input sequence as starttime
+    endtime is a datetime object or None. When it's None, use the last datetime in the input sequence as endtime
+    return_bin_info: default False
+    include_period_before_first_splitpoint: default False
+    """
+    min_dts = np.min(datetimes)
+    max_dts = np.max(datetimes)
+    if starttime is None:
+        starttime = min_dts
+    if endtime is None:
+        endtime = max_dts
+    if starttime > max_dts or endtime < min_dts:
+        if return_bin_info:
+            return [], []
+        else:
+            return []
+    
+    if not include_period_before_first_splitpoint:
+        begs = list(splitpoints)
+        ends = list(splitpoints)[1:] + [datetime.max]
+    else:
+        begs = [datetime.min] + list(splitpoints)
+        ends = list(splitpoints) + [datetime.max]
+    
+#    start_i = np.argmax(splitpoints >= starttime)
+#    end_i = np.argmin(splitpoints >= endtime)
+# TODO: add actual starttime and endtime support
+    bes = zip(begs, ends)
+    periods = []
+    for b, e in bes:
+        periods.append( np.where((datetimes >= b) & (datetimes < e)) )
+
+    if return_bin_info:
+        return periods, bes
+    else:
+        return periods
+
 
 
 if __name__ == '__main__':
