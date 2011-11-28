@@ -322,6 +322,48 @@ class LidarDataset(object):
         self.vars.update(tmp)
         self.recheck_time()
 
+    def drop_indice(self, indice):
+        """Drop unwanted data in the indice(Time dimension)"""
+        my_indice = set(range(len(self)))
+        my_indice.difference_update(set(indice))
+        to_keep = list(my_indice)
+        to_keep.sort()
+        self.keep_indice(to_keep)
+    
+    def keep_indice(self, indice):
+        """Keep only data in the indice (Time dimension)"""
+        where_to_keep = (np.array(indice),)
+        tmp = dict()
+        for vname, t, dimnames, choice, aver_method in _varnames:
+            if 'TIME' in dimnames:
+                tmp[vname] = self.vars[vname][where_to_keep]
+        self.vars.update(tmp)
+        self.recheck_time()
+    
+    def drop_periods(self, periods):
+        """Drop unwanted data in the time periods.
+        periods:
+            A list of tuples of (beg_time, end_time)
+        """
+        to_drop = []
+        dts = self.vars['datetime']
+        for (beg, end) in periods:
+            w = np.where((dts>beg) & (dts<end))
+            to_drop.extend(list(w[0]))
+        self.drop_indice(to_drop)
+
+    def keep_periods(self, periods):
+        """Keep the periods only, drop other periods.
+        periods:
+            A list of tuples of (beg_time, end_time)
+        """
+        to_keep = []
+        dts = self.vars['datetime']
+        for (beg, end) in periods:
+            w = np.where((dts>beg) & (dts<end))
+            to_keep.extend(list(w[0]))
+        self.keep_indice(to_keep)
+
     def __getitem__(self, key):
         """return a new LidarDataset object that contains the slice (in TIME dimension) if key is slice or integer. 
         return corresponding data if key is str
