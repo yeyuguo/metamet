@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding:utf-8 -*-
 
 # lidar.py
 """class LidarDataset is a container for lidar data.
@@ -32,6 +31,9 @@ _varnames = (
         ('cloud_base_height2', 'f4', ('TIME',), 'optional', 'mean'),
         ('cloud_base_height3', 'f4', ('TIME',), 'optional', 'mean'),
         ('cloud_base_height4', 'f4', ('TIME',), 'optional', 'mean'),
+        ('cbi', 'i4', ('TIME',), 'optional', 'mean'),
+        ('cbh', 'f4', ('TIME',), 'optional', 'mean'),
+        ('cbd', 'f4', ('TIME',), 'optional', 'mean'),
         ('distance', 'f4', ('BIN',), 'must', 'special'),
         ('background', 'f4', ('TIME', 'CHANNEL'), 'must', 'sum'),
         ('background_std_dev', 'f4', ('TIME', 'CHANNEL'), 'optional', 'sqr_mean_sqrt'),
@@ -194,6 +196,8 @@ class LidarDataset(object):
             else:
                 f.createDimension(dname, length)
         for vname, t, dimnames, choice, aver_method in _varnames:
+            if type(vname) is unicode:
+                vname = str(vname)
             if vname not in self._used_var_names:
                 continue
             if vname == 'datetime':
@@ -210,11 +214,14 @@ class LidarDataset(object):
                 f.variables[vname][:] = self.vars[vname]
     
         for attr in self._used_attr_names:
+            if type(attr) is unicode:
+                attr = str(attr)
             if isinstance(self.vars[attr], datetime):
                 f.setncattr(attr, self.vars[attr].strftime(_std_datetime_fmt))
             else:
-                f.setncattr(attr, self.vars[attr])
-        f.setncattr('desc', self.desc)
+                a = str(self.vars[attr]) if type(self.vars[attr]) is unicode else self.vars[attr]
+                f.setncattr(attr, a)
+        f.setncattr('desc', str(self.desc))
         f.close()
 
     def time_average(self, tdelta, starttime=None, endtime=None):
