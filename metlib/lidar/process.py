@@ -40,8 +40,8 @@ def correct_afterpulse(data, ap_data, zero_check_max_index=30):
     """
     min_len = np.min((data.dims['BIN'], ap_data.shape[-1]))
     zcmi = np.min((min_len, zero_check_max_index))
-    d = data.vars['data']
-    d[...,:min_len] -= ap_data[..., :min_len]
+    d = data['data']
+    d[...,:min_len] -= ap_data[..., :min_len] * data['energy'][..., np.newaxis]
     d[...,:zcmi][np.where(d[...,:zcmi] < 0.0)] = 0.0
     
     data.desc += ',afterpulse corrected'
