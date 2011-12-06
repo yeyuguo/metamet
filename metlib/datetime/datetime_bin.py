@@ -12,7 +12,7 @@ import numpy as np
 #import matplotlib.pyplot as plt
 #from mpl_toolkits.basemap import Basemap
 #from matplotlib import mlab
-__all__ = ['datetime_bin', 'datetime_period'] 
+__all__ = ['datetime_bin', 'datetime_period', 'datetime_group'] 
 def datetime_bin(datetimes, tdelta, starttime=None, endtime=None, return_bin_info=False):
     """This function partition a serie of datetime objects into equal timedelta bin. 
     Returns a list of np.where style tuples. If return_bin_info is True, also returns a list of (bin_start, bin_end) tuples.
@@ -22,6 +22,11 @@ def datetime_bin(datetimes, tdelta, starttime=None, endtime=None, return_bin_inf
     starttime is a datetime object or None. When it's None, use the first datetime in the input sequence as starttime
     endtime is a datetime object or None. When it's None, use the last datetime in the input sequence as endtime
     """
+    if len(datetimes) == 0:
+        if return_bin_info:
+            return [], []
+        else:
+            return []
     if starttime is None:
         starttime = datetimes[0]
     if endtime is None:
@@ -63,6 +68,11 @@ def datetime_period(datetimes, splitpoints, starttime=None, endtime=None, return
     return_bin_info: default False
     include_period_before_first_splitpoint: default False
     """
+    if len(datetimes) == 0:
+        if return_bin_info:
+            return [], []
+        else:
+            return []
     min_dts = np.min(datetimes)
     max_dts = np.max(datetimes)
     if starttime is None:
@@ -96,6 +106,47 @@ def datetime_period(datetimes, splitpoints, starttime=None, endtime=None, return
         return periods
 
 
+def datetime_group(datetimes, tdelta_threshold, starttime=None, endtime=None, return_bin_info=False):
+    """This function partition a serie of datetime objects into groups (clusters) according to a tdelta_threshold. 
+    Returns a list of np.where style tuples. If return_bin_info is True, also returns a list of (bin_start, bin_end) tuples.
+    Parameters:
+    datetimes is a seq of datetime objects, 
+    tdelta_threshold: a timedelta object.
+    starttime is a datetime object or None. When it's None, use the first datetime in the input sequence as starttime. Not Implemented
+    endtime is a datetime object or None. When it's None, use the last datetime in the input sequence as endtime. NOt Implemented
+    return_bin_info: default False
+    """
+    if len(datetimes) == 0:
+        if return_bin_info:
+            return [], []
+        else:
+            return []
+    min_dts = np.min(datetimes)
+    max_dts = np.max(datetimes)
+    if starttime is None:
+        starttime = min_dts
+    if endtime is None:
+        endtime = max_dts
+    if starttime > max_dts or endtime < min_dts:
+        if return_bin_info:
+            return [], []
+        else:
+            return []
+    
+    basket = [0]
+    pool = []
+    for i in range (1, len(datetimes)):
+        if datetimes[i] - datetimes[i-1] < tdelta_threshole:
+            basket.append(i)
+        else:
+            pool.append(basket)
+            basket = [i]
+    pool.append(basket)
+    result = [(b, ) for b in pool]
+    if return_bin_info:
+        return result, [(datetimes[b[0]], datetimes[b[-1]]) for b in pool] 
+    else:
+        return result
 
 if __name__ == '__main__':
     pass
