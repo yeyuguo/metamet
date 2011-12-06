@@ -12,7 +12,7 @@ import numpy as np
 #import matplotlib.pyplot as plt
 #from mpl_toolkits.basemap import Basemap
 #from matplotlib import mlab
-__all__ = ['datetime_bin', 'datetime_period', 'datetime_group'] 
+__all__ = ['datetime_bin', 'datetime_period', 'datetime_group', 'datetime_neighbor'] 
 def datetime_bin(datetimes, tdelta, starttime=None, endtime=None, return_bin_info=False):
     """This function partition a serie of datetime objects into equal timedelta bin. 
     Returns a list of np.where style tuples. If return_bin_info is True, also returns a list of (bin_start, bin_end) tuples.
@@ -110,7 +110,7 @@ def datetime_group(datetimes, tdelta_threshold, starttime=None, endtime=None, re
     """This function partition a serie of datetime objects into groups (clusters) according to a tdelta_threshold. 
     Returns a list of np.where style tuples. If return_bin_info is True, also returns a list of (bin_start, bin_end) tuples.
     Parameters:
-    datetimes is a seq of datetime objects, 
+    datetimes is a seq of datetime objects, which should be sorted.
     tdelta_threshold: a timedelta object.
     starttime is a datetime object or None. When it's None, use the first datetime in the input sequence as starttime. Not Implemented
     endtime is a datetime object or None. When it's None, use the last datetime in the input sequence as endtime. NOt Implemented
@@ -145,6 +145,48 @@ def datetime_group(datetimes, tdelta_threshold, starttime=None, endtime=None, re
     result = [(b, ) for b in pool]
     if return_bin_info:
         return result, [(datetimes[b[0]], datetimes[b[-1]]) for b in pool] 
+    else:
+        return result
+
+def datetime_neighbor(datetimes, target_datetimes, tdelta_threshold, starttime=None, endtime=None, return_bin_info=False):
+    """This function finds proper datetimes which are near each target datetime point, within tdelta_threshold, from a serie of datetimes . 
+    Returns a list of np.where style tuples. If return_bin_info is True, also returns a list of (bin_start, bin_end) tuples.
+    Parameters:
+    datetimes is a seq of datetime objects, to be choosen from.
+    target_datetimes: for each one in this, find its neighborhood.
+    tdelta_threshold: a timedelta object.
+    starttime is a datetime object or None. When it's None, use the first datetime in the input sequence as starttime. Not Implemented
+    endtime is a datetime object or None. When it's None, use the last datetime in the input sequence as endtime. NOt Implemented
+    return_bin_info: default False
+    """
+    if len(datetimes) == 0:
+        if return_bin_info:
+            return [], []
+        else:
+            return []
+    min_dts = np.min(datetimes)
+    max_dts = np.max(datetimes)
+    if starttime is None:
+        starttime = min_dts
+    if endtime is None:
+        endtime = max_dts
+    if starttime > max_dts or endtime < min_dts:
+        if return_bin_info:
+            return [], []
+        else:
+            return []
+    
+    result = []
+    bes = []
+    for target in target_datetimes:
+        b = target - tdelta_threshold
+        e = target + tdelta_threshold
+        w = np.where((datetimes>=b) & (datetimes<=e))
+        result.append(w)
+        bes.append((b,e))
+
+    if return_bin_info:
+        return result, bes
     else:
         return result
 
