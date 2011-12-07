@@ -327,7 +327,10 @@ class LidarDataset(object):
 
     def __setitem__(self, key, value):
         if isinstance(key, (str, unicode)):
-            self.attrs[key] = value
+            if key in self.vars:
+                self.vars[key][:] = value
+            else:
+                self.attrs[key] = value
         else:
             sys.stderr.write('Warning: key is not str, not setting LidarDataset property\n')
 
