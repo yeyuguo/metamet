@@ -5,7 +5,7 @@
     TODO: add support for loading short lines.
     TODO: make 'must'/'optional' work
 """
-import sys
+import os, sys
 from datetime import datetime, timedelta
 from copy import copy, deepcopy
 import numpy as np
@@ -18,40 +18,16 @@ _std_datetime_units = "seconds since 1970-01-01 00:00:00"
 _NO_DESC_STR = "No description available"
 # # Table driven:
 # # varname, format, dim shape, 'must'/'optional', average method
-_varnames = (
-        ('data', 'f4', ('TIME', 'CHANNEL', 'BIN'), 'must', 'sum'),
-        ('datetime', str, ('TIME',), 'must', 'special'),
-        ('shots_sum', 'u4', ('TIME',), 'optional', 'sum'),
-        ('trigger_frequency', 'i4', ('TIME', ), 'optional', 'mean'),
-        ('dead_time_corrected', 'u2', ('TIME', ), 'optional', 'first'),
-        ('azimuth_angle', 'f4', ('TIME', ), 'optional', 'mean'),
-        ('elevation_angle', 'f4', ('TIME',), 'optional', 'mean'),
-        ('cloud_base_height', 'f4', ('TIME',), 'optional', 'mean'),
-        ('cloud_base_height1', 'f4', ('TIME',), 'optional', 'mean'),
-        ('cloud_base_height2', 'f4', ('TIME',), 'optional', 'mean'),
-        ('cloud_base_height3', 'f4', ('TIME',), 'optional', 'mean'),
-        ('cloud_base_height4', 'f4', ('TIME',), 'optional', 'mean'),
-        ('cbi', 'i4', ('TIME',), 'optional', 'mean'),
-        ('cbh', 'f4', ('TIME',), 'optional', 'mean'),
-        ('cbd', 'f4', ('TIME',), 'optional', 'mean'),
-        ('distance', 'f4', ('BIN',), 'must', 'special'),
-        ('background', 'f4', ('TIME', 'CHANNEL'), 'must', 'sum'),
-        ('background_std_dev', 'f4', ('TIME', 'CHANNEL'), 'optional', 'sqr_mean_sqrt'),
-        ('energy', 'f4', ('TIME', 'CHANNEL'), 'must', 'sum'),
-        ('temp', 'f4', ('TIME','TEMP'), 'optional', 'mean'),
-        )
-_attrs = (
-        ('lidarname', str, 'must'),
-        ('bin_time', 'f4', 'must'),
-        ('bin_size', 'f4', 'must'),
-        ('first_data_bin', 'i4', 'must'),
-        ('start_datetime', str, 'must'),
-        ('end_datetime', str, 'must'),
-        ('number_records', 'i4', 'must'),
-        ('number_bins', 'i4', 'must'),
-        ('number_channels', 'i4', 'must'),
-        ('data_aver_method', str, 'optional'),
-        )
+
+_special_avermethods = {
+        'data':'sum',
+        'datetime':'special',
+        'shots_sum':'sum',
+        'dead_time_corrected':'first',
+        'background':'sum',
+        'energy':'sum',
+        'background_std_dev':'sqr_mean_sqrt'
+        }
 
 _important_attrs = set([
     'lidarname', 'bin_time', 'bin_size', 
@@ -61,6 +37,10 @@ _important_attrs = set([
     'data_aver_method','desc'
     ])
 
+_important_vars = set([
+    'data', 'energy', 'background',
+    'datetime','distance',
+    ])
 
 class LidarDataset(object):
     """Representing Lidar's Dataset"""
@@ -70,139 +50,99 @@ class LidarDataset(object):
             fnames: a seq of filenames or a single filename or a str of filenames seperated with comma.
             bin_num: clipping in BIN dimesion when loading files.
         """
-        self.orig_fnames = []
-        self._vars_inited = False
-        self._used_var_names = set()
-        self._used_attr_names = set()
-        self.dims = dict()
-        self.dims['BIN'] = bin_num
-        self.desc = _NO_DESC_STR
-        self.append_files(fnames, **kwargs)
-        if len(self.orig_fnames) != 0:
-            f = Dataset(self.orig_fnames[0])
-            if 'desc' in f.ncattrs():
-                self.desc = "%s" % (f.getncattr('desc'), )
-            if 'data_aver_method' not in f.ncattrs():
-                self.vars['data_aver_method'] = 'sum'
-                self._used_attr_names.add('data_aver_method')
-            f.close()
+        self.init_clean()
+        if type(fnames) is str:
+            fnames = fnames.split(',')
+        self.read_one_file(fnames[0], **kwargs)
+        if len(fnames) > 1:
+            self.append_files(fnames[1:], **kwargs)
 
-    def copy(self):
-        return deepcopy(self)
+        if bin_num is not None:
+            self.resize_bin(0,bin_num)
 
+    def append_datasets(self, datasets):
+        """append one or more LidarDatasets to this dataset.
+        datasets: a seq of datasets or a single LidarDataset object"""
+        if len(datasets) == 0:
+            return
+        if isinstance(datasets, LidarDataset):
+            datasets = [datasets]
+        for vname in self.vars:
+            dims = self.var_dims[vname]
+            if 'TIME' in dims:
+                stack_func = np.hstack if len(dims) == 1 else np.vstack
+                self.vars[vname] = stack_func(tuple([self[vname]] + [d[vname] for d in datasets]))
+        self.recheck_time()
+
+    def init_clean(self):
+        """clean up everything"""
+        self.dims = {}
+        self.vars = {}
+        self.attrs = {}
+        self.var_dims = {}
+        self.var_aver_methods = {}
+
+    def read_one_file(self, fname, **kwargs):
+        """read one file for initing self"""
+        self.init_clean()
+        f = Dataset(fname, **kwargs)
+        for d in f.dimensions:
+            self.dims[str(d)] = len(f.dimensions[d])
+        for v in f.variables:
+            strv = str(v)
+            ncv = f.variables[v]
+            v_arr = ncv[:]
+            # datetime handling
+            if v == 'datetime':
+                datetime_type = type(v_arr[0])
+                if datetime_type == np.string_ or datetime_type == str:
+                    v_arr = np.array([datetime.strptime(datestr, _std_datetime_fmt) for datestr in v_arr])
+                else:
+                    v_arr = num2date(v_arr, units=_std_datetime_units)
+            self.vars[strv] = v_arr
+            self.var_dims[strv] = tuple([str(dimname) for dimname in ncv.dimensions])
+            # aver_method
+            if 'aver_method' in ncv.ncattrs():
+                self.var_aver_methods[strv] = ncv.getncattr('aver_method')
+            elif v in _special_avermethods:
+                self.var_aver_methods[strv] = _special_avermethods[v]
+            else:
+                self.var_aver_methods[strv] = 'mean'
+        for a in f.ncattrs():
+            self.attrs[str(a)] = f.getncattr(a)
+        self.recheck_time()
+    
     def append_files(self, fnames):
         """append one or more files to the dataset
         fnames: a seq of filenames or a single filename or a str of filenames seperated with comma."""
-        _tmp_pool = dict()
         if type(fnames) is str:
             fnames = fnames.split(',')
-        self.orig_fnames.extend(fnames)
-        record_nums = np.zeros(len(fnames), dtype='i4')
-        orig_bin_nums = np.zeros(len(fnames), dtype='i4')
-
-        for i, fname in enumerate(fnames):
-            attrs, dim_lens = self._peek_file_info(fname)
-            record_nums[i] = dim_lens['TIME']
-            orig_bin_nums[i] = dim_lens['BIN']
-            if i == 0:
-                proper_dims = dim_lens
-                ref_attrs = attrs
-                all_start_datetime = attrs['start_datetime']
-            if i == len(fnames) - 1:
-                all_end_datetime = attrs['end_datetime']
-            del attrs
-            del dim_lens
-        bin_num = self.dims['BIN']
-        if bin_num is None:
-            bin_num = orig_bin_nums.min()
-        else:
-            bin_num = np.min((orig_bin_nums.min(), bin_num))
-        proper_dims['BIN'] = bin_num
-        proper_dims['TIME'] = record_nums.sum()
-        self.dims.update(proper_dims)
-        # # create the arrays for each var
-        for vname, t, dimnames, choice, aver_method in _varnames:
-            if t is str:
-                t = 'O'
-            _tmp_pool[vname] = np.zeros(tuple([proper_dims[d] for d in dimnames]), dtype=t)
-
-        start_is = np.hstack((0, record_nums.cumsum()[:-1]))
-        end_is = start_is + record_nums
-        for i, fname in enumerate(fnames):
-            f = Dataset(fname)
-            
-            for vname, t, dimnames, choice, aver_method in _varnames:
-                if choice is 'optional' and vname not in f.variables:
-                    continue
-                else:
-                    self._used_var_names.add(vname)
-                if dimnames == ('BIN',):
-                    if i == 0:
-                        _tmp_pool[vname][:] = f.variables[vname][:proper_dims['BIN']]
-                elif 'BIN' in dimnames:
-                    _tmp_pool[vname][start_is[i]:end_is[i]] = f.variables[vname][:, ... ,:proper_dims['BIN']]
-                else:
-                    _tmp_pool[vname][start_is[i]:end_is[i]] = f.variables[vname][:]
-            f.close()
-        datetime_type = type(_tmp_pool['datetime'][0])
-        if datetime_type == np.string_ or datetime_type == str:
-            _tmp_pool['datetime'] = np.array([datetime.strptime(datestr, _std_datetime_fmt) for datestr in _tmp_pool['datetime']])
-        else:
-            _tmp_pool['datetime'] = num2date(_tmp_pool['datetime'], units=_std_datetime_units)
-
-        for attr in ref_attrs.keys():
-            self._used_attr_names.add(attr)
-            _tmp_pool[attr] = ref_attrs[attr]
-        _tmp_pool['start_datetime'] = all_start_datetime
-        _tmp_pool['end_datetime'] = all_end_datetime
-        _tmp_pool['number_bins'] = proper_dims['BIN']
-        _tmp_pool['number_records'] = proper_dims['TIME']
-        if not self._vars_inited:
-            self.vars = _tmp_pool
-            self._vars_inited = True
-        else:
-            for vname, t, dimnames, choice, aver_method in _varnames:
-                if 'TIME' not in dimnames:
-                    continue
-                if len(dimnames) > 1:
-                    self.vars[vname] = np.vstack((self.vars[vname], _tmp_pool[vname]))
-                else:
-                    self.vars[vname] = np.hstack((self.vars[vname], _tmp_pool[vname]))
-            self.vars['end_datetime'] = _tmp_pool['end_datetime']
-            self.vars['number_records'] += _tmp_pool['number_records']
-        del _tmp_pool
-        self.orig_fnames.extend(fnames)
-
-    def _peek_file_info(self, fname):
-        """returns attrs and dim_lens"""
-        f = Dataset(fname)
-        attrs = dict()
-        dim_lens = dict()
-        for dimname in f.dimensions:
-            dim_lens[dimname] = len(f.dimensions[dimname])
-        for attrname in f.ncattrs():
-            attrs[attrname] = f.getncattr(attrname)
-        attrs['start_datetime'] = datetime.strptime(attrs['start_datetime'], _std_datetime_fmt)
-        attrs['end_datetime'] = datetime.strptime(attrs['end_datetime'], _std_datetime_fmt)
-        f.close()
-        return attrs, dim_lens
+        tmpd = []
+        for fn in fnames:
+            tmpd.append(LidarDataset(fn))
+        self.append_datasets(tmpd)
 
     def save(self, fname, use_datetime_str=True):
         """Save into a netCDF4 file"""
+        if os.path.exists(fname):
+            if os.path.islink(fname):
+                os.unlink(fname)
+            else:
+                os.remove(fname)
         f = Dataset(fname, 'w', format='NETCDF4')
         for dname, length in self.dims.items():
             if dname == 'TIME':
                 f.createDimension(dname)
             else:
                 f.createDimension(dname, length)
-        for vname, t, dimnames, choice, aver_method in _varnames:
+        for vname in self.vars:
+            dimnames = self.var_dims[vname]
+            t = self.vars[vname].dtype.str.lstrip('<>|=')
             if type(vname) is unicode:
                 vname = str(vname)
-            if vname not in self._used_var_names:
-                continue
             if vname == 'datetime':
                 if use_datetime_str:
-                    f.createVariable(vname, t, dimnames)
+                    f.createVariable(vname, str, dimnames)
                     for i, dt in enumerate(self.vars[vname]):
                         f.variables[vname][i] = self.vars[vname][i].strftime(_std_datetime_fmt)
                 else:
@@ -212,16 +152,16 @@ class LidarDataset(object):
             else:
                 f.createVariable(vname, t, dimnames)
                 f.variables[vname][:] = self.vars[vname]
+            f.variables[vname].setncattr('aver_method', self.var_aver_methods[vname])
     
-        for attr in self._used_attr_names:
+        for attr in self.attrs:
             if type(attr) is unicode:
                 attr = str(attr)
-            if isinstance(self.vars[attr], datetime):
-                f.setncattr(attr, self.vars[attr].strftime(_std_datetime_fmt))
+            if isinstance(self.attrs[attr], datetime):
+                f.setncattr(attr, self.attrs[attr].strftime(_std_datetime_fmt))
             else:
-                a = str(self.vars[attr]) if type(self.vars[attr]) is unicode else self.vars[attr]
+                a = str(self.attrs[attr]) if type(self.attrs[attr]) is unicode else self.attrs[attr]
                 f.setncattr(attr, a)
-        f.setncattr('desc', str(self.desc))
         f.close()
 
     def time_average(self, tdelta, starttime=None, endtime=None):
@@ -239,30 +179,26 @@ class LidarDataset(object):
         new_time_steps = len(tbins)
         tmp = dict()
 
-        for vname, t, dimnames, choice, aver_method in _varnames:
-            if 'TIME' not in dimnames:
-                continue
-            new_shape = [self.dims[d] for d in dimnames]
-            new_shape[0] = new_time_steps
-            tmp[vname] = np.zeros(tuple(new_shape), dtype=self.vars[vname].dtype)
+        for vname in self.vars:
+            dimnames = self.var_dims[vname]
+            if 'TIME' in dimnames:
+                new_shape = list(self.vars[vname].shape)
+                new_shape[0] = new_time_steps
+                tmp[vname] = np.zeros(tuple(new_shape), dtype=self.vars[vname].dtype)
 
         for i, w in enumerate(tbins):
-            for vname, t, dimnames, choice, aver_method in _varnames:
+            for vname in self.vars:
+                dimnames = self.var_dims[vname]
+                aver_method = self.var_aver_methods[vname]
+                t = self.vars[vname].dtype.char
                 if 'TIME' not in dimnames:
                     continue
                 if vname == 'datetime':
                     # # using each tbins' starttime as datetime
                     tmp[vname][i] = info[i][0]
-                elif vname == 'data':
-                    if self.vars['data_aver_method'] == 'sum':
-                        tmp[vname][i] = self.vars[vname][w].sum(axis=0)
-                    elif self.vars['data_aver_method'] == 'mean':
-                        tmp[vname][i] = self.vars[vname][w].mean(axis=0)
-                    else:
-                        sys.stderr.write('Lidar data average method: %s not implemented\n' % self.vars['data_aver_method'])
                 elif len(w[0]) == 0:
                     # # filling with nan or 0
-                    if t not in ('f4', 'f8', 'd', 'g', float, np.float32, np.float64, np.float_, np.single, np.double):
+                    if t not in ('f', 'd', 'g'):
                         tmp[vname][i] = 0
                     else:
                         tmp[vname][i] = np.nan
@@ -285,9 +221,9 @@ class LidarDataset(object):
     def recheck_time(self):
         """recheck stuffs about time dimension"""
         n_tbins = len(self.vars['datetime'])
-        self.vars['start_datetime'] = self.vars['datetime'][0]
-        self.vars['end_datetime'] = self.vars['datetime'][-1] + timedelta(seconds = int(self.vars['shots_sum'][-1] / self.vars['trigger_frequency'][-1]))
-        self.vars['number_records'] = n_tbins
+        self.attrs['start_datetime'] = self.vars['datetime'][0]
+        self.attrs['end_datetime'] = self.vars['datetime'][-1] + timedelta(seconds = int(self.vars['shots_sum'][-1] / self.vars['trigger_frequency'][-1]))
+        self.attrs['number_records'] = n_tbins
         self.dims['TIME'] = n_tbins
 
     def get_timedeltas(self, return_seconds=True):
@@ -312,20 +248,13 @@ class LidarDataset(object):
         tds = self.get_timedeltas(return_seconds=False)
         return self.vars['datetime'] + tds / 2
 
-
-    def trim_period(self, starttime, endtime):
-        """Trim unwanted data, leaving data between start_time and end_time only.
-        """
-        dts = self.vars['datetime']
-        tbins, info = datetime_bin(dts, None, starttime=starttime, endtime=endtime, return_bin_info=True)
-        choosen_w = tbins[0]
-        new_time_steps = len(tbins[0][0])
+    def keep_indice(self, indice):
+        """Keep only data in the indice (Time dimension)"""
+        where_to_keep = (np.array(indice),)
         tmp = dict()
-        for vname, t, dimnames, choice, aver_method in _varnames:
-            if 'TIME' not in dimnames:
-                continue
-            tmp[vname] = self.vars[vname][choosen_w]
-
+        for vname in self.vars:
+            if 'TIME' in self.var_dims[vname]:
+                tmp[vname] = self.vars[vname][where_to_keep]
         self.vars.update(tmp)
         self.recheck_time()
 
@@ -337,15 +266,6 @@ class LidarDataset(object):
         to_keep.sort()
         self.keep_indice(to_keep)
     
-    def keep_indice(self, indice):
-        """Keep only data in the indice (Time dimension)"""
-        where_to_keep = (np.array(indice),)
-        tmp = dict()
-        for vname, t, dimnames, choice, aver_method in _varnames:
-            if 'TIME' in dimnames:
-                tmp[vname] = self.vars[vname][where_to_keep]
-        self.vars.update(tmp)
-        self.recheck_time()
     
     def drop_periods(self, periods):
         """Drop unwanted data in the time periods.
@@ -355,7 +275,7 @@ class LidarDataset(object):
         to_drop = []
         dts = self.vars['datetime']
         for (beg, end) in periods:
-            w = np.where((dts>beg) & (dts<end))
+            w = np.where((dts>=beg) & (dts<end))
             to_drop.extend(list(w[0]))
         self.drop_indice(to_drop)
 
@@ -367,9 +287,14 @@ class LidarDataset(object):
         to_keep = []
         dts = self.vars['datetime']
         for (beg, end) in periods:
-            w = np.where((dts>beg) & (dts<end))
+            w = np.where((dts>=beg) & (dts<end))
             to_keep.extend(list(w[0]))
         self.keep_indice(to_keep)
+
+    def trim_period(self, starttime, endtime):
+        """Trim unwanted data, leaving data between start_time and end_time only.
+        """
+        self.keep_periods([(starttime, endtime)])
 
     def __getitem__(self, key):
         """return a new LidarDataset object that contains the slice (in TIME dimension) if key is slice or integer. 
@@ -377,45 +302,69 @@ class LidarDataset(object):
         """
         if isinstance(key, slice):
             new_data = self.copy()
-            for vname, t, dimnames, choice, aver_method in _varnames:
-                if 'TIME' not in dimnames:
+            for vname in self.vars:
+                if 'TIME' not in self.var_dims[vname]:
                     continue
                 new_data.vars[vname] = new_data.vars[vname][key]
             new_data.recheck_time()
             return new_data
         elif isinstance(key, (int, long, np.integer)):
             new_data = self.copy()
-            for vname, t, dimnames, choice, aver_method in _varnames:
-                if 'TIME' not in dimnames:
+            for vname in self.vars:
+                if 'TIME' not in self.var_dims[vname]:
                     continue
                 new_data.vars[vname] = np.array(new_data.vars[vname][key])[np.newaxis, ...]
             new_data.recheck_time()
             return new_data
         elif isinstance(key, (str, unicode)):
-            return self.vars[key]
+            if key in self.vars:
+                return self.vars[key]
+            elif key in self.attrs:
+                return self.attrs[key]
 
     def __setitem__(self, key, value):
         if isinstance(key, (str, unicode)):
-            self.vars[key] = value
-            self._used_attr_names.add(key)
+            self.attrs[key] = value
         else:
             sys.stderr.write('Warning: key is not str, not setting LidarDataset property\n')
 
     def __delitem__(self, key):
         if isinstance(key, (str, unicode)):
-            if key in self._used_attr_names:
+            if key in self.attrs:
                 if key in _important_attrs:
                     sys.stderr.write("Warning: Not deleting important attr: %s \n" % key)
                     return
                 try:
-                    del self.vars[key]
-                    self._used_attr_names.remove(key)
+                    del self.attrs[key]
                 except:
                     sys.stderr.write("Warning: cannot delete attr: %s \n" % key)
-            elif key in self._used_var_names:
-                sys.stderr.write("Warning: Not deleting LidarDataset's Variable %s \n" % key)
+            elif key in self.vars:
+                self.del_var(key)
             else:
                 sys.stderr.write("Warning: no such attr: %s \n" % key)
+    
+    def add_var(self, vname, dims, dtype='f4', aver_method='mean'):
+        """Add new var into self.vars"""
+        if vname in self.vars:
+            sys.stderr.write("Warning: %s already in the dataset. Not adding\n" % vname)
+            return
+        # TODO: check dimensions
+        self.vars[vname] = np.zeros(tuple([self.dims[d] for d in dims]), dtype=dtype)
+        self.var_dims[vname] = dims
+        self.var_aver_methods[vname] = aver_method
+
+    def del_var(self, vname):
+        """Del var in self.vars.
+        """
+        if vname not in self.vars:
+            sys.stderr.write("Warning: %s not in the dataset\n" % vname)
+            return
+        if vname in _important_vars:
+            sys.stderr.write("Warning: %s is important, thus not deleting\n" % vname)
+            return
+        del self.vars[vname]
+        del self.var_dims[vname]
+        del self.var_aver_methods[vname]
 
     def resize_bin(self, start_i, end_i):
         """resize data's BIN dim in python's manner: data[start_i:end_i]
@@ -425,26 +374,39 @@ class LidarDataset(object):
         else:
             self.vars['data'] = self.vars['data'][:,:,start_i:end_i]
             self.vars['distance'] = self.vars['distance'][start_i:end_i]
-            self.vars['number_bins'] = np.max(end_i - start_i, 0)
-            self.vars['first_data_bin'] -= start_i
+            self.attrs['number_bins'] = np.max(end_i - start_i, 0)
+            self.attrs['first_data_bin'] -= start_i
 
             self.dims['BIN'] = self.vars['number_bins']
-
+    
+    def copy(self):
+        return deepcopy(self)
+    
     def __str__(self):
         return """    lidarname: %s
     desc: %s
     time period: %s - %s
     dims: %s
     vars: %s
-    """ % ( self.vars['lidarname'],
-            self.desc,
-            self.vars['start_datetime'], self.vars['end_datetime'],
+    attrs: %s
+    """ % ( self.attrs['lidarname'],
+            self.attrs['desc'],
+            self.attrs['start_datetime'], self.attrs['end_datetime'],
             self.dims, 
             self.vars.keys(),
+            self.attrs.keys()
             )
 
     def __repr__(self):
         return self.__str__()
     
+    @property
+    def desc(self):
+        return self.attrs['desc']
+    @desc.setter
+    def desc(self, value):
+        self.attrs['desc'] = value
+
 if __name__ == '__main__':
-    pass
+    d = LidarDataset('00.nc,01.nc,02.nc,03.nc')
+    print d
