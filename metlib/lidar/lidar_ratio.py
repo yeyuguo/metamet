@@ -29,7 +29,7 @@ def get_lidar_ratio(data, aod, lidar_constant, betam, fill_index=0, fill_aver_nu
     test_sa = np.arange(*search_range)
     test_res = np.zeros( (data.dims['TIME'], data.dims['CHANNEL'], len(test_sa) ) )
     try:
-        start_i = data.vars['first_data_bin']
+        start_i = data['first_data_bin']
     except:
         start_i = 0
     max_index = height_to_index(maxheight, data, elev_angle)
@@ -38,7 +38,7 @@ def get_lidar_ratio(data, aod, lidar_constant, betam, fill_index=0, fill_aver_nu
     check_i_end = height_to_index(300.0, data, elev_angle)
 #    print check_i_beg, check_i_end
     #print max_index
-    dz = data.vars['bin_size'] * 1E-3 * np.sin(np.deg2rad(elev_angle))
+    dz = data['bin_size'] * 1E-3 * np.sin(np.deg2rad(elev_angle))
     for i in range(len(test_sa)):
         sigma_a = fernald(data, lidar_constant, test_sa[i], betam, fill_index, fill_aver_num, C_contains_E=C_contains_E, apply_on_data=False)
         to_check = sigma_a[..., check_i_beg:check_i_end]

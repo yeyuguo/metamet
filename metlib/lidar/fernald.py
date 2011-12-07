@@ -28,76 +28,40 @@ def fernald(data, lidar_constant, lidar_ratio, betam, fill_index=0, fill_aver_nu
     apply_on_data: whether to apply the result on data.
     """
     try:
-        start_i = data.vars['first_data_bin']
+        start_i = data['first_data_bin']
     except:
         start_i = 0
-    dz = data.vars['bin_size'] / 1000.0    # convert to km
+    dz = data['bin_size'] / 1000.0    # convert to km
     intbm = np.zeros_like(betam)
     intbm[..., start_i:] = np.add.accumulate(betam[..., start_i:]*dz)
-    CE = np.zeros_like(data.vars['data'])
+    CE = np.zeros_like(data['data'])
     if C_contains_E:
         CE[:] = lidar_constant
     else:
-        CE[:] = lidar_constant * data.vars['energy'].reshape((CE.shape[0],CE.shape[1],1))
-#    print CE
-#    print "CE: ", CE.shape
-#    plt.figure()
-#    plt.pcolormesh(ma.masked_invalid(CE[:,0,:]))
-#    plt.colorbar()
-#    plt.title("CE")
-#
-#    plt.figure()
-#    plt.pcolormesh(data.vars['data'][:,0,:], vmin=0.0, vmax=0.1)
-#    plt.colorbar()
-#    plt.title("X")
+        CE[:] = lidar_constant * data['energy'][..., np.newaxis]
 
     expIntBm = np.exp(-2.0*(lidar_ratio-lidar_sm)*intbm)
-#    print "expIntBm: ", expIntBm.shape
-#   plt.figure()
-#   plt.plot(expIntBm)
-#   plt.title("expIntBm")
 
-    XexpIntBm = data.vars['data'] * expIntBm
-#    print "XexpIntBm: " , XexpIntBm.shape
-#    plt.figure()
-#    plt.pcolormesh(ma.masked_invalid(XexpIntBm[:,0,:]), vmin=0, vmax=0.20)
-#    plt.colorbar()
-#    plt.title("XexpIntBm")
+    XexpIntBm = data['data'] * expIntBm
 
     intXexpIntBm = np.zeros_like(XexpIntBm)
     intXexpIntBm[...,start_i:] = np.add.accumulate(XexpIntBm[...,start_i:] * dz, axis=-1)
-#    print "intXexpIntBm: " , intXexpIntBm.shape
-#    plt.figure()
-#    plt.pcolormesh(ma.masked_invalid(intXexpIntBm[:,0,:]), vmin=0.0, vmax=0.4)
-#    plt.colorbar()
-#    plt.title("intXexpIntBm")
 
     bottom_term = CE - 2.0 * lidar_ratio * intXexpIntBm
-#    print "bottom_term:" , bottom_term.shape
-#   plt.figure()
-#   plt.pcolormesh(ma.masked_invalid(bottom_term[:,0,:]))
-#   plt.colorbar()
-#   plt.title("bottom")
 
     ba = XexpIntBm / bottom_term - betam 
     ba[...,:start_i] = 0.0
     sigma_a = ba * lidar_ratio
     fill_lower_part(sigma_a, fill_index, fill_aver_num)
-#    print "ba: ", ba.shape
-#   plt.figure()
-#   plt.pcolormesh(ma.masked_invalid(ba[:,0,:]), vmin=0.0, vmax=0.0005)
-#   plt.colorbar()
-#   plt.title("ba")
 
     if apply_on_data:
-        data.vars['data'] = sigma_a
+        data['data'] = sigma_a
         data.desc += ',retrievaled'
     
     return sigma_a.copy()
 
 
 def fernald_ref(data, lidar_ratio, betam, ref_height, ref_sigma_a, ref_aver_num, elev_angle=90.0, apply_on_data=False):
-    # TODO: implement fernald_backward
     """fernald 1984's retrieval method.
     data: a LidarDataset object which contains normalized data.
     lidar_ratio: lidar ratio.
@@ -109,15 +73,15 @@ def fernald_ref(data, lidar_ratio, betam, ref_height, ref_sigma_a, ref_aver_num,
     apply_on_data: whether to apply the result on data.
     """
     try:
-        start_i = data.vars['first_data_bin']
+        start_i = data['first_data_bin']
     except:
         start_i = 0
-    dz = data.vars['bin_size'] / 1000.0    # convert to km
+    dz = data['bin_size'] / 1000.0    # convert to km
 
     ref_index = height_to_index(ref_height, data, elev_angle)
     ref_beg_index = ref_index - ref_aver_num / 2
     ref_end_index = ref_beg_index + ref_aver_num
-    Xref = np.ma.masked_invalid(data.vars['data'][..., ref_beg_index:ref_end_index]).mean(axis=-1)[..., np.newaxis]
+    Xref = np.ma.masked_invalid(data['data'][..., ref_beg_index:ref_end_index]).mean(axis=-1)[..., np.newaxis]
     Xref_beta = Xref / (betam[ref_index] + ref_sigma_a / sa)
 
     intbm = np.zeros_like(betam)
@@ -126,7 +90,7 @@ def fernald_ref(data, lidar_ratio, betam, ref_height, ref_sigma_a, ref_aver_num,
 
     expIntBm = np.exp(-2.0*(lidar_ratio-lidar_sm)*intbm)
 
-    XexpIntBm = data.vars['data'] * expIntBm
+    XexpIntBm = data['data'] * expIntBm
 
     intXexpIntBm = np.zeros_like(XexpIntBm)
     intXexpIntBm[...,ref_index:] = np.add.accumulate(XexpIntBm[..., ref_index:]*dz, axis=-1)
@@ -139,7 +103,7 @@ def fernald_ref(data, lidar_ratio, betam, ref_height, ref_sigma_a, ref_aver_num,
     sigma_a = ba * lidar_ratio
 
     if apply_on_data:
-        data.vars['data'] = sigma_a
+        data['data'] = sigma_a
         data.desc += ',retrievaled'
     
     return sigma_a.copy()
