@@ -381,7 +381,12 @@ class LidarDataset(object):
     
     def copy(self):
         return deepcopy(self)
-    
+   
+    def __add__(self, other):
+        res = self.copy()
+        res.append_datasets(other)
+        return res
+
     def __str__(self):
         return """    lidarname: %s
     desc: %s
