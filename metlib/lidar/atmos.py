@@ -54,7 +54,7 @@ def interp_single_profile(prof, data, elev_angle=90.0):
     return interped_values
     """
     if type(data) is LidarDataset:
-        height = data.vars['distance'] * np.sin(np.deg2rad(elev_angle))
+        height = data['distance'] * np.sin(np.deg2rad(elev_angle))
     else:
         height = data * np.sin(np.deg2rad(elev_angle))
     res = np.interp(height, prof.height, prof.value)
@@ -69,7 +69,7 @@ def interp_p_t_profile(prof, data, elev_angle=90.0):
     return (p, t)
     """
     if type(data) is LidarDataset:
-        height = data.vars['distance'] * np.sin(np.deg2rad(elev_angle))
+        height = data['distance'] * np.sin(np.deg2rad(elev_angle))
     else:
         height = data * np.sin(np.deg2rad(elev_angle))
     p = np.interp(height, prof.height, prof.pressure)

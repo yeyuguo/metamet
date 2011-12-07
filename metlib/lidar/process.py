@@ -24,13 +24,13 @@ def correct_background(data, sample_number=None):
         if sample_number is None, use lidar data's prvided background.
     """
     if sample_number is None:
-        bg = data.vars['background']
+        bg = data['background']
     elif sample_number == 0:
         return
     else:
-        bg = data.vars['data'][:,:,-sample_number:].mean(axis=-1)
-    bg = bg.reshape((bg.shape[0], bg.shape[1], 1))
-    data.vars['data'] -= bg
+        bg = data['data'][:,:,-sample_number:].mean(axis=-1)
+    bg = bg[..., np.newaxis]
+    data['data'] -= bg
     data.desc += ',background corrected'
 
 def correct_afterpulse(data, ap_data, zero_check_max_index=30):
@@ -52,21 +52,21 @@ def correct_overlap(data, ol_data):
     ol_data: overlap data.
     """
     min_len = np.min((data.dims['BIN'], ol_data.shape[-1]))
-    data.vars['data'][...,:min_len] *= ol_data[..., :min_len]
+    data['data'][...,:min_len] *= ol_data[..., :min_len]
     data.desc += ',overlap corrected'
 
 def correct_distance(data):
     """correct distance.
     data: a LidarDataset object.
     """
-    data.vars['data'] *= (data.vars['distance'] ** 2 * 1E-6)
+    data['data'] *= (data['distance'] ** 2 * 1E-6)
     data.desc += ',distance corrected'
 
 def correct_energy(data):
     """correct energy.
     data: a LidarDataset object.
     """
-    data.vars['data'] /= data.vars['energy'][..., np.newaxis]
+    data['data'] /= data['energy'][..., np.newaxis]
     data['data_aver_method'] = 'mean'
     data.desc += ',energy corrected'
 
@@ -77,7 +77,7 @@ def fill_lower_part(data, index, aver_num=3):
     aver_num: use data[..., index:index+aver_num].mean as fill value.
     """
     if type(data) is LidarDataset:
-        d = data.vars['data']
+        d = data['data']
     else:
         d = data
     to_fill = np.ma.masked_invalid(d[..., index:index+aver_num]).mean(axis=-1)[..., np.newaxis]
@@ -89,10 +89,10 @@ def zero_blind_range(data):
     data: a LidarDataset object.
     """
     try:
-        start_i = data.vars['first_data_bin']
+        start_i = data['first_data_bin']
     except:
         start_i = 0
-    data.vars['data'][...,:start_i] = 0.0
+    data['data'][...,:start_i] = 0.0
 
 
 if __name__ == '__main__':

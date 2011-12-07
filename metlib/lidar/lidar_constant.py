@@ -25,9 +25,9 @@ def get_lidar_constant(data, aod, height_range, betam, elev_angle, aod_ratio=1.0
     elev_angle: lidar elevation angle in degrees.
     aod_ratio: the ratio of (aod below that height) / (total aod).
     """
-    start_i = data.vars['first_data_bin']
-    dz = data.vars['bin_size'] / 1000.0   # convert to km
-    d = data.vars['data'][:]
+    start_i = data['first_data_bin']
+    dz = data['bin_size'] / 1000.0   # convert to km
+    d = data['data'][:]
     
     intbm = np.zeros_like(betam)
     intbm[start_i:] = np.add.accumulate(betam[start_i:]) * dz
@@ -38,7 +38,7 @@ def get_lidar_constant(data, aod, height_range, betam, elev_angle, aod_ratio=1.0
 #    print low_index, high_index
     CE_pool = d[:,:,low_index:high_index] / (betam[low_index:high_index] * expIntSigmam[low_index:high_index] * np.exp(-2.0 * aod * aod_ratio / np.sin(np.deg2rad(elev_angle))) ) 
 #    print CE_pool
-    lc_lines = np.array(ma.masked_invalid(CE_pool).mean(axis=-1)) / data.vars['energy']
+    lc_lines = np.array(ma.masked_invalid(CE_pool).mean(axis=-1)) / data['energy']
 #    print lc_lines
     return lc_lines
     
