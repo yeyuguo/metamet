@@ -372,7 +372,7 @@ class LidarDataset(object):
     def resize_bin(self, start_i, end_i):
         """resize data's BIN dim in python's manner: data[start_i:end_i]
         """
-        if end_i > self.vars['number_bins']:
+        if end_i > self.attrs['number_bins']:
             pass
         else:
             self.vars['data'] = self.vars['data'][:,:,start_i:end_i]
