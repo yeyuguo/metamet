@@ -73,6 +73,7 @@ class LidarDataset(object):
                 stack_func = np.hstack if len(dims) == 1 else np.vstack
                 self.vars[vname] = stack_func(tuple([self[vname]] + [d[vname] for d in datasets]))
         self.recheck_time()
+        del datasets
 
     def init_clean(self):
         """clean up everything"""
@@ -111,6 +112,7 @@ class LidarDataset(object):
         for a in f.ncattrs():
             self.attrs[str(a)] = f.getncattr(a)
         self.recheck_time()
+        f.close()
     
     def append_files(self, fnames):
         """append one or more files to the dataset
@@ -121,6 +123,7 @@ class LidarDataset(object):
         for fn in fnames:
             tmpd.append(LidarDataset(fn))
         self.append_datasets(tmpd)
+        del tmpd
 
     def save(self, fname, use_datetime_str=True):
         """Save into a netCDF4 file"""
