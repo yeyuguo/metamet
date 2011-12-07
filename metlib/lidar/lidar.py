@@ -380,7 +380,7 @@ class LidarDataset(object):
             self.attrs['number_bins'] = np.max(end_i - start_i, 0)
             self.attrs['first_data_bin'] -= start_i
 
-            self.dims['BIN'] = self.vars['number_bins']
+            self.dims['BIN'] = self.attrs['number_bins']
     
     def copy(self):
         return deepcopy(self)
