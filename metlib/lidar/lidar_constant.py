@@ -16,7 +16,7 @@ from .lidarutil import height_to_index
 
 __all__ = ['get_lidar_constant']
 
-def get_lidar_constant(data, aod, height_range, betam, elev_angle, aod_ratio=1.0):
+def get_lidar_constant(data, aod, height_range, betam, elev_angle, aod_ratio=1.0, return_detail=False):
     """get lidar constant with aod observation.
     data: a LidarDataset object.
     aod: AOD value
@@ -24,11 +24,12 @@ def get_lidar_constant(data, aod, height_range, betam, elev_angle, aod_ratio=1.0
     betam: betam array.
     elev_angle: lidar elevation angle in degrees.
     aod_ratio: the ratio of (aod below that height) / (total aod).
+    return_detail: return LC(avered), LC(detail), heights
     """
     start_i = data['first_data_bin']
     dz = data['bin_size'] / 1000.0   # convert to km
     d = data['data'][:]
-    
+    sin_elev = np.sin(np.deg2rad(elev_angle))
     intbm = np.zeros_like(betam)
     intbm[start_i:] = np.add.accumulate(betam[start_i:]) * dz
 #    print intbm
@@ -36,11 +37,15 @@ def get_lidar_constant(data, aod, height_range, betam, elev_angle, aod_ratio=1.0
 #    print expIntSigmam
     low_index, high_index = height_to_index(height_range, data, elev_angle)
 #    print low_index, high_index
-    CE_pool = d[:,:,low_index:high_index] / (betam[low_index:high_index] * expIntSigmam[low_index:high_index] * np.exp(-2.0 * aod * aod_ratio / np.sin(np.deg2rad(elev_angle))) ) 
+    CE_pool = d[:,:,low_index:high_index] / (betam[low_index:high_index] * expIntSigmam[low_index:high_index] * np.exp(-2.0 * aod * aod_ratio / sin_elev) ) 
 #    print CE_pool
-    lc_lines = np.array(ma.masked_invalid(CE_pool).mean(axis=-1)) / data['energy']
+    C_pool = CE_pool / data['energy'][..., np.newaxis]
+    lc_lines = np.array(ma.masked_invalid(C_pool).mean(axis=-1)) 
 #    print lc_lines
-    return lc_lines
+    if return_detail:
+        return lc_lines, C_pool, data['distance'][low_index:high_index] * sin_elev
+    else:
+        return lc_lines
     
 
 
