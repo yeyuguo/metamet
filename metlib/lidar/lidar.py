@@ -53,7 +53,14 @@ class LidarDataset(object):
         self.init_clean()
         if type(fnames) is str:
             fnames = fnames.split(',')
-        self.read_one_file(fnames[0], **kwargs)
+        try:
+            self.read_one_file(fnames[0], **kwargs)
+        except RuntimeError:
+            if len(fnames) == 1:
+                raise
+            else:
+                self.__init__(fnames[1:], bin_num=bin_num, **kwargs)
+                return
         if len(fnames) > 1:
             self.append_files(fnames[1:], **kwargs)
 
@@ -89,6 +96,8 @@ class LidarDataset(object):
         f = Dataset(fname, **kwargs)
         for d in f.dimensions:
             self.dims[str(d)] = len(f.dimensions[d])
+        if 'TIME' not in self.dims or self.dims['TIME'] == 0:
+            raise RuntimeError("%s contains no data" % fname)
         for v in f.variables:
             strv = str(v)
             ncv = f.variables[v]
@@ -121,7 +130,11 @@ class LidarDataset(object):
             fnames = fnames.split(',')
         tmpd = []
         for fn in fnames:
-            tmpd.append(LidarDataset(fn))
+            try:
+                d = LidarDataset(fn)
+                tmpd.append(d)
+            except RuntimeError:
+                pass
         self.append_datasets(tmpd)
         del tmpd
 
