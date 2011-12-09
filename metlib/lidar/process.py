@@ -67,7 +67,7 @@ def correct_energy(data):
     data: a LidarDataset object.
     """
     data['data'] /= data['energy'][..., np.newaxis]
-    data['data_aver_method'] = 'mean'
+    data.var_aver_methods['data'] = 'mean'
     data.desc += ',energy corrected'
 
 def fill_lower_part(data, index, aver_num=3):
