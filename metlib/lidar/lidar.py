@@ -238,7 +238,7 @@ class LidarDataset(object):
         """recheck stuffs about time dimension"""
         n_tbins = len(self.vars['datetime'])
         self.attrs['start_datetime'] = self.vars['datetime'][0]
-        if self.vars['trigger_frequency'] != 0:
+        if self.vars['trigger_frequency'][-1] != 0:
             self.attrs['end_datetime'] = self.vars['datetime'][-1] + timedelta(seconds = int(self.vars['shots_sum'][-1] / self.vars['trigger_frequency'][-1]))
         self.attrs['number_records'] = n_tbins
         self.dims['TIME'] = n_tbins
