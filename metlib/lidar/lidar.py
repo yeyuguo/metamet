@@ -238,7 +238,8 @@ class LidarDataset(object):
         """recheck stuffs about time dimension"""
         n_tbins = len(self.vars['datetime'])
         self.attrs['start_datetime'] = self.vars['datetime'][0]
-        self.attrs['end_datetime'] = self.vars['datetime'][-1] + timedelta(seconds = int(self.vars['shots_sum'][-1] / self.vars['trigger_frequency'][-1]))
+        if self.vars['trigger_frequency'] != 0:
+            self.attrs['end_datetime'] = self.vars['datetime'][-1] + timedelta(seconds = int(self.vars['shots_sum'][-1] / self.vars['trigger_frequency'][-1]))
         self.attrs['number_records'] = n_tbins
         self.dims['TIME'] = n_tbins
 
@@ -247,7 +248,9 @@ class LidarDataset(object):
         if return_seconds is True: return in seconds
         else: return in timedelta objects.
         """
-        seconds = (self.vars['shots_sum'] / self.vars['trigger_frequency']).astype('i8')
+        seconds = np.zeros(self.dims['TIME'], dtype='i8')
+        w = np.where(self.vars['trigger_frequency'] > 0)
+        seconds[w] = self.vars['shots_sum'][w] / self.vars['trigger_frequency'][w]
         if return_seconds:
             return seconds
         else:
