@@ -220,14 +220,14 @@ class LidarDataset(object):
                         tmp[vname][i] = np.nan
                 else:
                     if aver_method == 'sum':
-                        tmp[vname][i] = self.vars[vname][w].sum(axis=0)
+                        tmp[vname][i] = np.nansum(self.vars[vname][w], axis=0)
                     elif aver_method == 'mean':
-                        tmp[vname][i] = self.vars[vname][w].mean(axis=0)
+                        tmp[vname][i] = np.ma.masked_invalid(self.vars[vname][w]).mean(axis=0)
                     elif aver_method == 'first':
                         tmp[vname][i] = self.vars[vname][w][0]
                     elif aver_method == 'sqr_mean_sqrt':
                         # # for std_dev 
-                        tmp[vname][i] = np.sqrt(np.mean(self.vars[vname][w] ** 2, axis=0))
+                        tmp[vname][i] = np.sqrt(np.mean(np.masked_invalid(self.vars[vname][w]) ** 2, axis=0))
         self.vars.update(tmp)
         self.recheck_time()
 
