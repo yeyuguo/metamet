@@ -227,7 +227,7 @@ class LidarDataset(object):
                         tmp[vname][i] = self.vars[vname][w][0]
                     elif aver_method == 'sqr_mean_sqrt':
                         # # for std_dev 
-                        tmp[vname][i] = np.sqrt(np.mean(np.masked_invalid(self.vars[vname][w]) ** 2, axis=0))
+                        tmp[vname][i] = np.sqrt(np.mean(np.ma.masked_invalid(self.vars[vname][w]) ** 2, axis=0))
         self.vars.update(tmp)
         self.recheck_time()
 
