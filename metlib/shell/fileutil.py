@@ -13,3 +13,19 @@ def filesize(f):
         return size
     else:
         return os.stat(f).st_size
+
+def force_rm(fname, regex=False):
+    """force to rm fname, no matter whether fname is file, dir or link"""
+    # TODO, and when completed, add to __all__
+    # TODO, add glob support and regex support.
+    pass
+
+def force_makedirs(dirname, rm_exsit_dir=False):
+    """force to make dir, no matter whether it exists"""
+    # TODO, and when completed, add to __all__
+    pass
+
+def expand_path(path):
+    """expandvars, expanduser"""
+    # TODO
+    pass
