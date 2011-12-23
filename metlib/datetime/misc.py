@@ -37,7 +37,7 @@ def str2datetime(fmt='%Y-%m-%d %H:%M:%S', *arrays ):
     """Converts str arrays into datetime arrays.
     Parameters:
         fmt: datetime format string. When using more than one array as input, extra white space should be added. 
-        arrays: string arrays to parse.
+        arrays: string or int arrays to parse.
     Returns:
         datetime array
     """
