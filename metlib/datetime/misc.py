@@ -41,6 +41,7 @@ def str2datetime(fmt='%Y-%m-%d %H:%M:%S', *arrays ):
     Returns:
         datetime array
     """
+    # TODO: int array not working well now. add something to format int arrays into str first.
     n = len(arrays)
     l = len(arrays[0])
     res = np.zeros(l, dtype='O')
