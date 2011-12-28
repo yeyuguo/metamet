@@ -28,7 +28,6 @@ _special_avermethods = {
         'energy':'sum',
         'background_std_dev':'sqr_mean_sqrt'
         }
-
 _important_attrs = set([
     'lidarname', 'bin_time', 'bin_size', 
     'first_data_bin', 'start_datetime', 'end_datetime', 
@@ -113,7 +112,7 @@ class LidarDataset(object):
             self.var_dims[strv] = tuple([str(dimname) for dimname in ncv.dimensions])
             # aver_method
             if 'aver_method' in ncv.ncattrs():
-                self.var_aver_methods[strv] = ncv.getncattr('aver_method')
+                self.var_aver_methods[strv] = str(ncv.getncattr('aver_method'))
             elif v in _special_avermethods:
                 self.var_aver_methods[strv] = _special_avermethods[v]
             else:
