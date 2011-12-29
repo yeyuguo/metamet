@@ -28,7 +28,7 @@ def plot_lidar(dts, height, data,
         xlabel = '%s - %s' % (dts[0], dts[-1])
     dts_num = matplotlib.dates.date2num(dts)
     fig = plt.figure(figsize=figsize)
-    ax = plt.pcolormesh(dts_num, height, np.ma.masked_invalid(data.transpose()), vmin=vmin, vmax=vmax)
+    ax = plt.pcolormesh(dts_num, height, np.ma.masked_invalid(data.transpose()), vmin=vmin, vmax=vmax, cmap=cmap)
     plt.gca().get_xaxis().axis_date()
     plt.gca().tick_params(direction='out', labelsize='x-small')
     fig.autofmt_xdate()
