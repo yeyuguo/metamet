@@ -23,11 +23,11 @@ months2 = []
 months3 = []
 
 crayon = ['#EE204D', '#FFAACC', '#926EAE', '#1F75FE', '#1A4876', '#1CAC78', '#9FE2BF', '#BACF6C', '#FCE883', '#E7C697', '#FF7538', '#B4674D', '#EA7E5D', '#CB4154', '#95918C', 'black']
-crayon_dark1 = ['#EE204D', '#926EAE', '#1F75FE', '#1A4876', '#1CAC78', '#BACF6C', '#FF7538', '#B4674D', '#EA7E5D', '#CB4154', '#95918C', 'black']
-crayon_dark2 = ['#1F75FE', '#CB4154', '#1CAC78', '#FF7538', '#926EAE', '#EA7E5D', 'black', '#1A4876', '#EE204D', '#BACF6C', '#B4674D', '#95918C']
+crayon_dark = ['#EE204D', '#926EAE', '#1F75FE', '#1A4876', '#1CAC78', '#BACF6C', '#FF7538', '#B4674D', '#EA7E5D', '#CB4154', '#95918C', '#202020']
+crayon_dark_random = ['#1F75FE', '#CB4154', '#1CAC78', '#FF7538', '#926EAE', '#EA7E5D', '#202020', '#1A4876', '#EE204D', '#BACF6C', '#B4674D', '#95918C']
 
 pop_poster = ['#861D2B', '#CA3226', '#E66B1E', '#E9B64B', '#FBD21A', '#BCC03E', '#69A646', '#318266', '#34A883', '#1F6597', '#273F61', '#8B4AA0', '#95879E', '#6E5248']
-
+pop_poster_random = ['#1F6597', '#CA3226', '#69A646', '#E66B1E', '#8B4AA0', '#6E5248', '#34A883', '#273F61', '#861D2B', '#318266', '#E9B64B', '#95879E', '#FBD21A', '#BCC03E']
 
 def n_colors_towards_somecolor(basecolor, tocolor, N=5, max_ratio=0.7, use_basecolor_alpha=True):
     """Generate a list of N colors from basecolor to tocolor
