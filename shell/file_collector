@@ -1,0 +1,153 @@
+#!/usr/bin/env python2.7
+
+# file_collector.py
+
+import os, sys
+import re
+#from datetime import datetime, timedelta
+#from dateutil.parser import parse
+#import numpy as np
+#import matplotlib
+#matplotlib.use('Agg')
+#import matplotlib.pyplot as plt
+#from mpl_toolkits.basemap import Basemap
+#from matplotlib import mlab
+#from netCDF4 import Dataset
+from optparse import OptionParser
+from metlib.shell import *
+import shutil
+from glob import glob
+
+class FileCollector(object):
+    """FileCollector is a program for collecting files from a large dataset with a certain naming pattern.
+
+    Usage:
+        After entering some required fields (srcdir destdir prefix postfix), you may enter the middle part of the desired file name in srcdir to cp/mv/ln that file to destdir.
+
+        Tips: you may use glob character *?[] etc in prefix, postfix and the middle part of file name.
+
+        Several special commands can be used:
+        :H  display help
+        :U  undo last move
+        :C  set mode to copy
+        :M  set mode to move
+        :L  set mode to link (not implementd)
+        :S  set srcdir
+        :D  set destdir
+        :P  set prefix
+        :O  set postfix
+    """
+
+    def __init__(self):
+        self.attrs = {
+                'srcdir':'.', 
+                'destdir':'.',
+                'prefix':'',
+                'postfix':'',
+                'CpMvLn':'cp'
+                }
+
+        self.cmdmaps = {
+                ':S':'srcdir',
+                ':D':'destdir',
+                ':P':'prefix',
+                ':O':'postfix',
+                ':C':('CpMvLn','cp'),
+                ':M':('CpMvLn', 'mv'),
+                ':L':('CpMvLn', 'ln'),
+                ':H':self.help,
+                ':U':self.undo,
+                }
+        self.prompts = {
+                'cp':'[copy>>> ',
+                'mv':'[move>!> ',
+                'ln':'[link>-> ',
+                }
+
+        self.lastfiles = []
+
+    def set_attr(self, attr, value=None):
+        if value is None:
+            value = raw_input("Enter %s : " % attr)
+        if attr in ('srcdir', 'destdir'):
+            value = os.path.expandvars(os.path.expanduser(value))
+        self.attrs[attr] = value
+        if attr == 'destdir':
+            print "    Trying to mkdir %s" % self.attrs['destdir']
+            force_makedirs(self.attrs['destdir'])
+        elif attr == 'CpMvLn':
+            print "    Setting CopyMoveLink mode to %s" % self.attrs[attr]
+
+    def undo(self):
+        if len(self.lastfiles) > 0:
+            mode, toundo_files = self.lastfiles.pop()
+            for f in toundo_files:
+                try:
+                    newf = '%s/%s' % (self.attrs['destdir'], os.path.basename(f))
+                    if mode == 'cp' or mode == 'ln':
+                        print "Removing %s ..." % newf
+                        force_rm(newf)
+                    elif mode == 'mv':
+                        print "Moving %s back to %s ..." % (newf, f)
+                        shutil.move(newf, f)
+                except Exception as e:
+                    print e
+        else:
+            print "Nothing to undo."
+
+    def run(self):
+        for a in ('srcdir', 'destdir', 'prefix', 'postfix'):
+            self.set_attr(a)
+#        self.print_state()
+        while True:
+            try:
+                userinput = raw_input(self.prompts[self.attrs['CpMvLn']])
+                if userinput in self.cmdmaps:
+                    cmd = self.cmdmaps[userinput]
+                    if callable(cmd):
+                        cmd()
+                    elif isinstance(cmd, tuple):
+                        self.set_attr(cmd[0], cmd[1])
+                    else:
+                        self.set_attr(cmd)
+                else:
+                    cand_files = glob('%s/%s%s*%s' % (self.attrs['srcdir'], 
+                        self.attrs['prefix'], 
+                        userinput,
+                        self.attrs['postfix']
+                        ))
+                    if len(cand_files) == 0:
+                        print "No file found"
+                    else:
+                        for f in cand_files:
+                            self.do_file(f)
+                        self.lastfiles.append((self.attrs['CpMvLn'], cand_files))
+            except Exception as e:
+                print e
+    
+    def do_file(self, f):
+        if self.attrs['CpMvLn'] == 'cp':
+            print "Copying %s => %s ..." % (f, self.attrs['destdir'])
+            shutil.copy(f, self.attrs['destdir'])
+        elif self.attrs['CpMvLn'] == 'mv':
+            print "Moving %s => %s ..." % (f, self.attrs['destdir'])
+            shutil.move(f, self.attrs['destdir'])
+        elif self.attrs['CpMvLn'] == 'ln':
+            print "Link not implemented"
+        else:
+            raise RuntimeError('Unknown mode: %s' % self.attrs['CpMvLn'])
+
+    def help(self):
+        print self.__doc__
+
+if __name__ == '__main__':
+    parser = OptionParser()
+    parser.set_usage(FileCollector.__doc__)
+    (options, args) = parser.parse_args()
+
+    fc = FileCollector()
+    try:
+        fc.run()
+    except (KeyboardInterrupt, EOFError):
+        print
+        sys.exit(0)
