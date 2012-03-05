@@ -227,6 +227,38 @@ class LidarDataset(object):
                     elif aver_method == 'sqr_mean_sqrt':
                         # # for std_dev 
                         tmp[vname][i] = np.sqrt(np.mean(np.ma.masked_invalid(self.vars[vname][w]) ** 2, axis=0))
+                    elif aver_method == 'min':
+                        seled = self.vars[vname][w]
+                        maskarr = np.ma.masked_invalid(seled)
+                        if maskarr.count() == 0:
+                            the_min = seled[0]
+                        else:
+                            the_min = maskarr.min(axis=0)
+                    elif aver_method == 'max':
+                        seled = self.vars[vname][w]
+                        maskarr = np.ma.masked_invalid(seled)
+                        if maskarr.count() == 0:
+                            the_max = seled[0]
+                        else:
+                            the_max = maskarr.max(axis=0)
+                        tmp[vname][i] = the_max
+                    elif aver_method == 'positive_min':
+                        seled = self.vars[vname][w]
+                        maskarr = np.ma.masked_where(-(seled >= 0), seled)
+                        if maskarr.count() == 0:
+                            the_min = seled[0]
+                        else:
+                            the_min = maskarr.min(axis=0)
+                        tmp[vname][i] = the_min
+                    elif aver_method == 'positive_max':
+                        seled = self.vars[vname][w]
+                        maskarr = np.ma.masked_where(-(seled <= 0), seled)
+                        if maskarr.count() == 0:
+                            the_max = seled[0]
+                        else:
+                            the_max = maskarr.max(axis=0)
+                        tmp[vname][i] = the_max
+
         self.vars.update(tmp)
         self.recheck_time()
 
@@ -268,6 +300,7 @@ class LidarDataset(object):
 
     def keep_indice(self, indice):
         """Keep only data in the indice (Time dimension)"""
+        # FIXME when only one record is kept, there's a bug
         where_to_keep = (np.array(indice),)
         tmp = dict()
         for vname in self.vars:
