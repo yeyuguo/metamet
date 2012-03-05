@@ -104,7 +104,7 @@ class LidarPlot(object):
         self.ax.get_xaxis().axis_date()
         self.hax.get_xaxis().axis_date()
         self.fig.autofmt_xdate()
-        print "reseting fontsize"
+#        print "reseting fontsize"
         for ax in (self.ax, self.cax, self.hax, self.vax, self.sax):
             plt.setp(ax.get_xticklabels(), fontsize=9)
             plt.setp(ax.get_yticklabels(), fontsize=9)
