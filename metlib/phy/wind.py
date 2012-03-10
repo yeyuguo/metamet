@@ -21,7 +21,7 @@ def uv2wswd(u, v):
     ws: wind speed
     wd: wind direction (in degrees, north wind is 0, east wind is 90, etc)
     """
-    ws = np.sqrt(np.add(np.square(u), np.square(v)))
+    ws = np.hypot(u, v)
     wd = np.fmod(np.rad2deg(np.arctan2(u, v)) + 180.0 , 360.0)
     return ws, wd
 
