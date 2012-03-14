@@ -31,7 +31,7 @@ class FileCollector(object):
         :U  undo last move
         :C  set mode to copy
         :M  set mode to move
-        :L  set mode to link (not implementd)
+        :L  set mode to link (not working perfectly)
         :S  set srcdir
         :D  set destdir
         :P  set prefix
@@ -120,7 +120,10 @@ class FileCollector(object):
                         print "No file found"
                     else:
                         for f in cand_files:
-                            self.do_file(f)
+                            try:
+                                self.do_file(f)
+                            except Exception as e:
+                                print e
                         self.lastfiles.append((self.attrs['CpMvLn'], cand_files))
             except Exception as e:
                 print e
@@ -133,7 +136,9 @@ class FileCollector(object):
             print "Moving %s => %s ..." % (f, self.attrs['destdir'])
             shutil.move(f, self.attrs['destdir'])
         elif self.attrs['CpMvLn'] == 'ln':
-            print "Link not implemented"
+            print "Linking %s => %s ..." % (f, self.attrs['destdir'])
+            fbase = os.path.basename(f)
+            os.symlink(os.path.abspath(f), self.attrs['destdir'] + '/' + fbase)
         else:
             raise RuntimeError('Unknown mode: %s' % self.attrs['CpMvLn'])
 
