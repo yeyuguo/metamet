@@ -2,7 +2,12 @@
 
 import numpy as np
 import sys
-from logical import *
+from .logical import *
+from .misc import *
+
+__all__ = ['datetime_split', 'split_season', 'split_month', 
+        'split_weekday', 'split_hour', 'split_year',
+        'split_year_season', 'split_year_month']
 
 def datetime_split(rec, dts=None, funcs=[]):
     if dts is None:
@@ -34,12 +39,69 @@ def split_hour(rec, dts=None):
     return datetime_split(rec, dts, 
             funcs=[lambda s, hour=hour: hour_is(hour, s) for hour in range(0,24)] )
 
-def split_year(rec, dts=None, start_year=None, end_year=None):
+def split_year(rec, dts=None, start_year=None, end_year=None, return_info=False):
     if dts is None:
         dts = rec['datetime']
     if start_year is None:
         start_year = dts[0].year
     if end_year is None:
         end_year = dts[-1].year + 1
-    return datetime_split(rec, dts, 
-            funcs=[lambda s, year=year: year_is(year, s) for year in range(start_year, end_year)] )
+    years = range(start_year, end_year)
+    res = datetime_split(rec, dts, 
+            funcs=[lambda s, year=year: year_is(year, s) for year in years] )
+    if return_info:
+        return res, years
+    else:
+        return res
+
+def split_year_season(rec, dts=None, start_year=None, end_year=None, start_season=None, end_season=None, return_info=False):
+    if dts is None:
+        dts = rec['datetime']
+    auto_start_year = False
+    auto_end_year = False
+    if start_year is None:
+        start_year = dts[0].year
+        auto_start_year = True
+    if end_year is None:
+        end_year = dts[-1].year + 1
+        auto_end_year = True
+    if start_season is None:
+        start_season = month2season(dts[0].month, '1234')
+    if end_season is None:
+        end_season = month2season(dts[-1].month, '1234')
+    if start_season == 4  and auto_start_year:
+        start_year -= 1
+    if end_season == 1 and auto_end_year:
+        end_year -= 1
+    ys = [(y, s) for y in range(start_year, end_year) for s in range(1,5)]
+    end_i = -(4-end_season)
+    if end_i == 0: end_i = None 
+    ys = ys[start_season-1:end_i]
+    res = datetime_split(rec, dts, 
+            funcs=[lambda s, year=year, season=season: year_season_is(year, season, s) for year, season in ys] )
+    if return_info:
+        return res, ys
+    else:
+        return res
+
+def split_year_month(rec, dts=None, start_year=None, end_year=None, start_month=None, end_month=None, return_info=False):
+    if dts is None:
+        dts = rec['datetime']
+    if start_year is None:
+        start_year = dts[0].year
+    if end_year is None:
+        end_year = dts[-1].year + 1
+    if start_month is None:
+        start_month = dts[0].month
+    if end_month is None:
+        end_month = dts[-1].month
+    ym = [(y, m) for y in range(start_year, end_year) for m in range(1,13)]
+    end_i = -(12-end_month)
+    if end_i == 0: end_i = None
+    ym = ym[start_month-1:end_i]
+    res = datetime_split(rec, dts, 
+            funcs=[lambda s, year=year, month=month: year_is(year, s) & month_is(month, s) for year, month in ym] )
+    if return_info:
+        return res, ym
+    else:
+        return res
