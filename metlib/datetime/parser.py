@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import re
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from dateutil.parser import parse
 import numpy as np
 
@@ -10,13 +10,16 @@ __all__ = ['parse_datetime', 'parse_timedelta']
 def parse_datetime(timestr):
     """Try parse timestr or integer or list of str/integer into datetimes"""
     return_single = False
-    if isinstance(timestr, (int, long, np.integer, str, unicode)):
+    if isinstance(timestr, (int, long, np.integer, str, unicode, datetime, date)):
         timestrs = [timestr]
         return_single = True
     else:
         timestrs = timestr
     res_list = []
     for timestr in timestrs:
+        if isinstance(timestr, (datetime, date)):
+            res_list.append(timestr)
+            continue
         if isinstance(timestr, (int, long, np.integer)):
             timestr = str(timestr)
         if len(timestr) == 10:
