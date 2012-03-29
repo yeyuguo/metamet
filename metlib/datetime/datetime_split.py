@@ -5,7 +5,9 @@ import sys
 from .logical import *
 from .misc import *
 
-__all__ = ['datetime_split', 'split_season', 'split_month', 
+__all__ = ['datetime_split', 
+        'split_type',
+        'split_season', 'split_month', 
         'split_weekday', 'split_hour', 'split_year',
         'split_year_season', 'split_year_month']
 
@@ -17,6 +19,15 @@ def datetime_split(rec, dts=None, funcs=[]):
         part = rec[np.where(func(dts))]
         bins.append(part)
     return bins
+
+def split_type(rec, codes, return_info=False):
+    unique_codes = list(set(codes))
+    funcs = [lambda s, code=code: s == code for code in unique_codes]
+    res = datetime_split(rec, np.array(codes), funcs)
+    if return_info:
+        return res, unique_codes
+    else:
+        return res
 
 def split_season(rec, dts=None):
     return datetime_split(rec, dts, funcs=[

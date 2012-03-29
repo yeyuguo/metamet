@@ -11,7 +11,8 @@ import numpy as np
 #import matplotlib.pyplot as plt
 #from mpl_toolkits.basemap import Basemap
 #from matplotlib import mlab
-__all__ = ['month2season', 'str2datetime']
+from .parser import *
+__all__ = ['month2season', 'str2datetime', 'datetime_match', 'datetime_filter']
 
 def month2season(month, outformat='0123'):
     """Converts month number ( 1-12 ) to season number or names.
@@ -57,3 +58,79 @@ def str2datetime(fmt='%Y-%m-%d %H:%M:%S', *arrays ):
             res[i] = None
     return res
 
+def datetime_match(rec, ref_dts, fmt="%Y%m%d%H%M%S", fmt2=None, rec_dts_field='datetime', return_index=False):
+    """match a subset of rec to match ref_dts
+    rec: recarray to select from.
+    ref_dts: reference datetime array.
+    fmt: common datetime string format for matching.
+    fmt2: ref_dts's format string. if None, use fmt
+    rec_dts_field: 'datetime', 'date', etc. use None if rec is a datetime seq.
+    return_index: if False: return selected rec only; if True: also return matching index.
+    """
+    if fmt2 is None:
+        fmt2 = fmt
+    rec = np.array(rec)
+    ref_dts = parse_datetime(ref_dts)
+    if rec_dts_field is None:
+        rec_dts = rec
+    else:
+        rec_dts = rec[rec_dts_field]
+    rec_dtstrs = [dt.strftime(fmt) for dt in rec_dts]
+    rec_dict = dict(zip(rec_dtstrs, range(len(rec_dtstrs))))
+    ref_dtstr = [dt.strftime(fmt2) for dt in ref_dts]
+    res_i = []
+    for dtstr in ref_dtstr:
+        i = rec_dict.get(dtstr, None)
+        res_i.append(i)
+    res = np.atleast_1d(np.zeros(len(res_i), rec.dtype))
+    fields = rec.dtype.names
+    res[:] = np.nan
+    for i, rec_i in enumerate(res_i):
+        if rec_i is None:
+            res[i][rec_dts_field] = rec[rec_i][rec_dts_field]
+        else:
+            for f in fields:
+                res[i][f] = rec[rec_i][f]
+    if return_index:
+        return res, np.array(res_i)
+    else:
+        return res
+
+def datetime_filter(rec, ref_dts, fmt="%Y%m%d%H%M%S", fmt2=None, rec_dts_field='datetime', return_index=False):
+    """filter a subset of rec to match ref_dts
+    rec: recarray to select from.
+    ref_dts: reference datetime array. if it's a seq of str AND fmt2 is None: use it directly
+    fmt: common datetime string format for matching.
+    fmt2: ref_dts's format string. if None, use fmt
+    rec_dts_field: 'datetime', 'date', etc. use None if rec is a datetime seq.
+    return_index: if False: return selected rec only; if True: also return matching index.
+    """
+    rec = np.array(rec)
+    if isinstance(ref_dts[0], (str, unicode)) and fmt2 is None:
+        ref_dtstr = ref_dts
+    else:
+        if fmt2 is None:
+            fmt2 = fmt
+        ref_dts = parse_datetime(ref_dts)
+        ref_dtstr = [dt.strftime(fmt2) for dt in ref_dts]
+    if rec_dts_field is None:
+        rec_dts = rec
+    else:
+        rec_dts = rec[rec_dts_field]
+    rec_dtstrs = [dt.strftime(fmt) for dt in rec_dts]
+    rec_dict = dict()
+    for i in range(len(rec_dtstrs)):
+        if rec_dtstrs[i] not in rec_dict:
+            rec_dict[rec_dtstrs[i]] = [i]
+        else:
+            rec_dict[rec_dtstrs[i]].append(i)
+    res_i = []
+    for dtstr in ref_dtstr:
+        i_list = rec_dict.get(dtstr, None)
+        if i_list is not None:
+            res_i.extend(i_list)
+    res = np.atleast_1d(rec[(res_i,)])
+    if return_index:
+        return res, np.array(res_i)
+    else:
+        return res

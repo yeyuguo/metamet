@@ -50,9 +50,11 @@ months1 = []
 months2 = []
 for c in seasons2:
     months2.extend(n_colors_towards_white(c, 3, max_ratio=0.6))
+months2 = months2[10:12] + months2[0:10]
 months3 = []
 for c in seasons3:
     months3.extend(n_colors_towards_somecolor(c, 'black', 3, max_ratio=0.5))
+months3 = months3[10:12] + months3[0:10]
 
 crayon = ['#EE204D', '#FFAACC', '#926EAE', '#1F75FE', '#1A4876', '#1CAC78', '#9FE2BF', '#BACF6C', '#FCE883', '#E7C697', '#FF7538', '#B4674D', '#EA7E5D', '#CB4154', '#95918C', 'black']
 crayon_dark = ['#EE204D', '#926EAE', '#1F75FE', '#1A4876', '#1CAC78', '#BACF6C', '#FF7538', '#B4674D', '#EA7E5D', '#CB4154', '#95918C', '#202020']
