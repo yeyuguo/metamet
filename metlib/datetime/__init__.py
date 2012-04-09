@@ -8,5 +8,6 @@ from .datetime_split import *
 
 from datetime import date, datetime, timedelta
 from dateutil.parser import parse
+from matplotlib.dates import date2num, num2date
 
 __all__ = filter(lambda s:not s.startswith('_'),dir())

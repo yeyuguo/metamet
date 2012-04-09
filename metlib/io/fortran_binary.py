@@ -39,4 +39,6 @@ class FortranBinary(object):
     def __getitem__(self, i):
         return self.records[i]
 
+    def __del__(self):
+        self._f.close()
 # TODO: add rec index, etc.
