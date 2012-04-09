@@ -87,10 +87,11 @@ def datetime_match(rec, ref_dts, fmt="%Y%m%d%H%M%S", fmt2=None, rec_dts_field='d
     res[:] = np.nan
     for i, rec_i in enumerate(res_i):
         if rec_i is None:
-            res[i][rec_dts_field] = rec[rec_i][rec_dts_field]
+            # TODO right hand stuff still not perfect
+            res[rec_dts_field][i] = parse_datetime(ref_dtstr[i])
         else:
             for f in fields:
-                res[i][f] = rec[rec_i][f]
+                res[f][i] = rec[f][rec_i]
     if return_index:
         return res, np.array(res_i)
     else:
