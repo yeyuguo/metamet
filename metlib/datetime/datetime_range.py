@@ -2,7 +2,7 @@
 
 from datetime import datetime, timedelta
 from dateutil.parser import parse
-from parser import parse_datetime, parse_timedelta
+from .parser import parse_datetime, parse_timedelta
 
 __all__ = ['datetime_range']
 

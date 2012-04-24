@@ -3,6 +3,7 @@
 from datetime import datetime, timedelta
 import numpy as np
 from matplotlib.dates import date2num
+from .parser import *
 
 __all__ = ['datetime_interp']
 
@@ -15,6 +16,8 @@ def datetime_interp(dest_dts, src_dts, src_values):
     Returns:
         array of data with the same length of dest_dts.
     """
+    dest_dts = parse_datetime(dest_dts)
+    src_dts = parse_datetime(src_dts)
     src_dt_nums = date2num(src_dts)
     dest_dt_nums = date2num(dest_dts)
     res = np.interp(dest_dt_nums, src_dt_nums, src_values)
