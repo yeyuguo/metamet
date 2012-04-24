@@ -4,6 +4,7 @@ import numpy as np
 import sys
 from .logical import *
 from .misc import *
+from .parser import *
 
 __all__ = ['datetime_split', 
         'split_type',
@@ -14,6 +15,7 @@ __all__ = ['datetime_split',
 def datetime_split(rec, dts=None, funcs=[]):
     if dts is None:
         dts = rec['datetime']
+    dts = parse_datetime(dts)
     bins = []
     for func in funcs:
         part = rec[np.where(func(dts))]

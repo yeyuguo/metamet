@@ -12,6 +12,8 @@ import numpy as np
 #import matplotlib.pyplot as plt
 #from mpl_toolkits.basemap import Basemap
 #from matplotlib import mlab
+from .parser import *
+
 __all__ = ['datetime_bin', 'datetime_period', 'datetime_group', 'datetime_neighbor'] 
 def datetime_bin(datetimes, tdelta, starttime=None, endtime=None, return_bin_info=False):
     """This function partition a serie of datetime objects into equal timedelta bin. 
@@ -27,12 +29,19 @@ def datetime_bin(datetimes, tdelta, starttime=None, endtime=None, return_bin_inf
             return [], []
         else:
             return []
+    datetimes = parse_datetime(datetimes)
     if starttime is None:
         starttime = datetimes[0]
+    else:
+        starttime = parse_datetime(starttime)
     if endtime is None:
         endtime = datetimes[-1] # + tdelta / 2
+    else:
+        endtime = parse_datetime(endtime)
     if tdelta is None:
         tdelta = endtime - starttime
+    else:
+        tdelta = parse_timedelta(tdelta)
 
     tmpbin_start = starttime
     result = []
@@ -73,12 +82,17 @@ def datetime_period(datetimes, splitpoints, starttime=None, endtime=None, return
             return [], []
         else:
             return []
+    datetimes = parse_datetime(datetimes)
     min_dts = np.min(datetimes)
     max_dts = np.max(datetimes)
     if starttime is None:
         starttime = min_dts
+    else:
+        starttime = parse_datetime(starttime)
     if endtime is None:
         endtime = max_dts
+    else:
+        endtime = parse_datetime(endtime)
     if starttime > max_dts or endtime < min_dts:
         if return_bin_info:
             return [], []
@@ -121,12 +135,17 @@ def datetime_group(datetimes, tdelta_threshold, starttime=None, endtime=None, re
             return [], []
         else:
             return []
+    datetimes = parse_datetime(datetimes)
     min_dts = np.min(datetimes)
     max_dts = np.max(datetimes)
     if starttime is None:
         starttime = min_dts
+    else:
+        starttime = parse_datetime(starttime)
     if endtime is None:
         endtime = max_dts
+    else:
+        endtime = parse_datetime(endtime)
     if starttime > max_dts or endtime < min_dts:
         if return_bin_info:
             return [], []
@@ -164,12 +183,17 @@ def datetime_neighbor(datetimes, target_datetimes, tdelta_threshold, starttime=N
             return [], []
         else:
             return []
+    datetimes = parse_datetime(datetimes)
     min_dts = np.min(datetimes)
     max_dts = np.max(datetimes)
     if starttime is None:
         starttime = min_dts
+    else:
+        starttime = parse_datetime(starttime)
     if endtime is None:
         endtime = max_dts
+    else:
+        endtime = parse_datetime(endtime)
     if starttime > max_dts or endtime < min_dts:
         if return_bin_info:
             return [], []
