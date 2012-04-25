@@ -96,7 +96,8 @@ def year_season_is(years, seasons, the_datetime):
 def datetime_is_between(datetime_beg, datetime_end, 
         the_datetime):
     """Returns True if dt_beg <= the_datetime < dt_end"""
-    the_datetime = parse_datetime(the_datetime)
+    datetime_beg = parse_datetime(datetime_beg)
+    datetime_end = parse_datetime(datetime_end)
     the_datetime = np.array(the_datetime)
     res = np.zeros(the_datetime.shape, dtype='O')
     for i in range(res.size):
