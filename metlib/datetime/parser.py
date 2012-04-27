@@ -5,7 +5,7 @@ from datetime import datetime, timedelta, date
 from dateutil.parser import parse
 import numpy as np
 
-__all__ = ['parse_datetime', 'parse_timedelta']
+__all__ = ['parse_datetime', 'parse_timedelta', 'T', 'TD']
 
 def parse_datetime(timestr):
     """Try parse timestr or integer or list of str/integer into datetimes"""
@@ -68,6 +68,9 @@ def parse_timedelta(timestr):
         return res_list[0]
     else:
         return res_list
+
+T = parse_datetime
+TD = parse_timedelta
 
 if __name__ == '__main__':
     print parse_datetime(20090101)
