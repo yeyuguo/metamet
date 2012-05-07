@@ -82,16 +82,22 @@ def datetime_match(rec, ref_dts, fmt="%Y%m%d%H%M%S", fmt2=None, rec_dts_field='d
     for dtstr in ref_dtstr:
         i = rec_dict.get(dtstr, None)
         res_i.append(i)
-    res = np.atleast_1d(np.zeros(len(res_i), rec.dtype))
-    fields = rec.dtype.names
+    if rec_dts_field is None:
+        res = np.zeros(len(res_i), dtype='O')
+    else:
+        res = np.atleast_1d(np.zeros(len(res_i), rec.dtype))
+        fields = rec.dtype.names
     res[:] = np.nan
-    for i, rec_i in enumerate(res_i):
-        if rec_i is None:
-            # TODO right hand stuff still not perfect
-            res[rec_dts_field][i] = parse_datetime(ref_dtstr[i])
-        else:
-            for f in fields:
-                res[f][i] = rec[f][rec_i]
+    if rec_dts_field is None:
+        res[:] = rec[(res_i, )]
+    else:
+        for i, rec_i in enumerate(res_i):
+            if rec_i is None:
+                # TODO right hand stuff still not perfect
+                res[rec_dts_field][i] = parse_datetime(ref_dtstr[i])
+            else:
+                for f in fields:
+                    res[f][i] = rec[f][rec_i]
     if return_index:
         return res, np.array(res_i)
     else:
