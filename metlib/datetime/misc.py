@@ -66,6 +66,7 @@ def datetime_match(rec, ref_dts, fmt="%Y%m%d%H%M%S", fmt2=None, rec_dts_field='d
     fmt2: ref_dts's format string. if None, use fmt
     rec_dts_field: 'datetime', 'date', etc. use None if rec is a datetime seq.
     return_index: if False: return selected rec only; if True: also return matching index.
+Bug:  There may be None in returned index.
     """
     if fmt2 is None:
         fmt2 = fmt
@@ -89,7 +90,11 @@ def datetime_match(rec, ref_dts, fmt="%Y%m%d%H%M%S", fmt2=None, rec_dts_field='d
         fields = rec.dtype.names
     res[:] = np.nan
     if rec_dts_field is None:
-        res[:] = rec[(res_i, )]
+        for i, rec_i in enumerate(res_i):
+            if rec_i is None:
+                pass
+            else:
+                res[i] = rec[rec_i]
     else:
         for i, rec_i in enumerate(res_i):
             if rec_i is None:
