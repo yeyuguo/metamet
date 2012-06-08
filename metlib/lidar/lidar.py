@@ -104,7 +104,7 @@ class LidarDataset(object):
             # datetime handling
             if v == 'datetime':
                 datetime_type = type(v_arr[0])
-                if datetime_type == np.string_ or datetime_type == str:
+                if datetime_type in (np.string_ , str, unicode):
                     v_arr = np.array([datetime.strptime(datestr, _std_datetime_fmt) for datestr in v_arr])
                 else:
                     v_arr = num2date(v_arr, units=_std_datetime_units)
