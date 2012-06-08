@@ -7,8 +7,16 @@ import numpy as np
 
 __all__ = ['parse_datetime', 'parse_timedelta', 'T', 'TD']
 
-def parse_datetime(timestr):
-    """Try parse timestr or integer or list of str/integer into datetimes"""
+def parse_datetime(timestr, force_datetime=True):
+    """Try parse timestr or integer or list of str/integer into datetimes
+    timestr: single value or seq of:
+                int/str: YYYYMMDD[HH[MM[SS]]] , delimiters are also allowed, 
+                    e.g.: YYYY-MM-DD HH:MM:SS.
+                datetime/date
+    force_datetime: 
+                if True: return datetime even if input is date.
+                if False: return date if input is date.
+    """
     return_single = False
     if isinstance(timestr, (int, long, np.integer, str, unicode, datetime, date)):
         timestrs = [timestr]
@@ -17,8 +25,14 @@ def parse_datetime(timestr):
         timestrs = timestr
     res_list = []
     for timestr in timestrs:
-        if isinstance(timestr, (datetime, date)):
+        if isinstance(timestr, (datetime, )):
             res_list.append(timestr)
+            continue
+        if isinstance(timestr, (date, )):
+            if force_datetime == True:
+                res_list.append(datetime.fromordinal(timestr.toordinal()))
+            else:
+                res_list.append(timestr)
             continue
         if isinstance(timestr, (int, long, np.integer)):
             timestr = str(timestr)
@@ -36,7 +50,7 @@ def parse_datetime(timestr):
 
 _tdelta_dict = {'d':'days', 'h':'hours', 'm':'minutes', 's':'seconds'}
 def parse_timedelta(timestr):
-    """Try parse timestr or integer or list of them into timedeltas.
+    """Try parse single value or seq of timestr/integer/timedelta into timedeltas.
     e.g. parse_timedelta(['30m', '2h', '1d', '15s']).
     d: days
     h: hours
@@ -44,13 +58,16 @@ def parse_timedelta(timestr):
     s: seconds (default)
     """
     return_single = False
-    if isinstance(timestr, (int, long, np.integer, str, unicode)):
+    if isinstance(timestr, (int, long, np.integer, str, unicode, timedelta)):
         timestrs = [timestr]
         return_single = True
     else:
         timestrs = timestr
     res_list = []
     for timestr in timestrs:
+        if isinstance(timestr, timedelta):
+            res_list.append(timestr)
+            continue
         if isinstance(timestr, (int, long, np.integer)):
             timestr = str(timestr)
         timestr = timestr.lower().strip()
