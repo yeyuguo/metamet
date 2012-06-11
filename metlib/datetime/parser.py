@@ -2,6 +2,7 @@
 
 import re
 from datetime import datetime, timedelta, date
+from dateutil.relativedelta import relativedelta
 from dateutil.parser import parse
 import numpy as np
 
@@ -49,9 +50,13 @@ def parse_datetime(timestr, force_datetime=True):
         return res_list
 
 _tdelta_dict = {'d':'days', 'h':'hours', 'm':'minutes', 's':'seconds'}
+_rel_tdelta_dict = {'Y':'years', 'M':'months', 'W':'weeks'}
 def parse_timedelta(timestr):
     """Try parse single value or seq of timestr/integer/timedelta into timedeltas.
     e.g. parse_timedelta(['30m', '2h', '1d', '15s']).
+    Y: years
+    M: months
+    W: weeks
     d: days
     h: hours
     m: minutes
@@ -70,16 +75,19 @@ def parse_timedelta(timestr):
             continue
         if isinstance(timestr, (int, long, np.integer)):
             timestr = str(timestr)
-        timestr = timestr.lower().strip()
-        m = re.match(r'([-0-9]+)([dhms]*)', timestr)
+        timestr = timestr.strip()
+        m = re.match(r'([-0-9]+)([dhmsYMW]*)', timestr)
         if not m:
             res = None
         else:
             value = int(m.group(1))
             symbol = m.group(2)
-            if symbol == '':
-                symbol = 's'
-            res = timedelta(**{_tdelta_dict[symbol]:value})
+            if symbol in _rel_tdelta_dict:
+                res = relativedelta(**{_rel_tdelta_dict[symbol]:value})
+            else:
+                if symbol == '':
+                    symbol = 's'
+                res = timedelta(**{_tdelta_dict[symbol]:value})
         res_list.append(res)
     if return_single:
         return res_list[0]
