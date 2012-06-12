@@ -58,14 +58,15 @@ def str2datetime(fmt='%Y-%m-%d %H:%M:%S', *arrays ):
             res[i] = None
     return res
 
-def datetime_match(rec, ref_dts, fmt="%Y%m%d%H%M%S", fmt2=None, rec_dts_field='datetime', return_index=False):
+def datetime_match(rec, ref_dts, fmt="%Y%m%d%H%M%S", fmt2=None, rec_dts_field='datetime', return_index=False, fill_value=np.nan):
     """match a subset of rec to match ref_dts
     rec: recarray to select from.
     ref_dts: reference datetime array.
     fmt: common datetime string format for matching.
     fmt2: ref_dts's format string. if None, use fmt
-    rec_dts_field: 'datetime', 'date', etc. use None if rec is a datetime seq.
+    rec_dts_field: 'datetime', 'date', etc. Use None if rec is a datetime seq. Use a datetime seq if rec does not contain a dts field.
     return_index: if False: return selected rec only; if True: also return matching index.
+    fill_value: fill value.
 Bug:  There may be None in returned index.
     """
     if fmt2 is None:
@@ -74,8 +75,10 @@ Bug:  There may be None in returned index.
     ref_dts = parse_datetime(ref_dts)
     if rec_dts_field is None:
         rec_dts = rec
-    else:
+    elif isinstance(rec_dts_field, (str, unicode)):
         rec_dts = rec[rec_dts_field]
+    else:
+        rec_dts = rec_dts_field
     rec_dtstrs = [dt.strftime(fmt) for dt in rec_dts]
     rec_dict = dict(zip(rec_dtstrs, range(len(rec_dtstrs))))
     ref_dtstr = [dt.strftime(fmt2) for dt in ref_dts]
@@ -88,7 +91,7 @@ Bug:  There may be None in returned index.
     else:
         res = np.atleast_1d(np.zeros(len(res_i), rec.dtype))
         fields = rec.dtype.names
-    res[:] = np.nan
+    res[:] = fill_value
     if rec_dts_field is None:
         for i, rec_i in enumerate(res_i):
             if rec_i is None:
@@ -97,25 +100,33 @@ Bug:  There may be None in returned index.
                 res[i] = rec[rec_i]
     else:
         for i, rec_i in enumerate(res_i):
-            if rec_i is None:
-                # TODO right hand stuff still not perfect
-                res[rec_dts_field][i] = parse_datetime(ref_dtstr[i])
+            if fields is None:
+                if rec_i is None:
+                    res[i] = fill_value
+                else:
+                    res[i] = rec[rec_i]
             else:
-                for f in fields:
-                    res[f][i] = rec[f][rec_i]
+                if rec_i is None:
+                    # TODO right hand stuff still not perfect
+                    if isinstance(rec_dts_field, (str, unicode)):
+                        res[rec_dts_field][i] = parse_datetime(ref_dtstr[i])
+                else:
+                    for f in fields:
+                        res[f][i] = rec[f][rec_i]
     if return_index:
         return res, np.array(res_i)
     else:
         return res
 
-def datetime_filter(rec, ref_dts, fmt="%Y%m%d%H%M%S", fmt2=None, rec_dts_field='datetime', return_index=False):
+def datetime_filter(rec, ref_dts, fmt="%Y%m%d%H%M%S", fmt2=None, rec_dts_field='datetime', return_index=False, fill_value=np.nan):
     """filter a subset of rec to match ref_dts
     rec: recarray to select from.
     ref_dts: reference datetime array. if it's a seq of str AND fmt2 is None: use it directly
     fmt: common datetime string format for matching.
     fmt2: ref_dts's format string. if None, use fmt
-    rec_dts_field: 'datetime', 'date', etc. use None if rec is a datetime seq.
+    rec_dts_field: 'datetime', 'date', etc. Use None if rec is a datetime seq. Use a datetime seq if rec does not contain a dts field.
     return_index: if False: return selected rec only; if True: also return matching index.
+    fill_value: fill value.
     """
     rec = np.array(rec)
     if isinstance(ref_dts[0], (str, unicode)) and fmt2 is None:
@@ -127,8 +138,10 @@ def datetime_filter(rec, ref_dts, fmt="%Y%m%d%H%M%S", fmt2=None, rec_dts_field='
         ref_dtstr = [dt.strftime(fmt2) for dt in ref_dts]
     if rec_dts_field is None:
         rec_dts = rec
-    else:
+    elif isinstance(rec_dts_field, (str, unicode)):
         rec_dts = rec[rec_dts_field]
+    else:
+        rec_dts = rec_dts_field
     rec_dtstrs = [dt.strftime(fmt) for dt in rec_dts]
     rec_dict = dict()
     for i in range(len(rec_dtstrs)):
