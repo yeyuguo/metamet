@@ -16,7 +16,7 @@ def year_is(years, the_datetime):
     the_datetime = parse_datetime(the_datetime)
     years = np.array(years)
     the_datetime = np.array(the_datetime)
-    res = np.zeros(the_datetime.shape, dtype='O')
+    res = np.zeros(the_datetime.shape, dtype='?')
     for i in range(res.size):
         res.flat[i] = True if the_datetime.flat[i].year \
                 in years else False
@@ -26,7 +26,7 @@ def month_is(months, the_datetime):
     the_datetime = parse_datetime(the_datetime)
     months = np.array(months)
     the_datetime = np.array(the_datetime)
-    res = np.zeros(the_datetime.shape, dtype='O')
+    res = np.zeros(the_datetime.shape, dtype='?')
     for i in range(res.size):
         res.flat[i] = True if the_datetime.flat[i].month \
                 in months else False
@@ -36,7 +36,7 @@ def hour_is(hours, the_datetime):
     the_datetime = parse_datetime(the_datetime)
     hours = np.array(hours)
     the_datetime = np.array(the_datetime)
-    res = np.zeros(the_datetime.shape, dtype='O')
+    res = np.zeros(the_datetime.shape, dtype='?')
     for i in range(res.size):
         res.flat[i] = True if the_datetime.flat[i].hour \
                 in hours else False
@@ -47,7 +47,7 @@ def weekday_is(weekdays, the_datetime):
     the_datetime = parse_datetime(the_datetime)
     weekdays = np.array(weekdays)
     the_datetime = np.array(the_datetime)
-    res = np.zeros(the_datetime.shape, dtype='O')
+    res = np.zeros(the_datetime.shape, dtype='?')
     for i in range(res.size):
         res.flat[i] = True if \
             the_datetime.flat[i].isoweekday() \
@@ -58,7 +58,7 @@ def season_is(seasons, the_datetime):
     the_datetime = parse_datetime(the_datetime)
     seasons = np.array(seasons)
     the_datetime = np.array(the_datetime)
-    res = np.zeros(the_datetime.shape, dtype='O')
+    res = np.zeros(the_datetime.shape, dtype='?')
     months = set()
     global _s_m
     for s in seasons.flat:
@@ -77,7 +77,7 @@ def year_season_is(years, seasons, the_datetime):
     years = np.array(years)
     seasons = np.array(seasons)
     the_datetime = np.array(the_datetime)
-    res = np.zeros(the_datetime.shape, dtype='O')
+    res = np.zeros(the_datetime.shape, dtype='?')
     months = set()
     global _s_m
     for s in seasons.flat:
@@ -99,7 +99,7 @@ def datetime_is_between(datetime_beg, datetime_end,
     datetime_beg = parse_datetime(datetime_beg)
     datetime_end = parse_datetime(datetime_end)
     the_datetime = np.array(the_datetime)
-    res = np.zeros(the_datetime.shape, dtype='O')
+    res = np.zeros(the_datetime.shape, dtype='?')
     for i in range(res.size):
         dt = the_datetime.flat[i]
         res.flat[i] = True if dt >= datetime_beg and \
