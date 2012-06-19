@@ -61,6 +61,6 @@ def three_month_anomaly(dts, data, beg_year, beg_month, end_year, end_month, day
                 stack[yyyy-beg_year, mm-1] = np.nan
     basevalue = np.ma.masked_invalid(stack).mean(axis=0)
     anomaly_stack = stack - basevalue[np.newaxis, ...]
-    return anomaly_stack.reshape(result_shape)[beg_month-1:beg_month-1+len(beg_dts)]
+    return anomaly_stack.reshape(result_shape)[beg_month-1:beg_month-1+len(beg_dts)].data
 
 
