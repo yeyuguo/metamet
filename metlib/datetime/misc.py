@@ -12,7 +12,14 @@ import numpy as np
 #from mpl_toolkits.basemap import Basemap
 #from matplotlib import mlab
 from .parser import *
-__all__ = ['month2season', 'str2datetime', 'datetime_match', 'datetime_filter']
+__all__ = ['month2season', 'str2datetime', 'datetime_match', 'datetime_filter',
+        'season_names', 'month_names', 'month_short_names']
+
+season_names = ['Spring', 'Summer', 'Autumn', 'Winter']
+month_names  = ['January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December']
+month_short_names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 def month2season(month, outformat='0123'):
     """Converts month number ( 1-12 ) to season number or names.
