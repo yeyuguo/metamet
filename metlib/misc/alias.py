@@ -15,10 +15,14 @@ import numpy as np
 
 __all__ = ['ma_out']
 
-def ma_out(arr, vmin=-np.inf, vmax=np.inf):
+def ma_out(arr, vmin=-np.inf, vmax=np.inf, fill_value=None):
     """masked values outside (vmin, vmax) and invalid values.
+    and fill the masked part with fill_value if it is not None.
     """
-    return np.ma.masked_outside(np.ma.masked_invalid(arr), vmin, vmax)
+    res = np.ma.masked_outside(np.ma.masked_invalid(arr), vmin, vmax)
+    if fill_value is not None:
+        res = res.filled(fill_value)
+    return res
 
 if __name__ == '__main__':
     pass
