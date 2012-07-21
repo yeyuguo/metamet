@@ -38,7 +38,10 @@ def parse_datetime(timestr, force_datetime=True):
         if isinstance(timestr, (int, long, np.integer)):
             timestr = str(timestr)
         if len(timestr) == 10:
-            timestr = timestr + '00'
+            if re.match(r'^\d{10}$', timestr):
+                timestr = timestr + '00'
+            elif re.match(r'^\d{4}.\d{2}.\d{2}$', timestr):
+                timestr = timestr + ' 00:00:00'
         try:
             res = parse(timestr)
         except ValueError:
