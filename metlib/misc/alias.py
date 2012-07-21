@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # alias.py
-
+import os
 #import re
 #from datetime import datetime, timedelta
 #from dateutil.parser import parse
@@ -13,7 +13,7 @@ import numpy as np
 #from matplotlib import mlab
 #from netCDF4 import Dataset
 
-__all__ = ['ma_out']
+__all__ = ['ma_out', 'expand_path']
 
 def ma_out(arr, vmin=-np.inf, vmax=np.inf, fill_value=None):
     """masked values outside (vmin, vmax) and invalid values.
@@ -24,5 +24,8 @@ def ma_out(arr, vmin=-np.inf, vmax=np.inf, fill_value=None):
         res = res.filled(fill_value)
     return res
 
+def expand_path(path):
+    return os.path.expanduser(os.path.expandvars(path))
+
 if __name__ == '__main__':
-    pass
+    print expand_path('~/$PYTHONPATH')
