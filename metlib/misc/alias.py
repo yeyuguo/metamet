@@ -25,6 +25,7 @@ def ma_out(arr, vmin=-np.inf, vmax=np.inf, fill_value=None):
     return res
 
 def expand_path(path):
+    """expand ~ and $ in the path"""
     return os.path.expanduser(os.path.expandvars(path))
 
 if __name__ == '__main__':
