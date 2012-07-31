@@ -63,10 +63,25 @@ crayon_dark_random = ['#1F75FE', '#CB4154', '#1CAC78', '#FF7538', '#926EAE', '#E
 pop_poster = ['#861D2B', '#CA3226', '#E66B1E', '#E9B64B', '#FBD21A', '#BCC03E', '#69A646', '#318266', '#34A883', '#1F6597', '#273F61', '#8B4AA0', '#95879E', '#6E5248']
 pop_poster_random = ['#1F6597', '#CA3226', '#69A646', '#E66B1E', '#8B4AA0', '#6E5248', '#34A883', '#273F61', '#861D2B', '#318266', '#E9B64B', '#95879E', '#FBD21A', '#BCC03E']
 
+brewer_set1 = ['#E41A1C', '#377EB8', '#4DAF4A', '#984EA3', '#FF7F00', '#FFFF33', '#A65628', '#F781BF', '#999999']        
+brewer_set2 = [ '#66c2a5', '#fc8d62', '#8da0cb', '#e78ac3', '#a6d854', '#ffd92f', '#e5c494', '#b3b3b3']        
+brewer_set3 = ['#8DD3C7', '#FFFFB3', '#BEBADA', '#FB8072', '#80B1D3', '#FDB462', '#B3DE69', '#FCCDE5', '#D9D9D9', '#BC80BD', '#CCEBC5', '#FFED6F']
+brewer_pastel1 = ['#FBB4AE', '#B3CDE3', '#CCEBC5', '#DECBE4', '#FED9A6', '#FFFFCC', '#E5D88D', '#FDDAEC', '#F2F2F2'] 
+brewer_pastel2 = [ '#b3e2cd', '#fdcdac', '#cbd5e8', '#f4cae4', '#e6f5c9', '#fff2ae', '#f1e2cc', '#cccccc']        
+brewer_accent = [ '#7fc97f', '#beaed4', '#fdc086', '#ffff99', '#386cb0', '#f0027f', '#bf5b17', '#666666']        
+brewer_dark2 = [ '#1b9e77', '#d95f02', '#7570b3', '#e7298a', '#66a61e', '#e6ab02', '#a6761d', '#666666']        
+brewer_paired = ['#A6CEE3', '#1F78B4', '#B2DF8A', '#33A02C', '#FB9A99', '#E31A1C', '#FDBF6F', '#FF7F00', '#CAB2D6', '#6A3D9A', '#FFFF99', '#BF5B17']
+brewer_paired2 = ['#1F78B4', '#A6CEE3', '#33A02C', '#B2DF8A', '#E31A1C', '#FB9A99', '#FF7F00', '#FDBF6F', '#6A3D9A', '#CAB2D6', '#BF5B17', '#FFFF99']
 
-
-
-
+brewer_BrBG = ['#543005', '#8c510a', '#bf812d', '#dfc27d', '#f6e8c3', '#f5f5f5', '#c7eae5', '#80cdc1', '#35978f', '#01665e', '#003c30']
+brewer_PiYG = [ '#8e0152', '#c51b7d', '#de77ae', '#f1b6da', '#fde0ef', '#f7f7f7', '#e6f5d0', '#b8e186', '#7fbc41', '#4d9221', '#276419']
+brewer_PRGn = [ '#40004b', '#762a83', '#9970ab', '#c2a5cf', '#e7d4e8', '#f7f7f7', '#d9f0d3', '#a6dba0', '#5aae61', '#1b7837', '#00441b']
+brewer_PuOr = [ '#7f3b08', '#b35806', '#e08214', '#fdb863', '#fee0b6', '#f7f7f7', '#d8daeb', '#b2abd2', '#8073ac', '#542788', '#2d004b']
+brewer_RdBu = [ '#67001f', '#b2182b', '#d6604d', '#f4a582', '#fddbc7', '#f7f7f7', '#d1e5f0', '#92c5de', '#4393c3', '#2166ac', '#053061']
+brewer_RdGy = [ '#67001f', '#b2182b', '#d6604d', '#f4a582', '#fddbc7', '#ffffff', '#e0e0e0', '#bababa', '#878787', '#4d4d4d', '#1a1a1a']
+brewer_RdYlBu = [ '#a50026', '#d73027', '#f46d43', '#fdae61', '#fee090', '#ffffbf', '#e0f3f8', '#abd9e9', '#74add1', '#4575b4', '#313695']
+brewer_RdYlGn = [ '#a50026', '#d73027', '#f46d43', '#fdae61', '#fee08b', '#ffffbf', '#d9ef8b', '#a6d96a', '#66bd63', '#1a9850', '#006837']
+brewer_spectral = [ '#9e0142', '#d53e4f', '#f46d43', '#fdae61', '#fee08b', '#ffffbf', '#e6f598', '#abdda4', '#66c2a5', '#3288bd', '#5e4fa2']
     
 
 if __name__ == '__main__':
