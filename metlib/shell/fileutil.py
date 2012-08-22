@@ -4,7 +4,7 @@ from glob import glob
 import re
 import shutil
 
-__all__ = ['filesize', 'force_rm', 'force_makedirs', 'expand_path']
+__all__ = ['filesize', 'force_rm', 'force_makedirs', 'expand_path', 'find_link_orig']
 
 def filesize(f):
     """Return the size of f in bytes"""
