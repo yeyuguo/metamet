@@ -11,9 +11,12 @@ import numpy as np
 #import matplotlib.pyplot as plt
 #from mpl_toolkits.basemap import Basemap
 #from matplotlib import mlab
+from matplotlib.dates import date2num as mpl_date2num
+from matplotlib.dates import num2date as mpl_num2date
+
 from .parser import *
 __all__ = ['month2season', 'str2datetime', 'datetime_match', 'datetime_filter',
-        'season_names', 'month_names', 'month_short_names']
+        'season_names', 'month_names', 'month_short_names', 'matlab_num2date', 'matlab_date2num']
 
 season_names = ['Spring', 'Summer', 'Autumn', 'Winter']
 month_names  = ['January', 'February', 'March', 'April', 'May', 'June',
@@ -166,3 +169,16 @@ def datetime_filter(rec, ref_dts, fmt="%Y%m%d%H%M%S", fmt2=None, rec_dts_field='
         return res, np.array(res_i)
     else:
         return res
+
+def matlab_date2num(the_dates):
+    """
+    """
+    return mpl_date2num(parse_datetime(the_dates)) + 366.0
+
+def matlab_num2date(the_nums, **kwargs):
+    """
+    """
+    if np.isscalar(the_nums):
+        return mpl_num2date(the_nums - 366.0, **kwargs)
+    else:
+        return mpl_num2date(np.array(the_nums) - 366.0, **kwargs) 
