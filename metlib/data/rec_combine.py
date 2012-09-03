@@ -14,8 +14,38 @@ import numpy as np
 #from matplotlib import mlab
 #from netCDF4 import Dataset
 
-__all__ = ['rec_from_seqs']
+__all__ = ['rec_combine', 'rec_from_seqs']
 
+def rec_combine(*args, **kwargs):
+    """combines recarrays.
+    Parameters:
+        *args: recarrays, or a tuple/list of recarrays.
+    Returns:
+        A combined recarray. 
+        If data field names collides, '__N' will be added to the names, where N represents the Nth recarray.
+    """
+    if len(args) == 1 and isinstance(args[0], (tuple, list)):
+        args = args[0]
+    lens = np.array([len(r) for r in args])
+    lensdiff = np.abs(lens - lens[0])
+    if np.any(lensdiff):
+        raise AssertionError("Lengths of the recarrays are not all the same: %s" % lens)
+    new_dtype = []
+    fieldnames = dict()
+    for i, rec in enumerate(args):
+        now_dtype = rec.dtype.descr
+        for name, typ in now_dtype:
+            rawname = name
+            while name in fieldnames:
+                name = '%s__%d' % (name, i)
+            fieldnames[name] = (rec, rawname)
+            new_dtype.append((name, typ))
+    new_dtype = np.dtype(new_dtype)
+    res = np.zeros(lens[0], dtype=new_dtype)
+    for name, (rec, rawname) in fieldnames.iteritems():
+        res[name][:] = rec[rawname]
+    return res
+    
 def rec_from_seqs(names, seqs, dtypes=None):
     """Generates recarray from individual seqs.
     Parameters:
@@ -50,15 +80,11 @@ def rec_from_seqs(names, seqs, dtypes=None):
     seqs = [np.array(seq) for seq in seqs]
     if dtypes is None:
         dtypes = [seq.dtype for seq in seqs]
-    try:
-        assert len(names) == len(seqs) == len(dtypes)
-    except AssertionError as e:
+    if not (len(names) == len(seqs) == len(dtypes)):
         raise AssertionError('Lengths of names, seqs and dtypes are not equal: [%d %d %d]' % (len(names), len(seqs), len(dtypes)))
     lens = np.array([len(seq) for seq in seqs])
     lensdiff = np.abs(lens - lens[0])
-    try:
-        assert not np.any(lensdiff)
-    except AssertionError as e:
+    if np.any(lensdiff):
         raise AssertionError('Length of each seq is not equal: %s' % str(lens) )
     rec_dtype = np.dtype(zip(names, dtypes))
     rec = np.zeros(len(seqs[0]), dtype=rec_dtype)
@@ -84,25 +110,27 @@ if __name__ == '__main__':
     names = ('datetime', 'a', 'c', )
 
     r1 = rec_from_seqs(names, (d, a, c))
-    print r1.dtype
-    print r1
-    print np.hstack((r1, r1))
+    r2 = rec_from_seqs(('X', 'Y', 'a__2'), e)
+    print r1.dtype, r2.dtype
+    rc = rec_combine(r1, r2)
+    print rc.dtype
+    print rc
 
-    print "--- using ndarray as seqs ---"
-    print 'len(names): 3'
-    print "seqs: (7, 3)"
-    print rec_from_seqs(names, e)
-    print "seqs: (3, 10)"
-    print rec_from_seqs(names, f)
-    print "seqs: (3, 3)"
-    print rec_from_seqs(names, g)
-#    print "seqs: (5, 6)"
-#    print rec_from_seqs(names, h)
-    print "seqs: (3,)"
-    print rec_from_seqs(names, k)
-    print "seqs: (3, 1)"
-    print rec_from_seqs(names, l)
-    print "seqs: (1, 3)"
-    print rec_from_seqs(['a'], m).dtype
-
+#    print "--- using ndarray as seqs ---"
+#    print 'len(names): 3'
+#    print "seqs: (7, 3)"
+#    print rec_from_seqs(names, e)
+#    print "seqs: (3, 10)"
+#    print rec_from_seqs(names, f)
+#    print "seqs: (3, 3)"
+#    print rec_from_seqs(names, g)
+#    #print "seqs: (5, 6)"   # To fail
+#    #print rec_from_seqs(names, h)
+#    print "seqs: (3,)"
+#    print rec_from_seqs(names, k)
+#    print "seqs: (3, 1)"
+#    print rec_from_seqs(names, l)
+#    print "seqs: (1, 3)"
+#    print rec_from_seqs(['a'], m).dtype
+#
 
