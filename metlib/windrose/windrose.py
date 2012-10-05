@@ -1,558 +1,180 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-__version__ = '1.4'
-__author__ = 'Lionel Roubeyrie'
-__mail__ = 'lionel.roubeyrie@gmail.com'
-__license__ = 'CeCILL-B'
-
-import matplotlib
-import matplotlib.cm as cm
+import os, sys
 import numpy as np
-from matplotlib.patches import Rectangle, Polygon, Wedge
-from matplotlib.ticker import ScalarFormatter, AutoLocator
-from matplotlib.text import Text, FontProperties
-from matplotlib.projections.polar import PolarAxes
-from numpy.lib.twodim_base import histogram2d
 import matplotlib.pyplot as plt
-from pylab import poly_between
+from mpl_toolkits.basemap import Basemap
 
-RESOLUTION = 100
-ZBASE = -1000 #The starting zorder for all drawing, negative to have the grid on
+__all__ = ['WindroseBase', 'Windrose']
+# <codecell>
 
-class WindroseAxes(PolarAxes):
-    """
+_WindroseDefaults = dict(
+     hollow=0.15,
+     rmin=0.0,
+     rmax=10.0,
+     rstep=2.0,
+     rlabeldir=60.0,
+     rlabelfmt='%.1f',
+     cmap=plt.cm.jet,
+     gridcolor='black',
+     gridlinewidth=1.0,
+     griddashes=[1,1],
+     circlecolor='black',
+     circlelinewidth=1.0,
+     bgcolor=None,
+     griddirnum=8,
+     rlabelsize='small',
+     rlabelweight='normal',
+     rlabelcolor='black',
+     dirlabelsize='medium',
+     dirlabelweight='semibold',
+     dirlabelcolor='black',
+     )
 
-    Create a windrose axes
-
-    """
-
-    def __init__(self, *args, **kwargs):
-        """
-        See Axes base class for args and kwargs documentation
-        """
+class WindroseBase(object):
+    def __init__(self, wd, ws, data, ax=None, **kwargs):
+        self.__dict__.update(_WindroseDefaults)
+        self.wd = np.copy(wd)
+        self.ws = np.copy(ws)
+        self.data = np.copy(data)
+        self.ax = plt.gca() if ax is None else ax
+        self.fig = self.ax.figure
         
-        #Uncomment to have the possibility to change the resolution directly 
-        #when the instance is created
-        #self.RESOLUTION = kwargs.pop('resolution', 100)
-        PolarAxes.__init__(self, *args, **kwargs)
-        self.set_aspect('equal', adjustable='box', anchor='C')
-        self.radii_angle = 67.5
-        self.cla()
-
-
-    def cla(self):
-        """
-        Clear the current axes
-        """
-        PolarAxes.cla(self)
-
-        self.theta_angles = np.arange(0, 360, 45)
-        self.theta_labels = ['E', 'N-E', 'N', 'N-W', 'W', 'S-W', 'S', 'S-E']
-        self.set_thetagrids(angles=self.theta_angles, labels=self.theta_labels)
-
-        self._info = {'dir' : list(),
-                      'bins' : list(),
-                      'table' : list()}
-
-        self.patches_list = list()
-
-
-    def _colors(self, cmap, n):
-        '''
-        Returns a list of n colors based on the colormap cmap
-
-        '''
-        return [cmap(i) for i in np.linspace(0.0, 1.0, n)]
-
-
-    def set_radii_angle(self, **kwargs):
-        """
-        Set the radii labels angle
-        """
-
-        null = kwargs.pop('labels', None)
-        angle = kwargs.pop('angle', None)
-        if angle is None:
-            angle = self.radii_angle
-        self.radii_angle = angle
-        radii = np.linspace(0.1, self.get_rmax(), 6)
-        radii_labels = [ "%.1f" %r for r in radii ]
-        radii_labels[0] = "" #Removing label 0
-        null = self.set_rgrids(radii=radii, labels=radii_labels,
-                               angle=self.radii_angle, **kwargs)
-
-
-    def _update(self):
-        self.set_rmax(rmax=np.max(np.sum(self._info['table'], axis=0)))
-        self.set_radii_angle(angle=self.radii_angle)
-
-
-    def legend(self, loc='lower left', **kwargs):
-        """
-        Sets the legend location and her properties.
-        The location codes are
-
-          'best'         : 0,
-          'upper right'  : 1,
-          'upper left'   : 2,
-          'lower left'   : 3,
-          'lower right'  : 4,
-          'right'        : 5,
-          'center left'  : 6,
-          'center right' : 7,
-          'lower center' : 8,
-          'upper center' : 9,
-          'center'       : 10,
-
-        If none of these are suitable, loc can be a 2-tuple giving x,y
-        in axes coords, ie,
-
-          loc = (0, 1) is left top
-          loc = (0.5, 0.5) is center, center
-
-        and so on.  The following kwargs are supported:
-
-        isaxes=True           # whether this is an axes legend
-        prop = FontProperties(size='smaller')  # the font property
-        pad = 0.2             # the fractional whitespace inside the legend border
-        shadow                # if True, draw a shadow behind legend
-        labelsep = 0.005     # the vertical space between the legend entries
-        handlelen = 0.05     # the length of the legend lines
-        handletextsep = 0.02 # the space between the legend line and legend text
-        borderaxespad = 0.02       # the border between the axes and legend edge
-        """
-
-        def get_handles():
-            handles = list()
-            for p in self.patches_list:
-                if isinstance(p, matplotlib.patches.Polygon) or \
-                isinstance(p, matplotlib.patches.Rectangle) or \
-                isinstance(p, matplotlib.patches.Wedge):
-                    color = p.get_facecolor()
-                elif isinstance(p, matplotlib.lines.Line2D):
-                    color = p.get_color()
-                else:
-                    raise AttributeError("Can't handle patches")
-                handles.append(Rectangle((0, 0), 0.2, 0.2,
-                    facecolor=color, edgecolor='black'))
-            return handles
-
-        def get_labels():
-            labels = np.copy(self._info['bins'])
-            labels = ["[%.1f : %0.1f]" %(labels[i], labels[i+1]) \
-                      for i in range(len(labels)-1)]
-            return labels
-
-        null = kwargs.pop('labels', None)
-        null = kwargs.pop('handles', None)
-        handles = get_handles()
-        labels = get_labels()
-        self.legend_ = matplotlib.legend.Legend(self, handles, labels,
-                                                loc, **kwargs)
-        return self.legend_
-
-
-    def _init_plot(self, direction, var, **kwargs):
-        """
-        Internal method used by all plotting commands
-        """
-        #self.cla()
-        null = kwargs.pop('zorder', None)
-
-        #Init of the bins array if not set
-        bins = kwargs.pop('bins', None)
-        if bins is None:
-            bins = np.linspace(np.min(var), np.max(var), 6)
-        if isinstance(bins, int):
-            bins = np.linspace(np.min(var), np.max(var), bins)
-        bins = np.asarray(bins)
-        nbins = len(bins)
-
-        #Number of sectors
-        nsector = kwargs.pop('nsector', None)
-        if nsector is None:
-            nsector = 16
-
-        #Sets the colors table based on the colormap or the "colors" argument
-        colors = kwargs.pop('colors', None)
-        cmap = kwargs.pop('cmap', None)
-        if colors is not None:
-            if isinstance(colors, str):
-                colors = [colors]*nbins
-            if isinstance(colors, (tuple, list)):
-                if len(colors) != nbins:
-                    raise ValueError("colors and bins must have same length")
-        else:
-            if cmap is None:
-                cmap = cm.jet
-            colors = self._colors(cmap, nbins)
-
-        #Building the angles list
-        angles = np.arange(0, -2*np.pi, -2*np.pi/nsector) + np.pi/2
-
-        normed = kwargs.pop('normed', False)
-        blowto = kwargs.pop('blowto', False)
-
-        #Set the global information dictionnary
-        self._info['dir'], self._info['bins'], self._info['table'] = histogram(direction, var, bins, nsector, normed, blowto)
-
-        return bins, nbins, nsector, colors, angles, kwargs
-
-
-    def contour(self, direction, var, **kwargs):
-        """
-        Plot a windrose in linear mode. For each var bins, a line will be
-        draw on the axes, a segment between each sector (center to center).
-        Each line can be formated (color, width, ...) like with standard plot
-        pylab command.
-
-        Mandatory:
-        * direction : 1D array - directions the wind blows from, North centred
-        * var : 1D array - values of the variable to compute. Typically the wind
-        speeds
-        Optional:
-        * nsector: integer - number of sectors used to compute the windrose
-        table. If not set, nsectors=16, then each sector will be 360/16=22.5°,
-        and the resulting computed table will be aligned with the cardinals
-        points.
-        * bins : 1D array or integer- number of bins, or a sequence of
-        bins variable. If not set, bins=6, then
-            bins=linspace(min(var), max(var), 6)
-        * blowto : bool. If True, the windrose will be pi rotated,
-        to show where the wind blow to (usefull for pollutant rose).
-        * colors : string or tuple - one string color ('k' or 'black'), in this
-        case all bins will be plotted in this color; a tuple of matplotlib
-        color args (string, float, rgb, etc), different levels will be plotted
-        in different colors in the order specified.
-        * cmap : a cm Colormap instance from matplotlib.cm.
-          - if cmap == None and colors == None, a default Colormap is used.
-
-        others kwargs : see help(pylab.plot)
-
-        """
-
-        bins, nbins, nsector, colors, angles, kwargs = self._init_plot(direction, var,
-                                                                       **kwargs)
-
-        #closing lines
-        angles = np.hstack((angles, angles[-1]-2*np.pi/nsector))
-        vals = np.hstack((self._info['table'],
-                         np.reshape(self._info['table'][:,0],
-                                   (self._info['table'].shape[0], 1))))
+        self.m = Basemap(projection='ortho', 
+            lat_0=-90, lon_0=0, 
+            resolution='c',
+            )
         
-        offset = 0
-        for i in range(nbins):
-            val = vals[i,:] + offset
-            offset += vals[i, :]
-            zorder = ZBASE + nbins - i
-            patch = self.plot(angles, val, color=colors[i], zorder=zorder,
-                              **kwargs)
-            self.patches_list.extend(patch)
-        self._update()
+        for k, v in kwargs.iteritems():
+            if k in _WindroseDefaults:
+                self.__dict__[k] = v
+            else:
+                sys.stderr.write('Warning: kwarg: %s does not fit for Windrose\n' % k)
+        self.set_rlim()
+        self.set_griddirnum()
 
+    def set_rlim(self, rmin=None, rmax=None, rstep=None, hollow=None):
+        if rmin is not None:
+            self.rmin = rmin
+        if rmax is not None:
+            self.rmax = rmax
+        if rstep is not None:
+            self.rstep = rstep
+        if hollow is not None:
+            self.hollow = hollow
+        self._grid_rs = np.arange(self.rmin, self.rmax+self.rstep/10.0, self.rstep)
+        self._par_lats = self._r2lat(self._grid_rs)
+        self._latmax = np.max(np.abs(self._par_lats))
+    
+    def set_griddirnum(self, griddirnum=None):
+        if griddirnum is not None: 
+            self.griddirnum=griddirnum
+        self._mer_lons= np.arange(0, 360.0, 360.0/self.griddirnum)
+    
+    def draw(self):
+        plt.sca(self.ax)
+        self.m.drawparallels(self._par_lats, latmax=self._latmax, 
+            linewidth=self.gridlinewidth, color=self.gridcolor, dashes=self.griddashes)
+        self.m.drawmeridians(self._mer_lons, latmax=self._latmax,
+            linewidth=self.gridlinewidth, color=self.gridcolor, dashes=self.griddashes)
+        self.m.drawmapboundary(color=self.circlecolor, linewidth=self.circlelinewidth, fill_color=self.bgcolor)
+        self.ax.text(0.5, 1.03, 'N', ha='center', va='bottom', transform=self.ax.transAxes, fontsize=self.dirlabelsize, fontweight=self.dirlabelweight, color=self.dirlabelcolor)
+        self.ax.text(0.5, -0.03, 'S', ha='center', va='top', transform=self.ax.transAxes, fontsize=self.dirlabelsize, fontweight=self.dirlabelweight, color=self.dirlabelcolor)
+        self.ax.text(1.03, 0.5, 'E', ha='left', va='center', transform=self.ax.transAxes, fontsize=self.dirlabelsize, fontweight=self.dirlabelweight, color=self.dirlabelcolor)
+        self.ax.text(-0.03, 0.5, 'W', ha='right', va='center', transform=self.ax.transAxes, fontsize=self.dirlabelsize, fontweight=self.dirlabelweight, color=self.dirlabelcolor)
+        for r, pl in zip(self._grid_rs, self._par_lats):
+            lon, lat = self.m(self.rlabeldir, pl)
+            self.ax.text(lon, lat, self.rlabelfmt % r, 
+                color=self.rlabelcolor,
+                fontsize=self.rlabelsize, 
+                )
+                
 
-    def contourf(self, direction, var, **kwargs):
-        """
-        Plot a windrose in filled mode. For each var bins, a line will be
-        draw on the axes, a segment between each sector (center to center).
-        Each line can be formated (color, width, ...) like with standard plot
-        pylab command.
+    def _r2lat(self, r):
+        bigR = (self.rmax - self.rmin) / (1.0 - self.hollow)
+        real_r = (bigR*self.hollow + np.array(r)) / bigR
+        lat = -np.rad2deg(np.arccos(real_r))
+        return lat
+    
+    def extend_wd(self):
+        return np.hstack((self.wd, self.wd[-1] * 2 -self.wd[-2]))
+    
+    def extend_ws(self):
+        return np.hstack((self.ws, self.ws[-1] * 2 - self.ws[-2]))
+    
+    def extend_data_for_contour(self):
+        return np.hstack((self.data, self.data[:, 0:1]))
+    
+    def offset_data(self):
+        wd_step = self.wd[1] - self.wd[0]
+        self.wd -= wd_step/2
 
-        Mandatory:
-        * direction : 1D array - directions the wind blows from, North centred
-        * var : 1D array - values of the variable to compute. Typically the wind
-        speeds
-        Optional:
-        * nsector: integer - number of sectors used to compute the windrose
-        table. If not set, nsectors=16, then each sector will be 360/16=22.5°,
-        and the resulting computed table will be aligned with the cardinals
-        points.
-        * bins : 1D array or integer- number of bins, or a sequence of
-        bins variable. If not set, bins=6, then
-            bins=linspace(min(var), max(var), 6)
-        * blowto : bool. If True, the windrose will be pi rotated,
-        to show where the wind blow to (usefull for pollutant rose).
-        * colors : string or tuple - one string color ('k' or 'black'), in this
-        case all bins will be plotted in this color; a tuple of matplotlib
-        color args (string, float, rgb, etc), different levels will be plotted
-        in different colors in the order specified.
-        * cmap : a cm Colormap instance from matplotlib.cm.
-          - if cmap == None and colors == None, a default Colormap is used.
+# <codecell>
 
-        others kwargs : see help(pylab.plot)
-
-        """
-
-        bins, nbins, nsector, colors, angles, kwargs = self._init_plot(direction, var,
-                                                                       **kwargs)
-        null = kwargs.pop('facecolor', None)
-        null = kwargs.pop('edgecolor', None)
+class Windrose(WindroseBase):
+    def __init__(self, wd, ws, data, ax=None, offset_data=False, **kwargs):
+        WindroseBase.__init__(self, wd, ws, data, ax=ax, **kwargs)
+        self.ext_wd = self.extend_wd()
+        self.ext_ws = self.extend_ws()
+        if offset_data:
+            self.offset_data()
         
-        #closing lines
-        angles = np.hstack((angles, angles[-1]-2*np.pi/nsector))
-        vals = np.hstack((self._info['table'],
-                         np.reshape(self._info['table'][:,0],
-                                   (self._info['table'].shape[0], 1))))
-        offset = 0
-        for i in range(nbins):
-            val = vals[i,:] + offset
-            offset += vals[i, :]
-            zorder = ZBASE + nbins - i
-            xs, ys = poly_between(angles, 0, val)
-            patch = self.fill(xs, ys, facecolor=colors[i],
-                              edgecolor=colors[i], zorder=zorder, **kwargs)
-            self.patches_list.extend(patch)
+        
+    def pcolor(self, **kwargs):
+        WindroseBase.draw(self)
+        NT, NR = np.meshgrid(self.ext_wd, self.ext_ws)
+        lon, lat = self.m(NT, self._r2lat(NR))
+        im = self.m.pcolormesh(lon, lat, self.data, **kwargs)
+        return im
 
+    def contourf(self, **kwargs):
+        ext_data = self.extend_data_for_contour()
+        WindroseBase.draw(self)
+        NT, NR = np.meshgrid(self.ext_wd, self.ws)
+        lon, lat = self.m(NT, self._r2lat(NR))
+        cs = self.m.contourf(lon, lat, ext_data, **kwargs)
+        return cs
+    
+    def contour(self, **kwargs):
+        ext_data = self.extend_data_for_contour()
+        WindroseBase.draw(self)
+        NT, NR = np.meshgrid(self.ext_wd, self.ws)
+        lon, lat = self.m(NT, self._r2lat(NR))
+        cs = self.m.contour(lon, lat, ext_data, **kwargs)
+        return cs
+    
 
-    def bar(self, direction, var, **kwargs):
-        """
-        Plot a windrose in bar mode. For each var bins and for each sector,
-        a colored bar will be draw on the axes.
+# <codecell>
+if __name__ == '__main__':
+    delta = 0.025
+    delta = 0.25
+    x = np.arange(-3.0, 3.0, delta)
+    y = np.arange(-2.0, 2.0, delta)
+    X, Y = np.meshgrid(x, y)
+    Z1 = mlab.bivariate_normal(X, Y, 1.0, 1.0, 0.0, 0.0)
+    Z2 = mlab.bivariate_normal(X, Y, 1.5, 0.5, 1, 1)
+    # difference of Gaussians
+    Z = 10.0 * (Z2 - Z1)
 
-        Mandatory:
-        * direction : 1D array - directions the wind blows from, North centred
-        * var : 1D array - values of the variable to compute. Typically the wind
-        speeds
-        Optional:
-        * nsector: integer - number of sectors used to compute the windrose
-        table. If not set, nsectors=16, then each sector will be 360/16=22.5°,
-        and the resulting computed table will be aligned with the cardinals
-        points.
-        * bins : 1D array or integer- number of bins, or a sequence of
-        bins variable. If not set, bins=6 between min(var) and max(var).
-        * blowto : bool. If True, the windrose will be pi rotated,
-        to show where the wind blow to (usefull for pollutant rose).
-        * colors : string or tuple - one string color ('k' or 'black'), in this
-        case all bins will be plotted in this color; a tuple of matplotlib
-        color args (string, float, rgb, etc), different levels will be plotted
-        in different colors in the order specified.
-        * cmap : a cm Colormap instance from matplotlib.cm.
-          - if cmap == None and colors == None, a default Colormap is used.
-        edgecolor : string - The string color each edge bar will be plotted.
-        Default : no edgecolor
-        * opening : float - between 0.0 and 1.0, to control the space between
-        each sector (1.0 for no space)
+    T = (x+3.0) * 60
+    R = (y+2.0) * 2.5
 
-        """
+    NT = (X+3.0) * 60
+    NR = (Y+2.0) * 2.5
 
-        bins, nbins, nsector, colors, angles, kwargs = self._init_plot(direction, var,
-                                                                       **kwargs)
-        null = kwargs.pop('facecolor', None)
-        edgecolor = kwargs.pop('edgecolor', None)
-        if edgecolor is not None:
-            if not isinstance(edgecolor, str):
-                raise ValueError('edgecolor must be a string color')
-        opening = kwargs.pop('opening', None)
-        if opening is None:
-            opening = 0.8
-        dtheta = 2*np.pi/nsector
-        opening = dtheta*opening
+    # <codecell>
 
-        trans = self.transAxes
-        scale = 1.0 / self.get_rmax()
-        for j in range(nsector):
-            offset = 0
-            for i in range(nbins):
-                if i > 0:
-                    offset += self._info['table'][i-1, j] * scale
-                val = self._info['table'][i, j] * scale
-                zorder = ZBASE + nbins - i
-#                original version(rectangle)
-                patch = Rectangle((angles[j]-opening/2, offset), opening, val,
-                    facecolor=colors[i], edgecolor=edgecolor, zorder=zorder,
-                    **kwargs)
-#                print val, offset, angles[j], opening
-#                patch = Wedge((0.5, 0.5), val+offset, np.rad2deg(angles[j]-opening/2), np.rad2deg(angles[j]+opening/2), val,
-#                    facecolor=colors[i], edgecolor=edgecolor, zorder=zorder,
-#                    **kwargs)
-#                patch.set_transform(trans)
-                self.add_patch(patch)
-                if j == 0:
-                    self.patches_list.append(patch)
-        #print self.get_rmax()
-        self._update()
-
-
-    def box(self, direction, var, **kwargs):
-        """
-        Plot a windrose in proportional bar mode. For each var bins and for each
-        sector, a colored bar will be draw on the axes.
-
-        Mandatory:
-        * direction : 1D array - directions the wind blows from, North centred
-        * var : 1D array - values of the variable to compute. Typically the wind
-        speeds
-        Optional:
-        * nsector: integer - number of sectors used to compute the windrose
-        table. If not set, nsectors=16, then each sector will be 360/16=22.5°,
-        and the resulting computed table will be aligned with the cardinals
-        points.
-        * bins : 1D array or integer- number of bins, or a sequence of
-        bins variable. If not set, bins=6 between min(var) and max(var).
-        * blowto : bool. If True, the windrose will be pi rotated,
-        to show where the wind blow to (usefull for pollutant rose).
-        * colors : string or tuple - one string color ('k' or 'black'), in this
-        case all bins will be plotted in this color; a tuple of matplotlib
-        color args (string, float, rgb, etc), different levels will be plotted
-        in different colors in the order specified.
-        * cmap : a cm Colormap instance from matplotlib.cm.
-          - if cmap == None and colors == None, a default Colormap is used.
-        edgecolor : string - The string color each edge bar will be plotted.
-        Default : no edgecolor
-
-        """
-
-        bins, nbins, nsector, colors, angles, kwargs = self._init_plot(direction, var,
-                                                                       **kwargs)
-        null = kwargs.pop('facecolor', None)
-        edgecolor = kwargs.pop('edgecolor', None)
-        if edgecolor is not None:
-            if not isinstance(edgecolor, str):
-                raise ValueError('edgecolor must be a string color')
-        opening = np.linspace(0.0, np.pi/16, nbins)
-
-        for j in range(nsector):
-            offset = 0
-            for i in range(nbins):
-                if i > 0:
-                    offset += self._info['table'][i-1, j]
-                val = self._info['table'][i, j]
-                zorder = ZBASE + nbins - i
-                patch = Rectangle((angles[j]-opening[i]/2, offset), opening[i],
-                    val, facecolor=colors[i], edgecolor=edgecolor,
-                    zorder=zorder, **kwargs)
-                self.add_patch(patch)
-                if j == 0:
-                    self.patches_list.append(patch)
-        self._update()
-
-def histogram(direction, var, bins, nsector, normed=False, blowto=False):
-    """
-    Returns an array where, for each sector of wind
-    (centred on the north), we have the number of time the wind comes with a
-    particular var (speed, polluant concentration, ...).
-    * direction : 1D array - directions the wind blows from, North centred
-    * var : 1D array - values of the variable to compute. Typically the wind
-        speeds
-    * bins : list - list of var category against we're going to compute the table
-    * nsector : integer - number of sectors
-    * normed : boolean - The resulting table is normed in percent or not.
-    * blowto : boolean - Normaly a windrose is computed with directions
-    as wind blows from. If true, the table will be reversed (usefull for
-    pollutantrose)
-
-    """
-
-    if len(var) != len(direction):
-        raise ValueError, "var and direction must have same length"
-
-    angle = 360./nsector
-
-    dir_bins = np.arange(-angle/2 ,360.+angle, angle, dtype=np.float)
-    dir_edges = dir_bins.tolist()
-    dir_edges.pop(-1)
-    dir_edges[0] = dir_edges.pop(-1)
-    dir_bins[0] = 0.
-
-    var_bins = bins.tolist()
-    var_bins.append(np.inf)
-
-    if blowto:
-        direction = direction + 180.
-        direction[direction>=360.] = direction[direction>=360.] - 360
-
-    table = histogram2d(x=var, y=direction, bins=[var_bins, dir_bins],
-                          normed=False)[0]
-    # add the last value to the first to have the table of North winds
-    table[:,0] = table[:,0] + table[:,-1]
-    # and remove the last col
-    table = table[:, :-1]
-    if normed:
-        table = table*100/table.sum()
-
-    return dir_edges, var_bins, table
-
-
-def wrcontour(direction, var, **kwargs):
-    fig = plt.figure()
-    rect = [0.1, 0.1, 0.8, 0.8]
-    ax = WindroseAxes(fig, rect)
-    fig.add_axes(ax)
-    ax.contour(direction, var, **kwargs)
-    l = ax.legend(borderaxespad=-0.10)
-    plt.setp(l.get_texts(), fontsize=8)
-    plt.draw()
+    wb = WindroseBase(T, R, Z, bgcolor='c')
+    wb.draw()
     plt.show()
-    return ax
 
-def wrcontourf(direction, var, **kwargs):
-    fig = plt.figure()
-    rect = [0.1, 0.1, 0.8, 0.8]
-    ax = WindroseAxes(fig, rect)
-    fig.add_axes(ax)
-    ax.contourf(direction, var, **kwargs)
-    l = ax.legend(borderaxespad=-0.10)
-    plt.setp(l.get_texts(), fontsize=8)
-    plt.draw()
+    fig = plt.figure(figsize=(12,8))
+    ax = fig.add_axes((0.1, 0.1, 0.7, 0.8))
+    cax = fig.add_axes((0.85, 0.1, 0.1, 0.8))
+    wr = Windrose(T, R, Z, ax=ax, hollow=0.1, circlecolor='r', circlelinewidth=3, offset_data=True)
+    im = wr.contourf(cmap=plt.cm.Pastel2)
+    #im = wr.pcolor(cmap=plt.cm.Pastel2)
+    plt.colorbar(im, cax)
     plt.show()
-    return ax
-
-def wrbox(direction, var, **kwargs):
-    fig = plt.figure()
-    rect = [0.1, 0.1, 0.8, 0.8]
-    ax = WindroseAxes(fig, rect)
-    fig.add_axes(ax)
-    ax.box(direction, var, **kwargs)
-    l = ax.legend(borderaxespad=-0.10)
-    plt.setp(l.get_texts(), fontsize=8)
-    plt.draw()
-    plt.show()
-    return ax
-
-def wrbar(direction, var, **kwargs):
-    fig = plt.figure()
-    rect = [0.1, 0.1, 0.8, 0.8]
-    ax = WindroseAxes(fig, rect)
-    fig.add_axes(ax)
-    ax.bar(direction, var, **kwargs)
-    l = ax.legend(borderaxespad=-0.10)
-    plt.setp(l.get_texts(), fontsize=8)
-    plt.draw()
-    plt.show()
-    return ax
-
-def clean(direction, var):
-    '''
-    Remove masked values in the two arrays, where if a direction data is masked,
-    the var data will also be removed in the cleaning process (and vice-versa)
-    '''
-    dirmask = direction.mask==False
-    varmask = var.mask==False
-    ind = dirmask*varmask
-    return direction[ind], var[ind]
-
-if __name__=='__main__':
-    from pylab import figure, show, setp, random, grid, draw
-    vv=random(500)*6
-    dv=random(500)*360
-    fig = figure(figsize=(8, 8), dpi=80, facecolor='w', edgecolor='w')
-    rect = [0.1, 0.1, 0.8, 0.8]
-    ax = WindroseAxes(fig, rect, axisbg='w')
-    fig.add_axes(ax)
-
-#    ax.contourf(dv, vv, bins=np.arange(0,8,1), cmap=cm.hot)
-#    ax.contour(dv, vv, bins=np.arange(0,8,1), colors='k')
-#    ax.bar(dv, vv, normed=True, opening=0.8, edgecolor='white')
-    ax.box(dv, vv, normed=True)
-    l = ax.legend(borderaxespad=-0.10)
-    setp(l.get_texts(), fontsize=8)
-    draw()
-    #print ax._info
-    show()
-
-
-
-
+    wr.fig.savefig('./test_windrose.png')
 
 
