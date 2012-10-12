@@ -16,12 +16,12 @@ import matplotlib.pyplot as plt
 
 __all__ = ['axgrid']
 
-def axgrid(fig, ncol=2, nrow=2, left=0.1, right=0.1, top=0.1, bottom=0.1, hspace=0.05, vspace=0.05, no_extra_xticklabels=True, no_extra_yticklabels=True, sharex=False, sharey=False, sharexy=False):
+def axgrid(fig, nrow=2, ncol=2, left=0.1, right=0.1, top=0.1, bottom=0.1, hspace=0.05, vspace=0.05, no_extra_xticklabels=True, no_extra_yticklabels=True, sharex=False, sharey=False, sharexy=False):
     """axgrid creates a grid of axes on a fig.
     Parameters:
         fig: the fig.
-        ncol: number of columns.
         nrow: number of rows.
+        ncol: number of columns.
         left: left edge width (0-1).
         right: right edge width (0-1).
         top: top edge width (0-1).
