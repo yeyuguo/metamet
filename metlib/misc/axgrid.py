@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 
 __all__ = ['axgrid']
 
-def axgrid(fig, nrow=2, ncol=2, left=0.1, right=0.1, top=0.1, bottom=0.1, hspace=0.05, vspace=0.05, no_extra_xticklabels=True, no_extra_yticklabels=True, sharex=False, sharey=False, sharexy=False):
+def axgrid(fig, nrow=2, ncol=2, left=0.1, right=0.1, top=0.1, bottom=0.1, hspace=0.05, vspace=0.05, no_extra_xticklabels=True, no_extra_yticklabels=True, sharex=False, sharey=False, sharexy=False, **kwargs):
     """axgrid creates a grid of axes on a fig.
     Parameters:
         fig: the fig.
@@ -33,6 +33,7 @@ def axgrid(fig, nrow=2, ncol=2, left=0.1, right=0.1, top=0.1, bottom=0.1, hspace
         sharex: if True, axes on each column will share the same xaxis.
         sharey: if True, axes on each row will share the same yaxis.
         sharexy: if True, all axes will share the same xaxis and yaxis.
+        kwargs: pass to fig.add_axes()
     Returns:
         an np.ndarray of axes. 
     """
@@ -53,7 +54,9 @@ def axgrid(fig, nrow=2, ncol=2, left=0.1, right=0.1, top=0.1, bottom=0.1, hspace
                 sharexyd['sharex'] = thegrid[0, idx[1]]
             if sharey and idx[1] >= 1:
                 sharexyd['sharey'] = thegrid[idx[0], 0]
-        thegrid[idx] = fig.add_axes(pos, **sharexyd)
+        final_kws = sharexyd.copy()
+        final_kws.update(kwargs)
+        thegrid[idx] = fig.add_axes(pos, **final_kws)
 
     if no_extra_xticklabels:
         for ax in thegrid[:-1, :].flat:
