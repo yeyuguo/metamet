@@ -7,7 +7,40 @@ import os, sys
 import numpy as np
 import scipy as sp
 
-__all__ = ['lookup_table', 'nc2lut', 'bin2lut']
+__all__ = ['lookup_table', 'nc2lut', 'bin2lut', 'enumerate_kwarg_dict']
+
+def enumerate_kwarg_dict(**kwargs):
+    """Given kwargs of sequences, enumerate_kwarg_dict generates every combination of the kwargs values provided, yielding a dict of the kwargs as keys.
+
+Parameters
+----------
+kwargs: kwargs of sequences.
+
+Return
+------
+yields every combination of the kwarg sequences.
+
+Examples
+--------
+>>> for d in enumerate_kwarg_dict(abc=['a', 'B', 'c'], num=[1, 3]):
+...     print d
+{'abc': 'a', 'num': 1}
+{'abc': 'a', 'num': 3}
+{'abc': 'B', 'num': 1}
+{'abc': 'B', 'num': 3}
+{'abc': 'c', 'num': 1}
+{'abc': 'c', 'num': 3}
+"""
+    keys = []
+    lens = []
+    for key in kwargs:
+        keys.append(key)
+        lens.append(len(kwargs[key]))
+    for ndind in np.ndindex(*lens):
+        nowdict = dict()
+        for ind, key in zip(ndind, keys):
+            nowdict[key] = kwargs[key][ind]
+        yield nowdict
 
 class lookup_table(object):
     def __init__(self, arr, dims):
@@ -250,26 +283,27 @@ def bin2lut(descfname, **kwargs):
 
 if __name__ == '__main__':
     # # Test code
-    dim1 = np.array([0.1,0.2,0.3,0.4,0.5])
-    dim2 = np.array([35,40,50])
-    lt_arr = np.arange(len(dim1)*len(dim2)).reshape((len(dim1),len(dim2)))
-    lt = lookup_table(lt_arr, [('dim1',dim1), ('dim2',dim2)])
-    print dim1, dim2
-    print lt_arr
-    res1 = lt.lookup(dim1=0.45, dim2=45.0)
-    res1_fast = lt.fast_lookup((0.45, 45.0))
-    print res1, res1_fast
+#    dim1 = np.array([0.1,0.2,0.3,0.4,0.5])
+#    dim2 = np.array([35,40,50])
+#    lt_arr = np.arange(len(dim1)*len(dim2)).reshape((len(dim1),len(dim2)))
+#    lt = lookup_table(lt_arr, [('dim1',dim1), ('dim2',dim2)])
+#    print dim1, dim2
+#    print lt_arr
+#    res1 = lt.lookup(dim1=0.45, dim2=45.0)
+#    res1_fast = lt.fast_lookup((0.45, 45.0))
+#    print res1, res1_fast
+#
+#    res2 = lt.lookup(dim1=0.35)  # res2 is a smaller lookup_table
+#    print res2.arr
+#    print res2.dims
+#    print res2.lookup(dim2=38.0)
+#    print res2.reverse_lookup(8.1)
+#    print res2.reverse_lookup(8.2)
+#    print res2.reverse_lookup(8.3)
+#    # # The follow line will trigger an exception 
+#    # # because there's no dimension named 'dim3'
+#    res3 = res2.lookup(dim3=45.0)
+#    print res3
 
-    res2 = lt.lookup(dim1=0.35)  # res2 is a smaller lookup_table
-    print res2.arr
-    print res2.dims
-    print res2.lookup(dim2=38.0)
-    print res2.reverse_lookup(8.1)
-    print res2.reverse_lookup(8.2)
-    print res2.reverse_lookup(8.3)
-    # # The follow line will trigger an exception 
-    # # because there's no dimension named 'dim3'
-    res3 = res2.lookup(dim3=45.0)
-    print res3
-
-
+    for d in enumerate_kwarg_dict(abc=['a', 'B', 'c'], num=[1, 3]):
+        print d
