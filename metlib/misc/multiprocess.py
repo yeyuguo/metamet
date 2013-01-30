@@ -50,7 +50,7 @@ arg_list: the list of arg for func, which will be splitted according to cpu_numb
 cpu_number: number of processes.
 wait: whether wait until all jobs are done.
 """
-    the_jobs = JobSplitter(myfunc, arg_list, cpu_number=cpu_number)
+    the_jobs = JobSplitter(func, arg_list, cpu_number=cpu_number)
     the_jobs.run(wait=wait)
 
 if __name__ == '__main__':
