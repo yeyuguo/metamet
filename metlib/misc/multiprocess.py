@@ -8,6 +8,7 @@ import re
 #from dateutil.parser import parse
 import numpy as np
 from multiprocessing import Process
+import signal
 #import matplotlib
 #matplotlib.use('Agg')
 #import matplotlib.pyplot as plt
@@ -27,6 +28,24 @@ class JobSplitter(object):
         self.arg_list = arg_list
         self.cpu_number = cpu_number
         self.jobs = []
+        self.pid = os.getpid()
+        self.ppid = os.getppid()
+        
+        signal.signal(signal.SIGINT, self._terminate)
+#        signal.signal(signal.SIGTERM, self._terminate)
+#        signal.signal(signal.SIGKILL, self._terminate)
+    
+    def _terminate(self, signum, frame):
+        for p in self.jobs:
+            if p.is_alive():
+                p.terminate()
+        
+        raisedict = {
+                signal.SIGINT:KeyboardInterrupt,
+                signal.SIGTERM:SystemExit,
+                signal.SIGKILL:SystemExit
+                }
+        raise raisedict[signum]
 
     def run(self, wait=True):
         self.jobs = []
