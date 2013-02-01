@@ -4,6 +4,7 @@
 
 import os
 import re
+import pickle
 #from datetime import datetime, timedelta
 #from dateutil.parser import parse
 import numpy as np
@@ -14,7 +15,7 @@ import numpy as np
 #from matplotlib import mlab
 #from netCDF4 import Dataset
 
-__all__ = ['grep', 'strip_ext', 'sub_ext', 'get_ext']
+__all__ = ['grep', 'strip_ext', 'sub_ext', 'get_ext', 'savepickle', 'loadpickle']
 
 def grep(pattern, seq, flags=0):
     """grep greps patterns from seqs.
@@ -63,6 +64,14 @@ def sub_ext(orig, new_ext):
     if not new_ext.startswith('.'):
         new_ext = '.' + new_ext
     return strip_ext(orig) + new_ext
+
+def savepickle(fname, obj):
+    outf = open(fname, 'w')
+    pickle.dump(obj, outf)
+    outf.close()
+
+def loadpickle(fname):
+    return pickle.load(fname)
 
 if __name__ == '__main__':
     l = ['abcde', 'asldkfj', 'sdjfowij', 'sdfoijw', '1243450', '1204023']
