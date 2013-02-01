@@ -7,7 +7,7 @@ import os, sys
 import numpy as np
 import scipy as sp
 
-__all__ = ['lookup_table', 'nc2lut', 'bin2lut', 'enumerate_kwarg_dict']
+__all__ = ['lookup_table', 'nc2lut', 'bin2lut', 'enumerate_kwarg_dict', 'strval2lut']
 
 def enumerate_kwarg_dict(**kwargs):
     """Given kwargs of sequences, enumerate_kwarg_dict generates every combination of the kwargs values provided, yielding a dict of the kwargs as keys.
@@ -224,6 +224,12 @@ works for 1-d lookup_tables. This one is %d-d." % len(self.dims))
                         self.dims[0][1][i+1],span_num))
         return np.unique(np.array(res))
 
+    def __str__(self):
+        res = 'lookup_table'
+        for dname, diminfo in self.dims:
+            res = res + '\n%8s : %s' % (dname, diminfo)
+        return res
+
 def nc2lut(ncfname):
     pass
 
@@ -281,6 +287,61 @@ def bin2lut(descfname, **kwargs):
     lut = lookup_table(lut_arr, dims)
     return lut
 
+def strval2lut(dimstrs, values, sep='_', func=None):
+    """strval2lut builds LUT with a seq of str which contains dimension information and a seq of values.
+
+    Parameters
+    ----------
+    dimstrs: a seq of str in the format of dim1=val1_dim2=val2_dim3=val3... , where '_' is used as default separater. This seq should be sorted.
+    values:  corresponding value seq .
+    sep: separater, default is '_' (in this case, do not use '_' in dim names).
+    func: an optional func to process the values, default is None. 
+
+    Return
+    ------
+    A lookup_table.
+
+    Examples
+    --------
+    >>> dimstrs = ['abc=-1.0_num=1', 'abc=-1.0_num=3', 'abc=0.0_num=1', 'abc=0.0_num=3', 'abc=1.5_num=1', 'abc=1.5_num=3']
+    ... lut = strval2lut(dimstrs, [0,1,2,3,4,5])
+    ... print lut
+    ... print lut.arr
+    lookup_table
+         abc : [-1.   0.   1.5]
+         num : [ 1.  3.]
+    [[0 1]
+     [2 3]
+     [4 5]]
+    """
+    if isinstance(func, np.ufunc):
+        true_values = func(values)
+    elif callable(func):
+        true_values = [func(item) for item in values]
+    else:
+        true_values = values
+    true_values = np.array(true_values)
+    dim_eq_val_tokens = dimstrs[0].split(sep)
+    dimnames = [d_e_v.split('=')[0] for d_e_v in dim_eq_val_tokens]
+    dimdict = dict()
+    dimsizes = []
+    diminfos = []
+    for dimname in dimnames:
+        dimdict[dimname] = set()
+    for dimstr in dimstrs:
+        dvs = dimstr.split(sep)
+        for dv in dvs:
+            dim, val = dv.split('=')
+            val = float(val)
+            dimdict[dim].add(val)
+    for dimname in dimnames:
+        diminfos.append((dimname, sorted(dimdict[dimname])))
+        dimsizes.append(len(dimdict[dimname]))
+    finalshape = tuple(dimsizes)
+    bigarr = true_values.reshape(finalshape)
+    lut = lookup_table(bigarr, diminfos)
+    return lut
+
 if __name__ == '__main__':
     # # Test code
 #    dim1 = np.array([0.1,0.2,0.3,0.4,0.5])
@@ -304,6 +365,12 @@ if __name__ == '__main__':
 #    # # because there's no dimension named 'dim3'
 #    res3 = res2.lookup(dim3=45.0)
 #    print res3
-
-    for d in enumerate_kwarg_dict(abc=['a', 'B', 'c'], num=[1, 3]):
+    
+    dstrs = []
+    for d in enumerate_kwarg_dict(abc=[-1.0, 0.0, 1.5], num=[1, 3]):
         print d
+        dstrs.append('%s=%s_%s=%s' % ('abc', d['abc'], 'num', d['num']))
+    print dstrs
+    lut = strval2lut(dstrs, range(len(dstrs)))
+    print lut
+    print lut.arr
