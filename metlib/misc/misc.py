@@ -71,7 +71,11 @@ def savepickle(fname, obj):
     outf.close()
 
 def loadpickle(fname):
-    return pickle.load(fname)
+    infile = open(fname)
+    obj = pickle.load(infile)
+    infile.close()
+    return obj
+
 
 if __name__ == '__main__':
     l = ['abcde', 'asldkfj', 'sdjfowij', 'sdfoijw', '1243450', '1204023']
