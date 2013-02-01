@@ -69,25 +69,34 @@ class lookup_table(object):
         for d in dims:
             self.dims.append((d[0], np.array(d[1])))
         self.dimnames = [item[0] for item in dims]
-        
 
-    def lookup(self, **kwargs):
-        """lt.lookup(dim1=xxx, dim2=xxx,..., dimn=xxx)
-        if len(dims) == len(kwargs), return a scaler value, 
-        else, return a lookup_table with len(dims) - len(kwargs) dims.
+    def __call__(self, coordinate=None, **kwargs):
+        return self.lookup(coordinate, **kwargs)
+
+    def lookup(self, coordinate=None, **kwargs):
+        """lt.lookup(dim1=xxx, dim2=xxx,..., dimn=xxx) or 
+        lt.lookup([x, y, z ...])
+        For the first method, if len(dims) == len(kwargs), return a scaler value, else, return a lookup_table with len(dims) - len(kwargs) dims.
+        For the second method, use the default dim order.
         """
+        if coordinate is not None:
+            if len(coordinate) > len(self.dimnames):
+                raise ValueError("""Too many dims in the given coordinate.
+        Lookup Table's dims: %s
+        Given coordinate: %s""" % (self.dimnames, coordinate))
+            kwargs = dict()
+            for i in range(len(coordinate)):
+                kwargs[self.dimnames[i]] = coordinate[i]
+        
         order = []
         for name in self.dimnames:
             if name in kwargs:
                 order.append(name)
-
         if len(order) != len(kwargs):
             raise ValueError("""Dim names not match.
     Lookup Table's dim names: %s
     Function args: %s""" % ( self.dimnames, kwargs.keys() ) )
 
-
-        
         # # get enough good info
         good_info = dict()
         for now_dimname in order:
