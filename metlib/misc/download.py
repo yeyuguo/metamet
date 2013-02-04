@@ -14,9 +14,14 @@ from metlib.shell.fileutil import *
 __all__ = ['Downloader', 'download']
 
 class Downloader(object):
-    def __init__(self, url, dest, info_timeout=30, download_timeout=None, **kwargs):
+    def __init__(self, url, dest=None, info_timeout=30, download_timeout=None, **kwargs):
         self.url = url
-        self.dest = dest
+        if dest is None:
+            self.dest = os.path.basename(url)
+        else:
+            self.dest = dest
+        if self.dest == '':
+            self.dest = './untitled.download'
         self.info_timeout = info_timeout
         self.download_timeout = download_timeout
         self.request_kwargs = kwargs
@@ -30,8 +35,14 @@ class Downloader(object):
         self.r = requests.get(self.url, stream=True, timeout=self.info_timeout, **self.request_kwargs)
         if self.r.status_code != 200:
             return False
-        self.remote_modify_time = parse(self.r.headers['last-modified'])
-        self.remote_size = int(self.r.headers['content-length'])
+        if 'last-modified' in self.r.headers:
+            self.remote_modify_time = parse(self.r.headers['last-modified'])
+        elif 'date' in self.r.headers:
+            self.remote_modify_time = parse(self.r.headers['date'])
+        if 'content-length' in self.r.headers:
+            self.remote_size = int(self.r.headers['content-length'])
+        else:
+            self.remote_size = -1
         return True
 
     def get_local_info(self):
@@ -55,10 +66,11 @@ class Downloader(object):
                 return 'need append'
             else:
                 return 'overflow'
-        
+       
     def download(self, retry=3, interval=60, append=True, verbose=False):
         outdir = os.path.dirname(self.dest)
-        force_makedirs(outdir)
+        if outdir not in ['', '.', '..']:
+            force_makedirs(outdir)
         retry_count = 1
         while retry_count <= retry:
             if verbose:
@@ -68,21 +80,31 @@ class Downloader(object):
                 if verbose:
                     print "Whether to download? ", wd
                 if wd in ['up to date']:
-                    return True
-                elif wd in ['need download', 'overflow']:
                     if verbose:
-                        print "Downloading..."
-                    force_rm(self.dest)
-                    self.retrieve_file()
-                elif wd in ['need append']:
-                    if not append:
+                        print "Download finished."
+                    return True
+                elif wd in ['need download', 'overflow', 'need append']:
+                    if wd in ['need append'] and append:
                         if verbose:
-                            print "Force not appending."
+                            print "Appending Mode"
+                    else:
                         force_rm(self.dest)
                     if verbose:
                         print "Downloading..."
                     self.retrieve_file()
-
+                    self.get_local_info()
+                    if self.local_size == self.remote_size:
+                        if verbose:
+                            print "Download finished."
+                        return True
+                    elif self.remote_size == -1:
+                        if verbose:
+                            print "Download finished without check."
+                        return True
+                    else:
+                        if verbose:
+                            print "There may be errors in the last downloading process."
+                        time.sleep(interval)
             except Exception as e:
                 print e
                 time.sleep(interval)
@@ -123,7 +145,7 @@ class Downloader(object):
         tstamp = time.mktime(rmt_as_local.timetuple())
         os.utime(self.dest, (tstamp, tstamp))
 
-def download(url, dest, retry=3, interval=60, append=True, verbose=False, **kwargs):
+def download(url, dest=None, retry=3, interval=60, append=True, verbose=False, **kwargs):
     dler = Downloader(url, dest, info_timeout=60, **kwargs)
     if verbose:
         print url, " => ", dest
