@@ -56,21 +56,31 @@ class Downloader(object):
             else:
                 return 'overflow'
         
-    def download(self, retry=3, interval=60, append=True):
+    def download(self, retry=3, interval=60, append=True, verbose=False):
         outdir = os.path.dirname(self.dest)
         force_makedirs(outdir)
-        retry_count = 0
-        while retry_count < retry:
+        retry_count = 1
+        while retry_count <= retry:
+            if verbose:
+                print "Trying No.", retry_count
             try:
                 wd = self.whether_download()
+                if verbose:
+                    print "Whether to download? ", wd
                 if wd in ['up to date']:
                     return True
                 elif wd in ['need download', 'overflow']:
+                    if verbose:
+                        print "Downloading..."
                     force_rm(self.dest)
                     self.retrieve_file()
                 elif wd in ['need append']:
                     if not append:
+                        if verbose:
+                            print "Force not appending."
                         force_rm(self.dest)
+                    if verbose:
+                        print "Downloading..."
                     self.retrieve_file()
 
             except Exception as e:
@@ -80,8 +90,12 @@ class Downloader(object):
                 retry_count += 1
         wd = self.whether_download()
         if wd in ['up to date']:
+            if verbose:
+                print "Download finnished."
             return True
         else:
+            if verbose:
+                print "Download ended with possible errors."
             return False
 
     
@@ -109,9 +123,11 @@ class Downloader(object):
         tstamp = time.mktime(rmt_as_local.timetuple())
         os.utime(self.dest, (tstamp, tstamp))
 
-def download(url, dest, retry=3, interval=60, append=True, **kwargs):
+def download(url, dest, retry=3, interval=60, append=True, verbose=False, **kwargs):
     dler = Downloader(url, dest, info_timeout=60, **kwargs)
-    res = dler.download(retry=retry, interval=interval, append=append)
+    if verbose:
+        print url, " => ", dest
+    res = dler.download(retry=retry, interval=interval, append=append, verbose=verbose)
     return res
     
 if __name__ == '__main__':
