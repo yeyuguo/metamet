@@ -148,7 +148,7 @@ class Downloader(object):
 def download(url, dest=None, retry=3, interval=60, append=True, verbose=False, **kwargs):
     dler = Downloader(url, dest, info_timeout=60, **kwargs)
     if verbose:
-        print url, " => ", dest
+        print dler.url, " => ", dler.dest
     res = dler.download(retry=retry, interval=interval, append=append, verbose=verbose)
     return res
     
