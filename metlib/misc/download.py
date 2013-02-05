@@ -14,7 +14,7 @@ from metlib.shell.fileutil import *
 __all__ = ['Downloader', 'download']
 
 class Downloader(object):
-    def __init__(self, url, dest=None, info_timeout=30, download_timeout=None, **kwargs):
+    def __init__(self, url, dest=None, info_timeout=30, download_timeout=None, compare_time=True, **kwargs):
         self.url = url
         if dest is None:
             self.dest = os.path.basename(url)
@@ -24,6 +24,7 @@ class Downloader(object):
             self.dest = './untitled.download'
         self.info_timeout = info_timeout
         self.download_timeout = download_timeout
+        self.compare_time = compare_time
         self.request_kwargs = kwargs
         self.r = None
         self.remote_size = 0
@@ -55,6 +56,13 @@ class Downloader(object):
     def whether_download(self):
         self.get_remote_info()
         self.get_local_info()
+        if self.compare_time == False:
+            if self.local_size < self.remote_size:
+                return 'need append'
+            elif self.local_size > self.remote_size:
+                return 'need download'
+            else:
+                return 'up to date'
         if self.local_modify_time > self.remote_modify_time:
             return 'up to date'
         elif self.local_modify_time < self.remote_modify_time:
@@ -145,8 +153,9 @@ class Downloader(object):
         tstamp = time.mktime(rmt_as_local.timetuple())
         os.utime(self.dest, (tstamp, tstamp))
 
-def download(url, dest=None, retry=3, interval=60, append=True, verbose=False, **kwargs):
-    dler = Downloader(url, dest, info_timeout=60, **kwargs)
+def download(url, dest=None, retry=3, interval=60, compare_time=True, append=True, verbose=False, **kwargs):
+    print retry, interval
+    dler = Downloader(url, dest, info_timeout=60, compare_time=compare_time**kwargs)
     if verbose:
         print dler.url, " => ", dler.dest
     res = dler.download(retry=retry, interval=interval, append=append, verbose=verbose)
