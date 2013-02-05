@@ -5,8 +5,11 @@ As for Chinese Users, please notice the differece between the pronunciation of M
 -------------------------------------------------------------------------------
 Requirements:
 Python 2.4+
+dateutil
 numpy and scipy: www.scipy.org
 matplotlib and mpl_toolkits.basemap: http://matplotlib.sourceforge.net/
 pyproj: pyproj.googlecode.com
 netcdf4-python: http://code.google.com/p/netcdf4-python/
 
+metlib.misc.download : requires requests .
+metlib.misc.multiprocess : requires python2.7 (multiprocessing) .
