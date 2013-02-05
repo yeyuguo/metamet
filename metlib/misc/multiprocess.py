@@ -76,11 +76,11 @@ if __name__ == '__main__':
     import time
     def myfunc(arg):
         print arg
-        for i in xrange(10000000):
-            ii = i*i
+        for i in xrange(100000000):
+            ii = i*i*i
 
 #    Jobs = JobSplitter(myfunc, range(100), 10)
 #    Jobs.run()
-    split_job(myfunc, range(100), 4, wait=True)
+    split_job(myfunc, range(100), cpu_number=2, wait=True)
     print "Done"
     
