@@ -6,7 +6,7 @@ import os
 import re
 #from datetime import datetime, timedelta
 #from dateutil.parser import parse
-import numpy as np
+from math import ceil
 from multiprocessing import Process
 import signal
 #import matplotlib
@@ -49,7 +49,7 @@ class JobSplitter(object):
 
     def run(self, wait=True):
         self.jobs = []
-        each_job_load = int(np.ceil(len(self.arg_list) / float(self.cpu_number)))
+        each_job_load = int(ceil(len(self.arg_list) / float(self.cpu_number)))
         for i in range(self.cpu_number):
             p = Process(target=self.func, args=(self.arg_list[i*each_job_load:(i+1)*each_job_load], ))
             self.jobs.append(p)
