@@ -2,6 +2,7 @@
 import os, sys
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib import mlab
 from mpl_toolkits.basemap import Basemap
 
 __all__ = ['WindroseBase', 'Windrose']
