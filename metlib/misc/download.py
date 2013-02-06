@@ -155,7 +155,7 @@ class Downloader(object):
 
 def download(url, dest=None, retry=3, interval=60, compare_time=True, append=True, verbose=False, **kwargs):
     print retry, interval
-    dler = Downloader(url, dest, info_timeout=60, compare_time=compare_time**kwargs)
+    dler = Downloader(url, dest, info_timeout=60, compare_time=compare_time, **kwargs)
     if verbose:
         print dler.url, " => ", dler.dest
     res = dler.download(retry=retry, interval=interval, append=append, verbose=verbose)
