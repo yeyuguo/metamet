@@ -15,7 +15,17 @@ import numpy as np
 #from matplotlib import mlab
 #from netCDF4 import Dataset
 
-__all__ = ['grep', 'strip_ext', 'sub_ext', 'get_ext', 'savepickle', 'loadpickle']
+__all__ = ['struni', 'grep', 'strip_ext', 'sub_ext', 'get_ext', 'savepickle', 'loadpickle']
+
+def struni(obj):
+    """ return str(obj) if possible, else return unicode(obj).
+    """
+    try:
+        res = str(obj)
+        return res
+    except UnicodeEncodeError as e:
+        res = unicode(obj)
+        return res
 
 def grep(pattern, seq, flags=0):
     """grep greps patterns from seqs.
@@ -42,7 +52,7 @@ Returns:
         true_flags = flags
     if isinstance(pattern, (str, unicode, type(re.compile(r'')) ) ):
         res = []
-        seq = [str(item) for item in seq]
+        seq = [struni(item) for item in seq]
         for item in seq:
             if re.search(pattern, item, true_flags):
                 res.append(item)
