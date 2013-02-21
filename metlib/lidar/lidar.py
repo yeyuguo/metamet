@@ -442,6 +442,10 @@ class LidarDataset(object):
         return res
 
     def __str__(self):
+        if 'desc' not in self.attrs:
+            desc = _NO_DESC_STR
+        else:
+            desc = self.attrs['desc']
         return """    lidarname: %s
     desc: %s
     time period: %s - %s
@@ -449,7 +453,7 @@ class LidarDataset(object):
     vars: %s
     attrs: %s
     """ % ( self.attrs['lidarname'],
-            self.attrs['desc'],
+            desc,
             self.attrs['start_datetime'], self.attrs['end_datetime'],
             self.dims, 
             self.vars.keys(),
