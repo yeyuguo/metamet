@@ -19,40 +19,44 @@ from zipfile import ZipFile
 from metlib.shell.fileutil import *
 from metlib.misc import loadpickle, savepickle, get_ext, strip_ext
 
-BasketDefaultTarget = globals()
+__all__ = [ 'Basket']
 
 class Basket(dict):
     """Basket is a container for collecting variables, to simulate IDL's STORE function.
     """
-    def __init__(self, name, varnames=None, tmp_path=None, filename=None):
+    def __init__(self, name, scope, varnames=None, tmp_path=None, filename=None):
         """
 Parameters
 ----------
 name: Basket name.
+scope: a dict from which the vars comes and to which the vars goes.
 varnames: a list of varnames.
 tmp_path: user specified path for storing tmp files. If None: using default ./tmp.basket.BASKETNAME.PID .
 filename: if not None, load a stored basket.zip file.
         """
         self.name = name
+        self.scope = scope
         self.tmp_path = self.make_tmp(tmp_path)
         if filename is None:
             self.collect(varnames=varnames)
         else:
             self.load(filename, varnames)
         
-    def collect(self, source=BasketDefaultTarget, varnames=None):
+    def collect(self, varnames=None, source=None):
         """
 Parameters
 ----------
 source: a dict of vars to collect from. Using globals() as default.
 varnames: varnames to collect.
 """
+        if source is None:
+            source = self.scope
         if varnames is None:
             varnames = self.keys()
         for v in varnames:
             self[v] = source.get(v, None)
 
-    def takeout(self, dest=BasketDefaultTarget, varnames=None, deepcopy=False):
+    def takeout(self, varnames=None, dest=None, deepcopy=False):
         """
 Parameters
 ----------
@@ -60,6 +64,8 @@ dest: a dict as dest of vars. Using globals() as default.
 varnames: varnames to take to the dest.
 deepcopy: if True, the vars taken out are deepcopied, to protect the version in the basket.
 """
+        if dest is None:
+            dest = self.scope
         if varnames is None:
             varnames = self.keys()
         for v in varnames:
@@ -96,6 +102,8 @@ deepcopy: if True, the vars taken out are deepcopied, to protect the version in 
         force_rm(self.tmp_path)
 
     def save(self, filename=None, varnames=None):
+        if not os.path.exists(self.tmp_path):
+            self.make_tmp()
         if filename is None:
             filename = './%s.zip' % self.name
 
@@ -112,6 +120,8 @@ deepcopy: if True, the vars taken out are deepcopied, to protect the version in 
                 outzip.write(fn, os.path.basename(fn))
 
     def load(self, filename, varnames=None):
+        if not os.path.exists(self.tmp_path):
+            self.make_tmp()
         with ZipFile(filename) as inzip:
             for fname in inzip.namelist():
                 vn = strip_ext(fname)
@@ -138,6 +148,9 @@ deepcopy: if True, the vars taken out are deepcopied, to protect the version in 
             vss.append(' %-8s : %s , %s' % (v, short_vstr, type(self[v])))
         sss = sss + '\n'.join(vss) 
         return sss
+    
+    def __repr__(self):
+        return self.__str__()
 
 if __name__ == '__main__':
     a = 5
