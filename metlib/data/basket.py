@@ -42,26 +42,30 @@ filename: if not None, load a stored basket.zip file.
         else:
             self.load(filename, varnames)
         
-    def collect(self, varnames=None, source=None):
+    def collect(self, varnames=None, source=None, deepcopy=False):
         """
 Parameters
 ----------
-source: a dict of vars to collect from. Using globals() as default.
 varnames: varnames to collect.
+source: a dict of vars to collect from. Using globals() as default.
+deepcopy: if True, the vars put into the basket are deepcopied, to protect the version in the basket.
 """
         if source is None:
             source = self.scope
         if varnames is None:
             varnames = self.keys()
         for v in varnames:
-            self[v] = source.get(v, None)
+            if deepcopy:
+                self[v] = copy.deepcopy(source.get(v, None))
+            else:
+                self[v] = source.get(v, None)
 
     def takeout(self, varnames=None, dest=None, deepcopy=False):
         """
 Parameters
 ----------
-dest: a dict as dest of vars. Using globals() as default.
 varnames: varnames to take to the dest.
+dest: a dict as dest of vars. Using globals() as default.
 deepcopy: if True, the vars taken out are deepcopied, to protect the version in the basket.
 """
         if dest is None:
