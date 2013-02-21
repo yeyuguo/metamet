@@ -35,6 +35,8 @@ def force_rm(fname, regex=False):
 def force_makedirs(dirname, rm_exist_dir=False):
     """force to make dir, no matter whether it exists"""
     #TODO: make it more robust
+    if dirname in ['', '.', '..', './', '../', '/']:
+        return
     orig = dirname
     if os.path.islink(orig):
         orig = find_link_orig(dirname)
