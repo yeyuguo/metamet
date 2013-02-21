@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from matplotlib import mlab
 
 from metlib.datetime import *
-from metlib.data import rec_combine, rec_from_seqs
+from metlib.data import rec_combine, rec_from_seqs, Basket
 from metlib.io.rec2csv_neat import rec2csv_neat
 from metlib.misc import ma_out, axgrid, axstack, grep, strip_ext, sub_ext, get_ext, split_job, savepickle, loadpickle, struni
 from metlib.phy.wind import wswd2uv, uv2wswd
