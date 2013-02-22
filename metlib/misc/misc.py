@@ -15,7 +15,7 @@ import numpy as np
 #from matplotlib import mlab
 #from netCDF4 import Dataset
 
-__all__ = ['struni', 'grep', 'strip_ext', 'sub_ext', 'get_ext', 'savepickle', 'loadpickle']
+__all__ = ['struni', 'grep', 'strip_ext', 'sub_ext', 'get_ext', 'savepickle', 'loadpickle', 'str2list']
 
 def struni(obj):
     """ return str(obj) if possible, else return unicode(obj).
@@ -74,6 +74,9 @@ def sub_ext(orig, new_ext):
     if not new_ext.startswith('.'):
         new_ext = '.' + new_ext
     return strip_ext(orig) + new_ext
+
+def str2list(s, pattern=',|;|:|#|\|||\s+'):
+    return re.split(pattern, s)
 
 def savepickle(fname, obj):
     outf = open(fname, 'w')
