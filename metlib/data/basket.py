@@ -30,7 +30,7 @@ Parameters
 ----------
 name: Basket name.
 scope: a dict from which the vars comes and to which the vars goes.
-varnames: a list of varnames.
+varnames: a list of varnames, or a string separated with , ; | or space etc.
 tmp_path: user specified path for storing tmp files. If None: using default ./tmp.basket.BASKETNAME.PID .
 filename: if not None, load a stored basket.zip file.
         """
@@ -177,7 +177,7 @@ if __name__ == '__main__':
     print basket
     basket.save()
     basket.close()
-    b2 = Basket('B2', globals(), filename='./MyBasket.zip', varnames=['a', 'b'])
+    b2 = Basket('B2', globals(), filename='./MyBasket.zip', varnames='a,b')
     print b2
     b2.save('B2.zip')
     b2.close()
