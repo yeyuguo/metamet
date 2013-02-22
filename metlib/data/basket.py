@@ -21,22 +21,24 @@ from metlib.misc import loadpickle, savepickle, get_ext, strip_ext, str2list
 
 __all__ = ['Basket', 'loadbasket', 'savebasket']
 
+_basket_default_scope = sys.modules['__main__'].__dict__
+
 class Basket(dict):
     """Basket is a container for collecting variables, to simulate IDL's STORE function.
     """
-    def __init__(self, name, scope, varnames=None, tmp_path=None, filename=None, deepcopy=True):
+    def __init__(self, name, varnames=None, scope=None, tmp_path=None, filename=None, deepcopy=True):
         """
 Parameters
 ----------
 name: Basket name.
-scope: a dict from which the vars comes and to which the vars goes.
 varnames: a list of varnames, or a string separated with , ; | or space etc.
+scope: a dict from which the vars comes and to which the vars goes. if None, use the outermost globals().
 tmp_path: user specified path for storing tmp files. If None: using default ./tmp.basket.BASKETNAME.PID .
 filename: if not None, load a stored basket.zip file.
         """
         self.name = name
-        self.scope = scope
-        self.tmp_path = self.make_tmp(tmp_path)
+        self.scope = _basket_default_scope if scope is None else scope
+        self.make_tmp(tmp_path)
         self.deepcopy=deepcopy
         if filename is None:
             self.collect(varnames=varnames)
@@ -109,6 +111,7 @@ deepcopy: if True, the vars taken out are deepcopied, to protect the version in 
         if tmp_path in [None, '']:
             tmp_path = './tmp.basket.%s.%d' % (self.name, os.getpid())
         force_makedirs(tmp_path)
+        self.tmp_path = tmp_path
         return tmp_path
 
     def clear_tmp(self):
@@ -169,15 +172,37 @@ deepcopy: if True, the vars taken out are deepcopied, to protect the version in 
     def __repr__(self):
         return self.__str__()
 
-def loadbasket(filename, dest, varnames=None):
-    bsk = Basket('tmp', dest, varnames=varnames, filename=filename, deepcopy=False)
+def loadbasket(filename, varnames=None, dest=None):
+    """loadbasket loads stored variables into current globals(), or another dest (dict) if specified.
+
+Parameters
+----------
+filename: basket file (.zip).
+varnames: a list of varnames or a str of varnames separated by ,;:| or space, etc.
+dest: use globals() as default. or a dict.
+
+Return
+------
+a list of varnames loaded.
+    """
+    bsk = Basket('tmp', varnames=varnames, scope=dest, filename=filename, deepcopy=False)
     bsk.takeout()
+    varname_list = bsk.keys()
     bsk.close()
     del bsk
+    return varname_list
 
-def savebasket(fname, src, varnames):
-    bsk = Basket('tmp', src, varnames=varnames, deepcopy=False)
-    bsk.save(fname)
+def savebasket(filename, varnames, src=None):
+    """savebasket saves variables into a basket.zip file.
+
+Parameters
+----------
+filename: basket file (.zip).
+varnames: a list of varnames or a str of varnames separated by ,;:| or space, etc.
+src: use globals() as default. or a dict.
+"""
+    bsk = Basket('tmp', varnames=varnames, scope=src, deepcopy=False)
+    bsk.save(filename)
     bsk.close()
     del bsk
 
@@ -185,11 +210,11 @@ if __name__ == '__main__':
     a = 5
     s = 'abc'
     b = np.random.rand(5,3)
-    basket = Basket('MyBasket', globals(), ['a', 'b', 's'])
+    basket = Basket('MyBasket',  ['a', 'b', 's'])
     print basket
     basket.save()
     basket.close()
-    b2 = Basket('B2', globals(), filename='./MyBasket.zip', varnames='a,b')
+    b2 = Basket('B2', filename='./MyBasket.zip', varnames='a,b')
     print b2
     b2.save('B2.zip')
     b2.close()
