@@ -24,7 +24,7 @@ __all__ = [ 'Basket']
 class Basket(dict):
     """Basket is a container for collecting variables, to simulate IDL's STORE function.
     """
-    def __init__(self, name, scope, varnames=None, tmp_path=None, filename=None):
+    def __init__(self, name, scope, varnames=None, tmp_path=None, filename=None, deepcopy=True):
         """
 Parameters
 ----------
@@ -37,6 +37,7 @@ filename: if not None, load a stored basket.zip file.
         self.name = name
         self.scope = scope
         self.tmp_path = self.make_tmp(tmp_path)
+        self.deepcopy=deepcopy
         if filename is None:
             self.collect(varnames=varnames)
         else:
@@ -48,31 +49,35 @@ Parameters
 ----------
 varnames: varnames to collect.
 source: a dict of vars to collect from. Using globals() as default.
-deepcopy: if True, the vars put into the basket are deepcopied, to protect the version in the basket.
+deepcopy: if True, the vars put into the basket are deepcopied, to protect the version in the basket. if None, use the basket's default option, i.e., self.deepcopy .
 """
         if source is None:
             source = self.scope
         if varnames is None:
             varnames = self.keys()
         for v in varnames:
+            if deepcopy is None:
+                deepcopy = self.deepcopy
             if deepcopy:
                 self[v] = copy.deepcopy(source.get(v, None))
             else:
                 self[v] = source.get(v, None)
 
-    def takeout(self, varnames=None, dest=None, deepcopy=False):
+    def takeout(self, varnames=None, dest=None, deepcopy=None):
         """
 Parameters
 ----------
 varnames: varnames to take to the dest.
 dest: a dict as dest of vars. Using globals() as default.
-deepcopy: if True, the vars taken out are deepcopied, to protect the version in the basket.
+deepcopy: if True, the vars taken out are deepcopied, to protect the version in the basket. if None, use the basket's default option, i.e., self.deepcopy .
 """
         if dest is None:
             dest = self.scope
         if varnames is None:
             varnames = self.keys()
         for v in varnames:
+            if deepcopy is None:
+                deepcopy = self.deepcopy
             if deepcopy:
                 dest[v] = copy.deepcopy(self[v])
             else:
