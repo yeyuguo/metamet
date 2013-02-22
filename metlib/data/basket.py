@@ -17,7 +17,7 @@ import numpy as np
 #from netCDF4 import Dataset
 from zipfile import ZipFile
 from metlib.shell.fileutil import *
-from metlib.misc import loadpickle, savepickle, get_ext, strip_ext
+from metlib.misc import loadpickle, savepickle, get_ext, strip_ext, str2list
 
 __all__ = [ 'Basket']
 
@@ -55,6 +55,8 @@ deepcopy: if True, the vars put into the basket are deepcopied, to protect the v
             source = self.scope
         if varnames is None:
             varnames = self.keys()
+        elif isinstance(varnames, (str, unicode)):
+            varnames = str2list(varnames)
         for v in varnames:
             if deepcopy is None:
                 deepcopy = self.deepcopy
@@ -75,6 +77,8 @@ deepcopy: if True, the vars taken out are deepcopied, to protect the version in 
             dest = self.scope
         if varnames is None:
             varnames = self.keys()
+        elif isinstance(varnames, (str, unicode)):
+            varnames = str2list(varnames)
         for v in varnames:
             if deepcopy is None:
                 deepcopy = self.deepcopy
@@ -119,6 +123,8 @@ deepcopy: if True, the vars taken out are deepcopied, to protect the version in 
         outflist = []
         if varnames is None:
             varnames = self.keys()
+        elif isinstance(varnames, (str, unicode)):
+            varnames = str2list(varnames)
         for vname in varnames:
             if vname in self.keys():
                 fn = self.dump_var(vname)
@@ -134,6 +140,8 @@ deepcopy: if True, the vars taken out are deepcopied, to protect the version in 
         with ZipFile(filename) as inzip:
             for fname in inzip.namelist():
                 vn = strip_ext(fname)
+                if isinstance(varnames, (str, unicode)):
+                    varnames = str2list(varnames)
                 if varnames is not None and vn not in varnames:
                     continue
                 extract_fname = '%s/%s' % (self.tmp_path, fname)
@@ -165,11 +173,11 @@ if __name__ == '__main__':
     a = 5
     s = 'abc'
     b = np.random.rand(5,3)
-    basket = Basket('MyBasket', ['a', 'b', 's'])
+    basket = Basket('MyBasket', globals(), ['a', 'b', 's'])
     print basket
     basket.save()
     basket.close()
-    b2 = Basket('B2', filename='./MyBasket.zip', varnames=['a', 'b'])
+    b2 = Basket('B2', globals(), filename='./MyBasket.zip', varnames=['a', 'b'])
     print b2
     b2.save('B2.zip')
     b2.close()
