@@ -19,7 +19,7 @@ from zipfile import ZipFile
 from metlib.shell.fileutil import *
 from metlib.misc import loadpickle, savepickle, get_ext, strip_ext, str2list
 
-__all__ = [ 'Basket']
+__all__ = ['Basket', 'loadbasket', 'savebasket']
 
 class Basket(dict):
     """Basket is a container for collecting variables, to simulate IDL's STORE function.
@@ -168,6 +168,18 @@ deepcopy: if True, the vars taken out are deepcopied, to protect the version in 
     
     def __repr__(self):
         return self.__str__()
+
+def loadbasket(filename, dest, varnames=None):
+    bsk = Basket('tmp', dest, varnames=varnames, filename=filename, deepcopy=False)
+    bsk.takeout()
+    bsk.close()
+    del bsk
+
+def savebasket(fname, src, varnames):
+    bsk = Basket('tmp', src, varnames=varnames, deepcopy=False)
+    bsk.save(fname)
+    bsk.close()
+    del bsk
 
 if __name__ == '__main__':
     a = 5

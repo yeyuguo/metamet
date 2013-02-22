@@ -75,7 +75,7 @@ def sub_ext(orig, new_ext):
         new_ext = '.' + new_ext
     return strip_ext(orig) + new_ext
 
-def str2list(s, pattern=',|;|:|#|\|||\s+'):
+def str2list(s, pattern=',|;|:|#|\||\s+'):
     return re.split(pattern, s)
 
 def savepickle(fname, obj):
