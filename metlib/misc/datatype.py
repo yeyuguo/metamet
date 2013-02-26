@@ -1,0 +1,80 @@
+#!/usr/bin/env python2.7
+
+# datatype.py
+
+import os, sys
+#import re
+#from datetime import datetime, timedelta
+#from dateutil.parser import parse
+import numpy as np
+#import matplotlib
+#matplotlib.use('Agg')
+#import matplotlib.pyplot as plt
+#from mpl_toolkits.basemap import Basemap
+#from matplotlib import mlab
+#from netCDF4 import Dataset
+
+__all__ = ['limited_int']
+
+class limited_int(object):
+    def __init__(self, value, vmin, vmax):
+        self.value = long(value)
+        self.set_limit(vmin, vmax)
+
+    def rel_range(self, beg, end, step=1, under="min", over="max"):
+        if under == 'min':
+            under = self.vmin
+        if over == 'max':
+            over = self.vmax
+        res = np.arange(beg, end, step, dtype='i8') + self.value
+        res[res > self.vmax] = over
+        res[res < self.vmin] = under
+        return res
+
+    def set_limit(self, vmin, vmax):
+        self.vmin = long(vmin)
+        self.vmax = long(vmax)
+        self._check()
+
+    def get_limit(self):
+        return self.vmin, self.vmax
+
+    def _check(self):
+        if self.value > self.vmax:
+            self.value = self.vmax
+        if self.value < self.vmin:
+            self.value = self.vmin
+
+    def __iadd__(self, other):
+        self.value += other
+        self._check()
+        return self
+
+    def __isub__(self, other):
+        self.value -= other
+        self._check()
+        return self
+
+    def __int__(self):
+        return int(self.value)
+
+    def __long__(self):
+        return long(self.value)
+
+    def __float__(self):
+        return float(self.value)
+
+    def __str__(self):
+        return '%d:<%d %d>' % (self.value, self.vmin, self.vmax)
+
+if __name__ == '__main__':
+    a = limited_int(3, 0, 4)
+    print a
+    print a.rel_range(-4, 5)
+    a += 1
+    print a
+    a += 1 
+    print a
+    a += 1 
+    print a
+    print int(a)+3
