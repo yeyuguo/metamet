@@ -30,8 +30,8 @@ def axgrid(fig=None, nrow=2, ncol=2, left=0.1, right=0.1, top=0.1, bottom=0.1, h
         vspace: vertical space between axes.
         no_extra_xticklabels: if True, only xticklabels on the bottom row are presented.
         no_extra_yticklabels: if True, only yticklabels on the left row are presented.
-        sharex: if True, axes on each column will share the same xaxis.
-        sharey: if True, axes on each row will share the same yaxis.
+        sharex: if True, axes on each column will share the same xaxis. sharex can also be an Axes or a list of Axes (length of which should == ncol).
+        sharey: if True, axes on each row will share the same yaxis. sharey can also be an Axes or a list of Axes (length of which should == nrow).
         sharexy: if True, all axes will share the same xaxis and yaxis.
         kwargs: pass to fig.add_axes()
     Returns:
@@ -43,10 +43,29 @@ def axgrid(fig=None, nrow=2, ncol=2, left=0.1, right=0.1, top=0.1, bottom=0.1, h
 
     w = (1.0 - left - right - hspace*(ncol-1)) / ncol
     h = (1.0 - top - bottom - vspace*(nrow-1)) / nrow
+    
+    share_ext_xs = []
+    share_ext_ys = []
+    if sharex not in (True, False, None):
+        if hasattr(sharex, '__len__') and len(sharex) == ncol:
+            share_ext_xs = list(sharex)
+        elif isinstance(sharex, plt.Axes):
+            share_ext_xs = [sharex] * ncol
+        sharex = False
+    if sharey not in (True, False, None):
+        if hasattr(sharey, '__len__') and len(sharey) == nrow:
+            share_ext_ys = list(sharey)
+        elif isinstance(sharey, plt.Axes):
+            share_ext_ys = [sharey] * nrow
+        sharey = False
 
     for idx in np.ndindex(nrow, ncol):
         pos = (left+idx[1]*(w+hspace), 1.0-top-h-idx[0]*(h+vspace), w, h)
         sharexyd = dict()
+        if share_ext_xs:
+            sharexyd['sharex'] = share_ext_xs[idx[1]]
+        if share_ext_ys:
+            sharexyd['sharey'] = share_ext_ys[idx[0]]
         if sharexy:
             if idx[0] >= 1 or idx[1] >= 1:
                 sharexyd['sharex'] = thegrid[0, 0]

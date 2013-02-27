@@ -21,6 +21,10 @@ class limited_int(object):
         self.value = long(value)
         self.set_limit(vmin, vmax)
 
+    def set_value(self, value):
+        self.value = long(value)
+        self._check()
+
     def rel_range(self, beg, end, step=1, under="min", over="max"):
         if under == 'min':
             under = self.vmin
@@ -30,7 +34,7 @@ class limited_int(object):
         res[res > self.vmax] = over
         res[res < self.vmin] = under
         return res
-
+    
     def set_limit(self, vmin, vmax):
         self.vmin = long(vmin)
         self.vmax = long(vmax)
