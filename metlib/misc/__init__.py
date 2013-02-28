@@ -6,4 +6,5 @@ from .misc import *
 from .axgrid import *
 from .multiprocess import *
 from .datatype import *
+from .maths import *
 __all__ = filter(lambda s:not s.startswith('_'),dir())
