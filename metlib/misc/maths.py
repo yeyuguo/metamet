@@ -26,7 +26,11 @@ def second_derivate(sig):
 
 def int_sign(a):
     s = np.sign(a)
-    s[-np.isfinite(s)] = 0.0
-    s = s.astype('i8')
-    return s 
-
+    if np.isscalar(s):
+        if -np.isfinite(s):
+            s = 0.0
+        return int(s)
+    else:
+        s[np.where(-np.isfinite(s))] = 0.0
+        s = s.astype('i')
+        return s
