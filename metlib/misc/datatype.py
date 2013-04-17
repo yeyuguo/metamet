@@ -68,8 +68,53 @@ class limited_int(object):
     def __float__(self):
         return float(self.value)
 
+    def __lt__(self, other):
+        return int(self) < other
+
+    def __le__(self, other):
+        return int(self) <= other
+
+    def __gt__(self, other):
+        return int(self) > other
+
+    def __ge__(self, other):
+        return int(self) >= other
+
+    def __eq__(self, other):
+        return int(self) == other
+
+    def __ne__(self, other):
+        return int(self) != other
+
+    def __add__(self, other):
+        return int(self) + other
+
+    def __sub__(self, other):
+        return int(self) - other
+
+    def __mul__(self, other):
+        return int(self) * other
+
+    def __div__(self, other):
+        return int(self) / other
+
+    def __radd__(self, other):
+        return other + int(self) 
+
+    def __rsub__(self, other):
+        return other - int(self)
+
+    def __rmul__(self, other):
+        return other * int(self) 
+
+    def __rdiv__(self, other):
+        return other / int(self)
+
     def __str__(self):
         return '%d:<%d %d>' % (self.value, self.vmin, self.vmax)
+
+    def __repr__(self):
+        return self.__str__()
 
 if __name__ == '__main__':
     a = limited_int(3, 0, 4)
