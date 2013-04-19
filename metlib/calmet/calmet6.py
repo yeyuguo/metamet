@@ -183,28 +183,42 @@ class Calmet6Dataset(object):
         MET2D_LIST = _Calmet2DLabVarCALGRD if self.LCALGRD else _Calmet2DLabVar
         # # Create arrays
         UVW_jumpsize = 8 + 4 * np.dtype(self.INTTYPE).itemsize + self.NX * self.NY * np.dtype(self.REALTYPE).itemsize
-        self.U = np.zeros((self.IRLG,self.NZ,self.NY,self.NX), dtype=self.REALTYPE)
-        self.V = np.zeros((self.IRLG,self.NZ,self.NY,self.NX), dtype=self.REALTYPE)
+        # # Calc total record length (IRLG is only the hour number)
+        pos_mem = now_pos
+        tmpU, now_pos = self._read_record(now_pos, 'S', convert_type=_CalmetData, jumpsize=UVW_jumpsize)
+        if tmpU is not None:
+            NDATHRB, IBSEC, NDATHRE, IESEC = list(tmpU)[1:5]
+            first_begt = datetime.strptime(str(NDATHRB),"%Y%j%H") + timedelta(seconds=int(IBSEC))
+            first_endt = datetime.strptime(str(NDATHRE),"%Y%j%H") + timedelta(seconds=int(IESEC))
+            tdelta_sec = (first_endt - first_begt).total_seconds()
+            ttotal_sec = (self.TOTAL_ENDTIME - self.TOTAL_BEGTIME).total_seconds()
+            self.rec_num = int(np.ceil(ttotal_sec / tdelta_sec))
+        else:
+            self.rec_num = self.IRLG
+        now_pos = pos_mem
+
+        self.U = np.zeros((self.rec_num,self.NZ,self.NY,self.NX), dtype=self.REALTYPE)
+        self.V = np.zeros((self.rec_num,self.NZ,self.NY,self.NX), dtype=self.REALTYPE)
         self.var3d.extend(['U', 'V'])
         if self.LCALGRD:
-            self.W = np.zeros((self.IRLG,self.NZ,self.NY,self.NX), dtype=self.REALTYPE)
+            self.W = np.zeros((self.rec_num,self.NZ,self.NY,self.NX), dtype=self.REALTYPE)
             self.var3d.append('W')
         if self.LCALGRD and self.IRTYPE == 1:
-            self.ZTEMP = np.zeros((self.IRLG,self.NZ,self.NY,self.NX), dtype=self.REALTYPE)
+            self.ZTEMP = np.zeros((self.rec_num,self.NZ,self.NY,self.NX), dtype=self.REALTYPE)
             self.var3d.append('ZTEMP')
         if self.IRTYPE == 1:
             for labelname, varname in MET2D_LIST:
                 dt = 'i4' if varname.startswith('I') else 'f4'
-                self.__dict__[varname] = np.zeros((self.IRLG,self.NY,self.NX), dtype=dt)
+                self.__dict__[varname] = np.zeros((self.rec_num,self.NY,self.NX), dtype=dt)
                 self.var2d.append(varname)
 
-        # # BEGTIME and ENDTIME are datetime arrays, with shape (IRLG, )
-        self.BEGTIME = np.zeros((self.IRLG,), dtype='O')
-        self.ENDTIME = np.zeros((self.IRLG,), dtype='O')
+        # # BEGTIME and ENDTIME are datetime arrays, with shape (rec_num, )
+        self.BEGTIME = np.zeros((self.rec_num,), dtype='O')
+        self.ENDTIME = np.zeros((self.rec_num,), dtype='O')
         self.vartime = ['BEGTIME', 'ENDTIME']
 
         # # UVW
-        for t in range(self.IRLG):
+        for t in range(self.rec_num):
             try:
                 for k in range(self.NZ):
                     tmpU, now_pos = self._read_record(now_pos, 'S', convert_type=_CalmetData, jumpsize=UVW_jumpsize)
