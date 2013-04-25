@@ -43,8 +43,8 @@ def locate_peak(sig):
     cr[np.where((cr==1) & (cr1 * sigsign == -1))] = 2
     cr[np.where((cr==1) & (cr2 * sigsign == -1))] = 2
 #    cr[cr==1] = 2
-    print cr
-    print sigsign
+#    print cr
+#    print sigsign
     cr *= sigsign
     return cr
 
