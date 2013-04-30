@@ -51,7 +51,8 @@ class JobSplitter(object):
         self.jobs = []
         each_job_load = int(ceil(len(self.arg_list) / float(self.cpu_number)))
         for i in range(self.cpu_number):
-            p = Process(target=self.func, args=(self.arg_list[i*each_job_load:(i+1)*each_job_load], ))
+#            p = Process(target=self.func, args=(self.arg_list[i*each_job_load:(i+1)*each_job_load], ))
+            p = Process(target=self.func, args=(self.arg_list[i::self.cpu_number], ))
             self.jobs.append(p)
         for job in self.jobs:
             job.start()
