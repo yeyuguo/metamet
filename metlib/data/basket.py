@@ -91,7 +91,10 @@ deepcopy: if True, the vars taken out are deepcopied, to protect the version in 
 
     def dump_var(self, varname):
         var = self[varname]
-        if isinstance(var, np.ndarray):
+        if isinstance(var, np.ma.core.MaskedArray):
+            fname = '%s/%s.madump' % (self.tmp_path, varname)
+            var.dump(fname)
+        elif isinstance(var, np.ndarray):
             fname = '%s/%s.npy' % (self.tmp_path, varname)
             np.save(fname, var)
         else:
@@ -101,7 +104,7 @@ deepcopy: if True, the vars taken out are deepcopied, to protect the version in 
 
     def load_var(self, filename):
         ext = get_ext(filename)
-        if ext == '.npy':
+        if ext == '.npy' or '.madump':
             var = np.load(filename)
         elif ext == '.pickle':
             var = loadpickle(filename)
