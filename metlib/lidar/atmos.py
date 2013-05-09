@@ -82,7 +82,7 @@ def calc_betam(p, t, l=523.0, rho_n=0.02842):
     t: array of temperature.
     l: light wavelength in nm.
     rho_n: air molecule depolarization factor.
-    returns array of BetaM
+    returns array of BetaM (km-1)
     """
     assert len(p) == len(t)
     n0 = 1.000272599 #(n0-1)*10e8=6432.8+2949810/(146-lambda^-2)+25540/(41-lambda^-2), Edlen 1953
