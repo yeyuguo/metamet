@@ -3,7 +3,7 @@
 # peak.py
 
 import os, sys
-#import re
+import re
 #from datetime import datetime, timedelta
 #from dateutil.parser import parse
 import numpy as np
@@ -15,16 +15,66 @@ import numpy as np
 #from netCDF4 import Dataset
 from metlib.misc.maths import int_sign, second_derivate
 
-__all__ = ['Peak', 'locate_peak', 'measure_peak']
+__all__ = ['Peak', 'locate_peak', 'measure_peak', 'peak_pattern', 'parse_peak', 'parse_peaks', 'load_peaks_list', 'save_peaks_list' ]
 
 class Peak(object):
-    def __init__(self, pos, lower=None, upper=None, depth=0.0, volume=0.0):
-        self.pos = pos
-        self.lower = lower if lower is not None else pos
-        self.upper = upper if upper is not None else pos
+    def __init__(self, center, lower=None, upper=None, depth=0.0, volume=0.0):
+        self.center = center
+        self.lower = lower if lower is not None else center
+        self.upper = upper if upper is not None else center
         self.depth = depth
         self.volume = volume
         self.sign = int_sign(self.depth)
+        
+    def __repr__(self):
+        return "Peak<%d %d %d %E %E>" % (self.center, self.lower, self.upper, self.depth, self.volume)
+
+peak_pattern = r'Peak<([^<>\s]*)\s+([^<>\s]*)\s+([^<>\s]*)\s+([^<>\s]*)\s+([^<>\s]*)>'
+peak_re = re.compile(peak_pattern)
+
+def _match2peak(mstrs):
+    assert len(mstrs) == 5
+    p = Peak(center=int(mstrs[0]), 
+            lower=int(mstrs[1]), 
+            upper=int(mstrs[2]),
+            depth=float(mstrs[3]),
+            volume=float(mstrs[4]) )
+    return p
+
+def parse_peak(s):
+    m = re.search(peak_re, s)
+    if m:
+        mstrs = m.groups()
+        return _match2peak(mstrs)
+    else:
+        return None
+
+def parse_peaks(s):
+    mstrs_list = re.findall(peak_re, s)
+    res = []
+    for mstrs in mstrs_list:
+        res.append(_match2peak(mstrs))
+    return res
+
+def save_peaks_list(fname, peaks_list):
+    f = open(fname, 'w')
+    for peaks in peaks_list:
+        for p in peaks:
+            f.write(repr(p))
+            f.write(' ')
+        f.write('\n')
+    f.close()
+
+def load_peaks_list(fname):
+    peaks_list = []
+    f = open(fname)
+    for line in f:
+        if line.lstrip().startswith('#'):
+            continue
+        peaks = parse_peaks(line)
+        peaks_list.append(peaks)
+    f.close()
+    return peaks_list
 
 def locate_peak(sig):
     """
@@ -49,7 +99,7 @@ def locate_peak(sig):
     return cr
 
 def measure_peak(sig, use_inflection=True, return_allinfo=False):
-    """measure_peak measures peaks from 1D/2D signal (2D signal are regarded as columns of individual signal lines), with all the information for the Peak class, e.g., peak position (indices), peak size (lower/upper position), peak depth and peak volume.
+    """measure_peak measures peaks from 1D/2D signal (2D signal are regarded as columns of individual signal lines), with all the information for the Peak class, e.g., peak center position (indices), peak size (lower/upper position), peak depth and peak volume.
     
     Parameters
     ----------
@@ -125,12 +175,12 @@ def measure_peak(sig, use_inflection=True, return_allinfo=False):
             lower_pos[w_lower_none] = 0
 
         peaks = []
-        for pos, lower, upper in zip(pvs, lower_pos, upper_pos):
-            depth = sig[pos, i]
+        for center, lower, upper in zip(pvs, lower_pos, upper_pos):
+            depth = sig[center, i]
             sig_range = sig[lower:upper+1, i]
             sig_range[np.where(int_sign(sig_range) != int_sign(depth))] = 0.0
             volume = np.sum(sig_range)
-            peaks.append(Peak(pos=pos, lower=lower, upper=upper, depth=depth, volume=volume))
+            peaks.append(Peak(center=center, lower=lower, upper=upper, depth=depth, volume=volume))
         peaks_list.append(peaks)
     if oned:
         peaks_list = peaks_list[0]
