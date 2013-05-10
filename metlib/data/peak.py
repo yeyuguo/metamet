@@ -27,19 +27,30 @@ class Peak(object):
         self.sign = int_sign(self.depth)
         
     def __repr__(self):
-        return "Peak<%d %d %d %E %E>" % (self.center, self.lower, self.upper, self.depth, self.volume)
+        return "Peak<%d,%d,%d,%E,%E>" % (self.center, self.lower, self.upper, self.depth, self.volume)
 
-peak_pattern = r'Peak<([^<>\s]*)\s+([^<>\s]*)\s+([^<>\s]*)\s+([^<>\s]*)\s+([^<>\s]*)>'
+peak_pattern = r'Peak<([^<>\s]*)[,;\s]+([^<>\s]*)[,;\s]+([^<>\s]*)[,;\s]([^<>\s]*)[,;\s]+([^<>\s]*)>|Peak<>'
 peak_re = re.compile(peak_pattern)
 
 def _match2peak(mstrs):
-    assert len(mstrs) == 5
-    p = Peak(center=int(mstrs[0]), 
-            lower=int(mstrs[1]), 
-            upper=int(mstrs[2]),
-            depth=float(mstrs[3]),
-            volume=float(mstrs[4]) )
+    if len(mstrs) == 5:
+        if mstrs[0] == '' or mstrs[0] == None:
+            p = None
+        else:
+            p = Peak(center=int(mstrs[0]), 
+                    lower=int(mstrs[1]), 
+                    upper=int(mstrs[2]),
+                    depth=float(mstrs[3]),
+                    volume=float(mstrs[4]) )
+    else:
+        p = None
     return p
+
+def peak2str(peak):
+    if peak is None:
+        return 'Peak<>'
+    else:
+        return repr(peak)
 
 def parse_peak(s):
     m = re.search(peak_re, s)
@@ -60,7 +71,7 @@ def save_peaks_list(fname, peaks_list):
     f = open(fname, 'w')
     for peaks in peaks_list:
         for p in peaks:
-            f.write(repr(p))
+            f.write(peak2str(p))
             f.write(' ')
         f.write('\n')
     f.close()
