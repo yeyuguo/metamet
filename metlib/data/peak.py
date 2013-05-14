@@ -15,7 +15,7 @@ import numpy as np
 #from netCDF4 import Dataset
 from metlib.misc.maths import int_sign, second_derivate
 
-__all__ = ['Peak', 'locate_peak', 'measure_peak', 'peak_pattern', 'parse_peak', 'parse_peaks', 'load_peaks_list', 'save_peaks_list' ]
+__all__ = ['Peak', 'locate_peak', 'measure_peak', 'peak_pattern', 'parse_peak', 'parse_peaks', 'load_peaks_list', 'save_peaks_list' , 'peak2str']
 
 class Peak(object):
     def __init__(self, center, lower=None, upper=None, depth=0.0, volume=0.0):
