@@ -14,7 +14,7 @@ import numpy as np
 #from matplotlib import mlab
 #from netCDF4 import Dataset
 
-__all__ = ['limited_int']
+__all__ = ['limited_int', 'Singleton', 'Null', 'NullClass']
 
 class limited_int(object):
     def __init__(self, value, vmin, vmax):
@@ -115,6 +115,35 @@ class limited_int(object):
 
     def __repr__(self):
         return self.__str__()
+
+class Singleton(object):
+    """A do-nothing class. 
+    From A. Martelli et al. Python Cookbook. (O'Reilly)
+    Thanks to Juergen Hermann."""
+    def __new__(cls, *args, **kwargs):
+        if '_inst' not in vars(cls):
+            cls._inst = super(Singleton, cls).__new__(cls, *args, **kwargs)
+        return cls._inst
+
+class NullClass(Singleton):
+    """A do-nothing class. 
+    From A. Martelli et al. Python Cookbook. (O'Reilly)
+    Thanks to Dinu C. Gherman, Holger Krekel.
+    """
+    def __init__(self, *args, **kwargs): pass
+    def __call__(self, *args, **kwargs): return self
+    def __repr__(self): return "Null"
+    def __nonzero__(self): return False
+    def __getattr__(self, name): return self
+    def __setattr__(self, name, value): return  self
+    def __delattr__(self, name): return self
+    def __len__(self): return 0
+    def __iter__(self): return iter(())
+    def __getitem__(self, i): return self
+    def __delitem__(self, i): return self
+    def __setitem__(self, i): return self
+
+Null = NullClass()
 
 if __name__ == '__main__':
     a = limited_int(3, 0, 4)
