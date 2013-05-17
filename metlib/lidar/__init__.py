@@ -9,5 +9,7 @@ from .lidarutil import *
 from .io import *
 from .lidarplot import *
 from .filter_cloud  import *
+from .peak import *
+from .layer import *
 
 __all__ = filter(lambda s: not s.startswith('_'), dir())
