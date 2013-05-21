@@ -14,8 +14,8 @@ def sorted_walk(top, **kwarg):
         stuff[2].sort()
     return res
 
-def list_all_file(top='.', dir_pattern=r'.*', fname_pattern=r'.*', **kwarg):
-    """returns every filename that matches the 2 patterns in a flat list, 
+def list_all_file(top='.', fname_pattern=r'.*', dir_pattern=r'.*', **kwarg):
+    """returns a list of filenames that matches the 2 regex patterns, 
     kwargs: os.path's kwargs, i.e. topdown=True[, onerror=None[, followlinks=False]]"""
     try:
         newtop = os.path.expanduser(os.path.expandvars(top))
