@@ -2,6 +2,9 @@ from netCDF4 import Dataset
 from pyproj import Proj
 import numpy as np
 
+"""Warning: this module is still buggy. 
+"""
+
 class M3_Data_Pos(object):
     def __init__(self):
         self.i = 0
