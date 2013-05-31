@@ -252,3 +252,52 @@ def load_layermarkers(fname):
             res.add(LayerMarker.parse(l))
     return res
 
+def markers2cells(markers):
+    markers = sorted(markers)
+    state = 'OFF'
+    res_cells = []
+    for i in range(len(markers)):
+        m1 = markers[i]
+        layerID = markers[i].layerID1
+        if m1.marker in ('@', '}'):
+            if (m1.marker == '@' and state == 'ON') or \
+                    (m1.marker == '}' and m1.layerID1 == -1):
+                state = 'OFF'
+                continue
+            beg_i = m1.x
+            state = "ON"
+            if i == len(markers) - 1:
+                if layerID == -1:
+                    end_i = len_guide
+                else:
+                    end_i = guide_lc.layers[layerID].end_index + 1
+            else:
+                m2 = markers[i+1]
+                if m2.layerID1 != layerID:
+                    end_i = min(guide_lc.layers[layerID].end_index + 1, m2.x + 1)
+                    state = "OFF"
+                elif m2.marker == '@':
+                    end_i = m2.x + 1
+                else:
+                    end_i = m2.x
+            sec_cells = guide_lc.layers[layerID][beg_i:end_i]
+        elif markers[i].marker == '{':
+            m1 = markers[i]
+            m2 = markers[i+1]
+            assert m2.marker == '}'
+            state = 'ON' 
+            # interp
+            fill_xs = range(m1.x, m2.x)
+            fill_centers = np.round(np.interp(fill_xs, [m1.x, m2.x], [m1.y, m2.y])).astype('i')
+            sec_cells = [LayerCell(ID=-1, center=c, lower=c, upper=c,
+                sign=-1, life=0, fulllife=10, healthy=False,
+                peak=None, index=idx) for idx, c in zip(fill_xs, fill_centers) ]
+        res_cells.extend(sec_cells)
+    widths = [c.upper - c.lower for c in res_cells if c.ID != -1]
+    mean_half_width = np.round(np.mean(widths) / 2.0).astype('i')
+    for c in res_cells:
+        if c.ID == -1:
+            c.lower -= mean_half_width
+            c.upper += mean_half_width
+    return res_cells
+
