@@ -252,8 +252,8 @@ def load_layermarkers(fname):
             res.add(LayerMarker.parse(l))
     return res
 
-def markers2cells(markers):
-    markers = sorted(markers)
+def markers2cells(guide_lc):
+    markers = sorted(guide_lc.layermarkers)
     state = 'OFF'
     res_cells = []
     for i in range(len(markers)):
