@@ -254,6 +254,14 @@ def load_layermarkers(fname):
 
 def markers2cells(guide_lc):
     markers = sorted(guide_lc.layermarkers)
+    # add a leading '@' if not present.
+    if len(markers) > 0 and markers[0].marker == '{' and markers[0].layerID1 != -1:
+        ID = markers[0].layerID
+        layer = guide_lc.layers[ID]
+        beg_cell = layer.beg_cell
+        new_marker = LayerMarker(ID=0, layerID1=ID, layerID2=ID, 
+                x=beg_cell.index, y=beg_cell.center, marker='@')
+        markers.insert(0, new_marker)
     state = 'OFF'
     res_cells = []
     for i in range(len(markers)):
