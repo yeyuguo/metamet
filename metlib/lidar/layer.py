@@ -302,7 +302,7 @@ def markers2cells(guide_lc):
                 peak=None, index=idx) for idx, c in zip(fill_xs, fill_centers) ]
         res_cells.extend(sec_cells)
     widths = [c.upper - c.lower for c in res_cells if c.ID != -1]
-    mean_half_width = np.round(np.mean(widths) / 2.0).astype('i')
+    mean_half_width = np.round(np.ma.masked_invalid(widths).mean() / 2.0).astype('i')
     for c in res_cells:
         if c.ID == -1:
             c.lower -= mean_half_width
