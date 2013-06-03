@@ -293,13 +293,16 @@ def markers2cells(guide_lc):
             m1 = markers[i]
             m2 = markers[i+1]
             assert m2.marker == '}'
-            state = 'ON' 
             # interp
             fill_xs = range(m1.x, m2.x)
             fill_centers = np.round(np.interp(fill_xs, [m1.x, m2.x], [m1.y, m2.y])).astype('i')
             sec_cells = [LayerCell(ID=-1, center=c, lower=c, upper=c,
                 sign=-1, life=0, fulllife=10, healthy=False,
                 peak=None, index=idx) for idx, c in zip(fill_xs, fill_centers) ]
+            if m2.layerID1 == '-1':
+                state = 'OFF'
+            else:
+                state = 'ON' 
         res_cells.extend(sec_cells)
     widths = [c.upper - c.lower for c in res_cells if c.ID != -1]
     mean_half_width = np.round(np.ma.masked_invalid(widths).mean() / 2.0).astype('i')
