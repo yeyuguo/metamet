@@ -276,7 +276,7 @@ def markers2cells(guide_lc):
             state = "ON"
             if i == len(markers) - 1:
                 if layerID == -1:
-                    end_i = len_guide
+                    end_i = len(guide_lc.indexs)
                 else:
                     end_i = guide_lc.layers[layerID].end_index + 1
             else:
