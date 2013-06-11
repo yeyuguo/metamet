@@ -2,7 +2,7 @@
 
 # misc.py
 
-import os
+import os, sys
 import re
 import pickle
 #from datetime import datetime, timedelta
@@ -15,7 +15,7 @@ import numpy as np
 #from matplotlib import mlab
 #from netCDF4 import Dataset
 
-__all__ = ['struni', 'grep', 'strip_ext', 'sub_ext', 'get_ext', 'savepickle', 'loadpickle', 'str2list']
+__all__ = ['struni', 'grep', 'strip_ext', 'sub_ext', 'get_ext', 'savepickle', 'loadpickle', 'str2list', 'get_sys_args']
 
 def struni(obj):
     """ return str(obj) if possible, else return unicode(obj).
@@ -77,6 +77,51 @@ def sub_ext(orig, new_ext):
 
 def str2list(s, pattern=',|;|:|#|\||\s+'):
     return re.split(pattern, s)
+
+def get_sys_args(argnames):
+    """get_sys_args parse sys.args according to a list of argnames. 
+    Parsed args goes directly into globals().
+    If not succeed, print a usage prompt and exit.
+
+Parameters
+----------
+argnames: a list of arg names or tuples of (arg name, convert function)
+
+Example
+-------
+>>> get_sys_args( ['name', ('age', int)] )
+
+    """
+    argdict = dict()
+    true_argnames = []
+    argconvd = dict()
+    for a in argnames:
+        if isinstance(a, (str, unicode)):
+            true_argnames.append(str(a))
+        elif isinstance(a, (tuple, list)) \
+                and len(a) == 2 \
+                and isinstance(a[0], (str, unicode)) \
+                and callable(a[1]):
+            true_argnames.append(str(a[0]))
+            argconvd[a[0]] = a[1]
+    try:
+        for i_1, argname in enumerate(true_argnames):
+            i = i_1 + 1
+            value = sys.argv[i]
+            if argname in argconvd:
+                value = argconvd[argname](value)
+            argdict[argname] = value
+        sys.modules['__main__'].__dict__.update(argdict)
+    except Exception as e:
+        print "Usage:"
+        print "    %s" % sys.argv[0], 
+        for argname in true_argnames:
+            print argname,
+        print
+        for argname in true_argnames:
+            if argname in argconvd:
+                print "        %s will be converted by %s" % (argname, argconvd[argname])
+        sys.exit(1)
 
 def savepickle(fname, obj):
     outf = open(fname, 'w')
