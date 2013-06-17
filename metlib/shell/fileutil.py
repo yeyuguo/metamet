@@ -65,7 +65,9 @@ def get_rel_path(path, base):
     """
     lb = len(base)
     assert path[:lb] == base
-    if path[lb] == '/':
+    if len(path) == lb:
+        rel_path = ''
+    elif path[lb] == '/':
         rel_path = path[lb+1:]
     else:
         rel_path = path[lb:]
