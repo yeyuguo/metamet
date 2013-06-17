@@ -4,7 +4,7 @@ from glob import glob
 import re
 import shutil
 
-__all__ = ['filesize', 'force_rm', 'force_makedirs', 'expand_path', 'find_link_orig']
+__all__ = ['filesize', 'force_rm', 'force_makedirs', 'expand_path', 'get_rel_path', 'find_link_orig']
 
 def filesize(f):
     """Return the size of f in bytes"""
@@ -59,6 +59,17 @@ def expand_path(path):
     path = os.path.expanduser(path)
     path = os.path.expandvars(path)
     return path
+
+def get_rel_path(path, base):
+    """get relative path, e.g., get_rel_path('abc/de/fg', 'abc') => 'de/fg'
+    """
+    lb = len(base)
+    assert path[:lb] == base
+    if path[lb] == '/':
+        rel_path = path[lb+1:]
+    else:
+        rel_path = path[lb:]
+    return rel_path
 
 def find_link_orig(path, max_depth=99):
     """Try to find the orig of a link."""
