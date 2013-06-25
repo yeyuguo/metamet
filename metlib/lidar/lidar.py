@@ -263,7 +263,8 @@ class LidarDataset(object):
         self.recheck_time()
 
     def __len__(self):
-        return self.dims['TIME']
+#        return self.dims['TIME']
+        return self.vars['data'].shape[0]
 
     def recheck_time(self):
         """recheck stuffs about time dimension"""
