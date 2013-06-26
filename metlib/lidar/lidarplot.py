@@ -1,7 +1,59 @@
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
-__all__ = ['plot_lidar', 'LidarPlot']
+from matplotlib.dates import DateFormatter
+from metlib import T, TD
+__all__ = ['plot_lidar_on_ax', 'plot_lidar', 'LidarPlot']
+
+def plot_lidar_on_ax(dts, height, data, 
+        ax, cax=None,
+        vmin=None, vmax=None, max_height=5000,
+        title='', xlabel=None, ylabel='Height (m)', 
+        cmap=matplotlib.cm.jet,
+        ):
+    """Plot lidar image on a given ax.
+    dts: datetime seq
+    height: height seq
+    data: data of shape ( TIME, HEIGHT )
+    ax: the ax on which it is plotted
+    cax: ax to plot colorbar. if cax == None, use ax's space.
+    vmin, vmax: value range
+    max_height: plot max height.
+    title: plot title
+    xlabel, ylabel: Labels
+    cmap: colormap
+    figsize: figsize
+    """
+    if vmin is None:
+        vmin = 0.0
+    if vmax is None:
+        vmax = data.max()
+    if xlabel is None:
+        xlabel = '%s - %s' % (dts[0], dts[-1])
+    
+    tdelta = dts[-1] - dts[0]
+    if tdelta > TD('24h'):
+        dtfmt = DateFormatter('%H\n%m/%d')
+    elif tdelta >= TD('6h'):
+        dtfmt = DateFormatter('%H')
+    elif tdelta >= TD('5m'):
+        dtfmt = DateFormatter('%H:%M')
+    else:
+        dtfmt = DateFormatter('%H:%M:%S')
+    dts_num = matplotlib.dates.date2num(dts)
+    image = ax.pcolormesh(dts_num, height, np.ma.masked_invalid(data.transpose()), vmin=vmin, vmax=vmax, cmap=cmap)
+    ax.xaxis.axis_date()
+    ax.xaxis.set_major_formatter(dtfmt)
+    plt.setp(ax.xaxis.get_ticklabels(), fontsize='x-small')
+    plt.setp(ax.yaxis.get_ticklabels(), fontsize='small')
+    ax.set_ylim(0.0, max_height)
+    if cax is None or cax == ax:
+        cbar = plt.colorbar(image, ax=ax, fraction=0.05)
+    else:
+        cbar = plt.colorbar(image, cax=cax)
+    ax.set_title(title)
+    ax.set_xlabel(xlabel, fontsize='small')
+    ax.set_ylabel(ylabel)
 
 def plot_lidar(dts, height, data, 
         vmin=None, vmax=None, max_height=5000,
