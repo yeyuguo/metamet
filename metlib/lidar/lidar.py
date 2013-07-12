@@ -270,6 +270,8 @@ class LidarDataset(object):
         """recheck stuffs about time dimension"""
         n_tbins = len(self.vars['datetime'])
         self.attrs['start_datetime'] = self.vars['datetime'][0]
+        print self
+        print len(self), self['data'].shape
         if len(self) >= 2:
             self.attrs['end_datetime'] = self.vars['datetime'][-1] + (self.vars['datetime'][-1] - self.vars['datetime'][-2])
         elif self.vars['trigger_frequency'][-1] != 0:
@@ -399,6 +401,9 @@ class LidarDataset(object):
                 self.del_var(key)
             else:
                 sys.stderr.write("Warning: no such attr: %s \n" % key)
+
+    def __contains__(self, key):
+        return key in self.attrs or key in self.vars
     
     def add_var(self, vname, dims, dtype='f4', aver_method='mean'):
         """Add new var into self.vars"""
