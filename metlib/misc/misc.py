@@ -14,6 +14,7 @@ import numpy as np
 #from mpl_toolkits.basemap import Basemap
 #from matplotlib import mlab
 #from netCDF4 import Dataset
+from metlib.misc.datatype import Null
 
 __all__ = ['struni', 'grep', 'strip_ext', 'sub_ext', 'get_ext', 'savepickle', 'loadpickle', 'str2list', 'get_sys_argv']
 
@@ -86,7 +87,7 @@ def get_sys_argv(argnames, optional_argnames=[]):
 Parameters
 ----------
 argnames: a list of arg names or tuples of (arg name, convert function).
-optional_argnames: like argnames, but optional. It's best to specify default values for these optional args before calling get_sys_argv(), as shown in the example.
+optional_argnames: like argnames, but optional. It's best to specify default values for these optional args before calling get_sys_argv(), as shown in the example; otherwise the default value will be Null.
 
 Return
 ------
@@ -95,7 +96,7 @@ a list of remaining args.
 Example
 -------
 >>> job = 'sinner'
->>> status = 'not redeemed'
+>>> status = 'not redeemed yet'
 >>> get_sys_args( ['name', ('age', int)], ['job', 'status'])
 
     """
@@ -116,6 +117,9 @@ Example
         for i_1, argname in enumerate(true_argnames):
             i = i_1 + 1
             if i >= len(sys.argv) and i_1 >= n_must:
+                for argn in true_argnames[i_1:]:
+                    if argn not in sys.modules['__main__'].__dict__:
+                        sys.modules['__main__'].__dict__[argn] = Null
                 break
             value = sys.argv[i]
             if argname in argconvd:
@@ -125,17 +129,19 @@ Example
     except Exception as e:
         print "Usage:"
         print "    %s" % sys.argv[0], 
-        for argname in true_argnames[:n_must]:
-            print argname,
+        for argn in true_argnames[:n_must]:
+            print argn,
         if len(optional_argnames) > 0:
             print '[',
-            for argname in true_argnames[n_must:]:
-                print argname,
+            for argn in true_argnames[n_must:]:
+                print argn,
             print ']',
         print
-        for argname in true_argnames:
-            if argname in argconvd:
-                print "        %s will be converted by %s" % (argname, argconvd[argname])
+        for argn in true_argnames:
+            if argn in argconvd:
+                print "        %s will be converted by %s" % (argn, argconvd[argn])
+        print "Error:"
+        print "    %s:" % argname, e
         sys.exit(1)
     other_args = sys.argv[len(true_argnames)+1:]
     return other_args
