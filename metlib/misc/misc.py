@@ -85,7 +85,11 @@ def get_sys_argv(argnames):
 
 Parameters
 ----------
-argnames: a list of arg names or tuples of (arg name, convert function)
+argnames: a list of arg names or tuples of (arg name, convert function).
+
+Return
+------
+a list of remaining args.
 
 Example
 -------
@@ -122,6 +126,8 @@ Example
             if argname in argconvd:
                 print "        %s will be converted by %s" % (argname, argconvd[argname])
         sys.exit(1)
+    other_args = sys.argv[len(true_argnames)+1:]
+    return other_args
 
 def savepickle(fname, obj):
     outf = open(fname, 'w')
