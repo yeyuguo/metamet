@@ -78,7 +78,7 @@ def sub_ext(orig, new_ext):
 def str2list(s, pattern=',|;|:|#|\||\s+'):
     return re.split(pattern, s)
 
-def get_sys_argv(argnames):
+def get_sys_argv(argnames, optional_argnames=[]):
     """get_sys_argv parse sys.argv according to a list of argnames. 
     Parsed args goes directly into globals().
     If not succeed, print a usage prompt and exit.
@@ -86,6 +86,7 @@ def get_sys_argv(argnames):
 Parameters
 ----------
 argnames: a list of arg names or tuples of (arg name, convert function).
+optional_argnames: like argnames, but optional. It's best to specify default values for these optional args before calling get_sys_argv(), as shown in the example.
 
 Return
 ------
@@ -93,13 +94,16 @@ a list of remaining args.
 
 Example
 -------
->>> get_sys_args( ['name', ('age', int)] )
+>>> job = 'sinner'
+>>> status = 'not redeemed'
+>>> get_sys_args( ['name', ('age', int)], ['job', 'status'])
 
     """
     argdict = dict()
     true_argnames = []
     argconvd = dict()
-    for a in argnames:
+    n_must = len(argnames)
+    for a in argnames + optional_argnames:
         if isinstance(a, (str, unicode)):
             true_argnames.append(str(a))
         elif isinstance(a, (tuple, list)) \
@@ -111,6 +115,8 @@ Example
     try:
         for i_1, argname in enumerate(true_argnames):
             i = i_1 + 1
+            if i >= len(sys.argv) and i_1 >= n_must:
+                break
             value = sys.argv[i]
             if argname in argconvd:
                 value = argconvd[argname](value)
@@ -119,8 +125,13 @@ Example
     except Exception as e:
         print "Usage:"
         print "    %s" % sys.argv[0], 
-        for argname in true_argnames:
+        for argname in true_argnames[:n_must]:
             print argname,
+        if len(optional_argnames) > 0:
+            print '[',
+            for argname in true_argnames[n_must:]:
+                print argname,
+            print ']',
         print
         for argname in true_argnames:
             if argname in argconvd:
