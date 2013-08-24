@@ -79,7 +79,7 @@ def sub_ext(orig, new_ext):
 def str2list(s, pattern=',|;|:|#|\||\s+'):
     return re.split(pattern, s)
 
-def get_sys_argv(argnames, optional_argnames=[]):
+def get_sys_argv(argnames, optional_argnames=[], desc=''):
     """get_sys_argv parse sys.argv according to a list of argnames. 
     Parsed args goes directly into globals().
     If not succeed, print a usage prompt and exit.
@@ -88,6 +88,7 @@ Parameters
 ----------
 argnames: a list of arg names or tuples of (arg name, convert function).
 optional_argnames: like argnames, but optional. It's best to specify default values for these optional args before calling get_sys_argv(), as shown in the example; otherwise the default value will be Null.
+desc: additional descriptions.
 
 Return
 ------
@@ -140,6 +141,7 @@ Example
         for argn in true_argnames:
             if argn in argconvd:
                 print "        %s will be converted by %s" % (argn, argconvd[argn])
+        print desc
         print "Error:"
         print "    %s:" % argname, e
         sys.exit(1)
