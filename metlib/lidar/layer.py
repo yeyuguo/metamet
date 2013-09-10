@@ -305,7 +305,10 @@ def markers2cells(guide_lc):
                 state = 'ON' 
         res_cells.extend(sec_cells)
     widths = [c.upper - c.lower for c in res_cells if c.ID != -1]
-    mean_half_width = np.round(np.ma.masked_invalid(widths).mean() / 2.0).astype('i')
+    mean_half_width = np.ma.masked_invalid(widths).mean() / 2.0
+    if mean_half_width is np.ma.masked:
+        mean_half_width = 0.0
+    mean_half_width = np.round(mean_half_width).astype('i')
     for c in res_cells:
         if c.ID == -1:
             c.lower -= mean_half_width
