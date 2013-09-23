@@ -1,6 +1,24 @@
 __all__ = ['ArtistIDManager']
 
 class ArtistIDManager(object):
+    """ArtistIDManager is a dict-like container which manages Artists in groups (ID).
+Examples
+--------
+>>> m = ArtistIDManager()
+>>> group_ID_1 = 1
+>>> m[group_ID_1] = some_line      # add a line artist to group 1
+>>> m[group_ID_1] = some_polygon   # add a polygon artist to the same group
+>>> print m[group_ID_1]            # look up artists with ID
+[some_line, some_polygon]
+>>> print m[some_line]             # look up ID with artist
+1
+>>> group_ID_1 in m
+True
+>>> some_polygon in m
+True
+>>> del m[group_ID_1]              # del that group (and remove the artists from the fig).
+    """
+    
     def __init__(self):
         self.artist2ID = dict()
         self.ID2artist = dict()
