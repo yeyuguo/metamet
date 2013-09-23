@@ -3,7 +3,6 @@ from .exp_interp import *
 from .spread_true_false import *
 from .alias import *
 from .misc import *
-from .axgrid import *
 from .multiprocess import *
 from .datatype import *
 from .maths import *
