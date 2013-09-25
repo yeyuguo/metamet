@@ -79,7 +79,7 @@ def sub_ext(orig, new_ext):
 def str2list(s, pattern=',|;|:|#|\||\s+'):
     return re.split(pattern, s)
 
-def get_sys_argv(argnames, optional_argnames=[], desc=''):
+def get_sys_argv(argnames=[], optional_argnames=[], keyword_argnames=[], desc=''):
     """get_sys_argv parse sys.argv according to a list of argnames. 
     Parsed args goes directly into globals().
     If not succeed, print a usage prompt and exit.
@@ -88,11 +88,13 @@ Parameters
 ----------
 argnames: a list of arg names or tuples of (arg name, convert function).
 optional_argnames: like argnames, but optional. It's best to specify default values for these optional args before calling get_sys_argv(), as shown in the example; otherwise the default value will be Null.
+keyword_argnames: optional keyword args (e.g., kw1=..., kw2=...). If not specified, *NO* variable will be generated. So it's best to specify non-optional keyword values before calling get_sys_argv(). 
 desc: additional descriptions.
 
 Return
 ------
 a list of remaining args.
+And two extra dicts will be generated: _sys_argv_args, _sys_argv_kwargs
 
 Example
 -------
@@ -101,7 +103,19 @@ Example
 >>> get_sys_args( ['name', ('age', int)], ['job', 'status'])
 
     """
+    class ExceptionHelp(Exception):
+        pass
+
+    nonkw_argv = []
+    kw_argv = []
+    for a in sys.argv[1:]:
+        if '=' in a:
+            kw_argv.append(a)
+        else:
+            nonkw_argv.append(a)
+    kwargconvd = dict(keyword_argnames)
     argdict = dict()
+    kwargdict = dict()
     true_argnames = []
     argconvd = dict()
     n_must = len(argnames)
@@ -115,18 +129,27 @@ Example
             true_argnames.append(str(a[0]))
             argconvd[a[0]] = a[1]
     try:
-        for i_1, argname in enumerate(true_argnames):
-            i = i_1 + 1
-            if i >= len(sys.argv) and i_1 >= n_must:
-                for argn in true_argnames[i_1:]:
+        if len(sys.argv) == 2 and sys.argv[1] == "--help":
+            raise ExceptionHelp()
+        for i, argname in enumerate(true_argnames):
+            if i >= len(nonkw_argv) and i >= n_must:
+                for argn in true_argnames[i:]:
                     if argn not in sys.modules['__main__'].__dict__:
                         sys.modules['__main__'].__dict__[argn] = Null
                 break
-            value = sys.argv[i]
+            value = nonkw_argv[i]
             if argname in argconvd:
                 value = argconvd[argname](value)
             argdict[argname] = value
+        for argstr in kw_argv:
+            argname, value = argstr.split('=', 1)
+            if argname in kwargconvd:
+                value = kwargconvd[argname](value)
+            kwargdict[argname] = value
         sys.modules['__main__'].__dict__.update(argdict)
+        sys.modules['__main__'].__dict__.update(kwargdict)
+        sys.modules['__main__'].__dict__['_sys_argv_args'] = argdict
+        sys.modules['__main__'].__dict__['_sys_argv_kwargs'] = kwargdict
     except Exception as e:
         print "Usage:"
         print "    %s" % sys.argv[0], 
@@ -137,15 +160,25 @@ Example
             for argn in true_argnames[n_must:]:
                 print argn,
             print ']',
+        if len(kwargconvd) > 0:
+            print '{',
+            for kwargn in kwargconvd:
+                print '%s=' % kwargn,
+            print '}',
         print
         for argn in true_argnames:
             if argn in argconvd:
                 print "        %s will be converted by %s" % (argn, argconvd[argn])
+        for kwargn, convfunc in kwargconvd.iteritems():
+            if convfunc not in (str, unicode):
+                print "        %s will be converted by %s" % (kwargn, convfunc)
         print desc
-        print "Error:"
-        print "    %s:" % argname, e
+        if not isinstance(e, ExceptionHelp):
+            print "Error:"
+            print "    %s:" % argname, e
         sys.exit(1)
-    other_args = sys.argv[len(true_argnames)+1:]
+    other_args = nonkw_argv[len(true_argnames):]
+
     return other_args
 
 def savepickle(fname, obj):
