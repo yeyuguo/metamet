@@ -10,6 +10,7 @@ from metlib.misc import ma_out, grep, strip_ext, sub_ext, get_ext
 from metlib.misc import split_job, savepickle, loadpickle, struni, str2list, get_sys_argv
 from metlib.misc import limited_int, Singleton, NullClass, Null
 from metlib.misc import int_sign, second_derivate
+from metlib.misc import parse_bool
 from metlib.plot import axgrid, axstack
 from metlib.phy.wind import wswd2uv, uv2wswd
 from metlib.shell import force_makedirs, expand_path, get_rel_path, find_link_orig, filesize, force_rm, list_all_file, get_output

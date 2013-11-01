@@ -8,6 +8,7 @@ import pickle
 #from datetime import datetime, timedelta
 #from dateutil.parser import parse
 import numpy as np
+import collections
 #import matplotlib
 #matplotlib.use('Agg')
 #import matplotlib.pyplot as plt
@@ -16,7 +17,7 @@ import numpy as np
 #from netCDF4 import Dataset
 from metlib.misc.datatype import Null
 
-__all__ = ['struni', 'grep', 'strip_ext', 'sub_ext', 'get_ext', 'savepickle', 'loadpickle', 'str2list', 'get_sys_argv']
+__all__ = ['struni', 'grep', 'strip_ext', 'sub_ext', 'get_ext', 'savepickle', 'loadpickle', 'str2list', 'get_sys_argv', 'parse_bool']
 
 def struni(obj):
     """ return str(obj) if possible, else return unicode(obj).
@@ -192,6 +193,27 @@ def loadpickle(fname):
     infile.close()
     return obj
 
+def parse_bool(s):
+    def _tobool(ss):
+        ss = ss.upper()
+        if ss in ['FALSE', 'F', 'NO', 'N', '0', '']:
+            return False
+        elif ss in ['TRUE', 'T', 'YES', 'Y', '1']:
+            return True
+        else:
+            return bool(ss)
+
+    if isinstance(s, (str, unicode)):
+        if s.upper() in ['TRUE', 'FALSE', 'T', 'F', 'YES', 'NO', 'Y', 'N', '1', '0', '']:
+            return _tobool(s)
+        elif set(s.upper()) <= set(['T', 'F', '0', '1', 'Y', 'N']):
+            return np.array([_tobool(ss) for ss in s])
+        else: 
+            return bool(s)
+    elif isinstance(s, (collections.Sequence, np.ndarray)):
+        return np.array([_tobool(ss) for ss in s])
+    else:
+        return bool(s)
 
 if __name__ == '__main__':
     l = ['abcde', 'asldkfj', 'sdjfowij', 'sdfoijw', '1243450', '1204023']
