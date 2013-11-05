@@ -10,6 +10,7 @@ def plot_lidar_on_ax(dts, height, data,
         vmin=None, vmax=None, max_height=5000,
         title='', xlabel=None, ylabel='Height (m)', 
         cmap=matplotlib.cm.jet,
+        **kwargs
         ):
     """Plot lidar image on a given ax.
     dts: datetime seq
@@ -23,6 +24,9 @@ def plot_lidar_on_ax(dts, height, data,
     xlabel, ylabel: Labels
     cmap: colormap
     figsize: figsize
+    kwargs: will be passed to pcolormesh
+
+    returns the pcolormesh image
     """
     if vmin is None:
         vmin = 0.0
@@ -41,7 +45,7 @@ def plot_lidar_on_ax(dts, height, data,
     else:
         dtfmt = DateFormatter('%H:%M:%S')
     dts_num = matplotlib.dates.date2num(dts)
-    image = ax.pcolormesh(dts_num, height, np.ma.masked_invalid(data.transpose()), vmin=vmin, vmax=vmax, cmap=cmap)
+    image = ax.pcolormesh(dts_num, height, np.ma.masked_invalid(data.transpose()), vmin=vmin, vmax=vmax, cmap=cmap, **kwargs)
     ax.xaxis.axis_date()
     ax.xaxis.set_major_formatter(dtfmt)
     plt.setp(ax.xaxis.get_ticklabels(), fontsize='x-small')
@@ -54,6 +58,7 @@ def plot_lidar_on_ax(dts, height, data,
     ax.set_title(title)
     ax.set_xlabel(xlabel, fontsize='small')
     ax.set_ylabel(ylabel)
+    return image
 
 def plot_lidar(dts, height, data, 
         vmin=None, vmax=None, max_height=5000,
