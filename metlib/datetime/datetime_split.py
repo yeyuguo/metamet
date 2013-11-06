@@ -10,7 +10,9 @@ __all__ = ['datetime_split',
         'split_type',
         'split_season', 'split_month', 
         'split_weekday', 'split_hour', 'split_year',
-        'split_year_season', 'split_year_month']
+        'split_year_season', 'split_year_month',
+        'split_datetime_str'
+        ]
 
 def datetime_split(rec, dts=None, funcs=[]):
     if dts is None:
@@ -118,3 +120,30 @@ def split_year_month(rec, dts=None, start_year=None, end_year=None, start_month=
         return res, ym
     else:
         return res
+
+def split_datetime_str(rec, dts=None, datetime_fmt='%Y%m%d', return_method='index'):
+    """split [rec]array by datetime_fmt.
+    dts: if not None, use this array as datetime instead of rec's own 'datetime' field.
+    return_method: 'index' | 'item' . 
+    """
+    if dts is None:
+        dts = rec['datetime']
+
+    dtstrd = {}
+    for i, dt in enumerate(dts):
+        dtstr = dt.strftime(datetime_fmt)
+        pool = dtstrd.get(dtstr, None)
+        if pool is None:
+            dtstrd[dtstr] = [i]
+        else:
+            pool.append(i)
+    
+    if return_method == 'index':
+        return dtstrd
+    elif return_method == 'item':
+        rec = np.array(rec)
+        res = {}
+        for dtstr, indice in dtstrd.iteritems():
+            res[dtstr] = rec[indice]
+        return res
+
