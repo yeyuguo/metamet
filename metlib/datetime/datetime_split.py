@@ -131,7 +131,7 @@ def split_datetime_str(rec, dts=None, fmt='%Y%m%d', return_method='index'):
 
     dtstrd = {}
     for i, dt in enumerate(dts):
-        dtstr = dt.strftime(datetime_fmt)
+        dtstr = dt.strftime(fmt)
         pool = dtstrd.get(dtstr, None)
         if pool is None:
             dtstrd[dtstr] = [i]
