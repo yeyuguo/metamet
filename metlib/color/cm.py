@@ -18,10 +18,10 @@ _cm_GateBuRd_data = (
         (0.0, 'Navy'), (0.5, _bb), (0.5, _br), (1.0, 'OrangeRed')
         )
 _cm_GateBWR_data = (
-        (0.0, '#9F9FFF'), (0.25, '#5858FF'), (0.25, '#144D8B'), (0.5, '#FFFFFF'), (0.75, '#B31B2C'), (0.75, '#FF2121'), (1.0, '#FF9F9F')
+        (0.0, '#0000FF'), (0.25, '#AFAFFF'), (0.25, '#144D8B'), (0.5, '#FFFFFF'), (0.75, '#B31B2C'), (0.75, '#FFAFAF'), (1.0, '#FF0000')
         )
 _cm_GateBWR2_data = (
-        (0.0, '#9F9FFF'), (0.1, '#5858FF'), (0.1, '#144D8B'), (0.5, '#FFFFFF'), (0.9, '#B31B2C'), (0.9, '#FF2121'), (1.0, '#FF9F9F')
+        (0.0, '#0000FF'), (0.1, '#AFAFFF'), (0.1, '#144D8B'), (0.5, '#FFFFFF'), (0.9, '#B31B2C'), (0.9, '#FFAFAF'), (1.0, '#FF0000')
         )
 _cm_GateGBWRP_data = (
         (0.0, '#BBE28B'), (0.25, '#397B1C'), (0.25, '#0000FF'), (0.5, '#FFFFFF'), (0.75, '#FF0000'), (0.75, '#C1197A'), (1.0, '#FCDBEC')
@@ -97,4 +97,4 @@ if __name__ == '__main__':
         plt.axis("off")
         plt.imshow(a,aspect='auto',cmap=cmap,origin="lower")
         plt.title(m,rotation=90,fontsize=10, va='bottom')
-    plt.savefig("metlib.color.cm.png",dpi=100,facecolor='gray')
+    plt.savefig("metlib.color.cm.png",dpi=100,facecolor='w')
