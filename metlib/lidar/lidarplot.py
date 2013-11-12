@@ -9,7 +9,7 @@ def plot_lidar_on_ax(dts, height, data,
         ax, cax=None,
         vmin=None, vmax=None, max_height=5000,
         title='', xlabel=None, ylabel='Height (m)', 
-        cmap=matplotlib.cm.jet,
+        cmap=matplotlib.cm.jet, colorbar_extend='neither',
         **kwargs
         ):
     """Plot lidar image on a given ax.
@@ -52,9 +52,9 @@ def plot_lidar_on_ax(dts, height, data,
     plt.setp(ax.yaxis.get_ticklabels(), fontsize='small')
     ax.set_ylim(0.0, max_height)
     if cax is None or cax == ax:
-        cbar = plt.colorbar(image, ax=ax, fraction=0.05)
+        cbar = plt.colorbar(image, ax=ax, fraction=0.05, extend=colorbar_extend)
     else:
-        cbar = plt.colorbar(image, cax=cax)
+        cbar = plt.colorbar(image, cax=cax, extend=colorbar_extend)
     ax.set_title(title)
     ax.set_xlabel(xlabel, fontsize='small')
     ax.set_ylabel(ylabel)
@@ -63,7 +63,7 @@ def plot_lidar_on_ax(dts, height, data,
 def plot_lidar(dts, height, data, 
         vmin=None, vmax=None, max_height=5000,
         title='', xlabel=None, ylabel='Height (m)', 
-        cmap=matplotlib.cm.jet,
+        cmap=matplotlib.cm.jet, colorbar_extend='neither',
         figsize=(12,6)
         ):
     """Plot lidar image and returns a fig.
@@ -90,7 +90,7 @@ def plot_lidar(dts, height, data,
     plt.gca().tick_params(direction='out', labelsize='x-small')
     fig.autofmt_xdate()
     plt.ylim(0.0, max_height)
-    cbar = plt.colorbar(fraction=0.05)
+    cbar = plt.colorbar(fraction=0.05, extend=colorbar_extend)
     plt.title(title)
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
@@ -100,7 +100,7 @@ class LidarPlot(object):
     def __init__(self, dts, height, data,
             vmin=None, vmax=None, max_height=5000,
             title='', xlabel=None, ylabel='Height (m)',
-            cmap=matplotlib.cm.jet,
+            cmap=matplotlib.cm.jet, colorbar_extend='neither',
             fig=None, figsize=(12,6)):
         """dts: datetime seq
         height: height seq
@@ -153,10 +153,10 @@ class LidarPlot(object):
             del self.image
             self.image = self.ax.pcolormesh(self.dtsnum, self.height, np.ma.masked_invalid(data.transpose()), vmin=vmin, vmax=vmax, cmap=cmap)
             self.ax.set_ylim(ylims)
-            self.colorbar = plt.colorbar(self.image,cax=self.cax)
+            self.colorbar = plt.colorbar(self.image,cax=self.cax, extend=colorbar_extend)
         else:
             self.image = self.ax.pcolormesh(self.dtsnum, self.height, np.ma.masked_invalid(data.transpose()), vmin=vmin, vmax=vmax, cmap=cmap)
-            self.colorbar = plt.colorbar(self.image,cax=self.cax)
+            self.colorbar = plt.colorbar(self.image,cax=self.cax, extend=colorbar_extend)
             self.ax.set_ylim(0, max_height)
         self.ax.get_xaxis().axis_date()
         self.hax.get_xaxis().axis_date()
