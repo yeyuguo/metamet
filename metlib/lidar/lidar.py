@@ -50,7 +50,9 @@ class LidarDataset(object):
             bin_num: clipping in BIN dimesion when loading files.
         """
         self.init_clean()
-        if type(fnames) is str:
+        if isinstance(fnames, np.string_):
+            fnames = str(fnames)
+        if isinstance(fnames, (str, unicode)):
             fnames = fnames.split(',')
         try:
             self.read_one_file(fnames[0], **kwargs)
@@ -125,7 +127,9 @@ class LidarDataset(object):
     def append_files(self, fnames):
         """append one or more files to the dataset
         fnames: a seq of filenames or a single filename or a str of filenames seperated with comma."""
-        if type(fnames) is str:
+        if isinstance(fnames, np.string_):
+            fnames = str(fnames)
+        if isinstance(fnames, (str, unicode)):
             fnames = fnames.split(',')
         tmpd = []
         for fn in fnames:
