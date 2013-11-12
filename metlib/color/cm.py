@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from matplotlib.colors import LinearSegmentedColormap as LSCM
-from .color_collections import *
+from metlib.color.color_collections import *
 
 _bb = 'CornflowerBlue'
 _br = 'DarkRed'
@@ -16,6 +16,18 @@ _cm_GateBuRd2_data = (
         )
 _cm_GateBuRd_data = (
         (0.0, 'Navy'), (0.5, _bb), (0.5, _br), (1.0, 'OrangeRed')
+        )
+_cm_GateBWR_data = (
+        (0.0, '#9F9FFF'), (0.25, '#5858FF'), (0.25, '#144D8B'), (0.5, '#FFFFFF'), (0.75, '#B31B2C'), (0.75, '#FF2121'), (1.0, '#FF9F9F')
+        )
+_cm_GateBWR2_data = (
+        (0.0, '#9F9FFF'), (0.1, '#5858FF'), (0.1, '#144D8B'), (0.5, '#FFFFFF'), (0.9, '#B31B2C'), (0.9, '#FF2121'), (1.0, '#FF9F9F')
+        )
+_cm_GateGBWRP_data = (
+        (0.0, '#BBE28B'), (0.25, '#397B1C'), (0.25, '#0000FF'), (0.5, '#FFFFFF'), (0.75, '#FF0000'), (0.75, '#C1197A'), (1.0, '#FCDBEC')
+        )
+_cm_GateGBWRP2_data = (
+        (0.0, '#BBE28B'), (0.1, '#397B1C'), (0.1, '#0000FF'), (0.5, '#FFFFFF'), (0.9, '#FF0000'), (0.9, '#C1197A'), (1.0, '#FCDBEC')
         )
 _cm_pop_poster_data = list(pop_poster)
 _cm_crayon_data = crayon[:14]
@@ -32,6 +44,10 @@ todo_dict = {
         'cm_GateRdBu2':_cm_GateRdBu2_data,
         'cm_GateBuRd2':_cm_GateBuRd2_data,
         'cm_GateBuRd':_cm_GateBuRd_data,
+        'cm_GateBWR':_cm_GateBWR_data,
+        'cm_GateBWR2':_cm_GateBWR2_data,
+        'cm_GateGBWRP':_cm_GateGBWRP_data,
+        'cm_GateGBWRP2':_cm_GateGBWRP2_data,
         'cm_pop_poster':_cm_pop_poster_data,
         'cm_crayon':_cm_crayon_data,
         'cm_crayon_dark':_cm_crayon_dark_data,
@@ -65,3 +81,20 @@ locals().update(res_dict)
 
 
 __all__ = ['LSCM'] + [m for m in res_dict if m.startswith('cm_')]
+
+if __name__ == '__main__':
+    from matplotlib import pyplot as plt
+    import numpy as np
+    a=np.outer(np.arange(0,1,0.01),np.ones(10))
+    plt.figure(figsize=(10,7))
+    plt.subplots_adjust(top=0.75,bottom=0.05,left=0.01,right=0.99)
+    maps=[m for m in todo_dict if not m.endswith('_r')]
+    maps.sort()
+    l=len(maps)+1
+    for i, m in enumerate(maps):
+        cmap=res_dict[m]
+        plt.subplot(1,l,i+1)
+        plt.axis("off")
+        plt.imshow(a,aspect='auto',cmap=cmap,origin="lower")
+        plt.title(m,rotation=90,fontsize=10, va='bottom')
+    plt.savefig("metlib.color.cm.png",dpi=100,facecolor='gray')
