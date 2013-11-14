@@ -10,9 +10,9 @@ import numpy as np
 #import matplotlib.pyplot as plt
 #from mpl_toolkits.basemap import Basemap
 #from matplotlib import mlab
-from .constant import lidar_sm
+#from .constant import lidar_sm
 
-def height_to_index(height, data, elev_angle, use_float_index=False):
+def height_to_index(height, data, elev_angle=90.0, use_float_index=False):
     """height_to_index convert height values to lidar data index.
     height: in m.
     data: LidarDataset | equivalent dict that contains 'distance' and 'bin_size' | (resolution, offset) tuple.
@@ -30,8 +30,14 @@ def height_to_index(height, data, elev_angle, use_float_index=False):
     if use_float_index:
         return float_index
     else:
-        float_index[np.where(~np.isfinite(float_index))] = -1.0
-        return np.round(float_index).astype('i')
+        if np.ndim(float_index) == 0:
+            if np.isfinite(float_index):
+                return int(np.round(float_index))
+            else:
+                return -1
+        else:
+            float_index[np.where(~np.isfinite(float_index))] = -1.0
+            return np.round(float_index).astype('i')
 
 if __name__ == '__main__':
     pass
