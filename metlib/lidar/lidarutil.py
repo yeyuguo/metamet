@@ -12,17 +12,21 @@ import numpy as np
 #from matplotlib import mlab
 from .constant import lidar_sm
 
-def height_to_index(height, data, elev_angle, use_float_index=False, offset=None):
-    """height: in m.
-    offset: lidar offset of distance, usually positive.
+def height_to_index(height, data, elev_angle, use_float_index=False):
+    """height_to_index convert height values to lidar data index.
+    height: in m.
+    data: LidarDataset | equivalent dict that contains 'distance' and 'bin_size' | (resolution, offset) tuple.
     """
-    start_i = data['first_data_bin']
-    bin_size = data['bin_size']
-    dist = np.array(height) / np.sin(np.deg2rad(elev_angle))
-    if offset is None:
-        float_index = dist / bin_size - 0.5 + start_i
+    if isinstance(data, tuple):
+        resolution = data[0] * 299792458.0 / 300000000.0
+        offset = data[1]
+        refdist = np.arange(8000.0) * resolution + offset
     else:
-        float_index = (dist + offset) / bin_size 
+        refdist = data['distance']
+        bin_size = data['bin_size']
+        offset = refdist[0]
+    dist = np.array(height) / np.sin(np.deg2rad(elev_angle))
+    float_index = (dist - offset) / bin_size 
     if use_float_index:
         return float_index
     else:
