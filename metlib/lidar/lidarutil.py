@@ -26,6 +26,7 @@ def height_to_index(height, data, elev_angle, use_float_index=False, offset=None
     if use_float_index:
         return float_index
     else:
+        float_index[np.where(~np.isfinite(float_index))] = -1.0
         return np.round(float_index).astype('i')
 
 if __name__ == '__main__':
