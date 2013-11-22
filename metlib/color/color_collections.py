@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import numpy as np
+from random import choice
 from matplotlib import colors
 
 def n_colors_towards_somecolor(basecolor, tocolor, N=5, max_ratio=0.7, use_basecolor_alpha=True):
@@ -29,6 +30,24 @@ def n_colors_towards_white(basecolor, N=5, max_ratio=0.7):
     max_ratio: 0-1, the degree of tranformation. if max_ratio == 0.0, all colors will be the same as the first color. if max_ratio == 1.0, the last color will be tocolor
     """
     return n_colors_towards_somecolor(basecolor, 'white', N=N, max_ratio=max_ratio, use_basecolor_alpha=True)
+
+class ColorBox(object):
+    """ColorBox is a container for color list, which gives colors one by one or randomly when calling get_color() or __call__().
+    """
+    def __init__(self, colors):
+        self.colors = colors
+        self.i = 0
+
+    def __call__(self, random='False'):
+        return self.get_color(random)
+
+    def get_color(self, random='False'):
+        if random:
+            return choice(self.colors)
+        else:
+            res = self.colors[self.i]
+            self.i = (self.i + 1) % len(self.colors)
+            return res
 
 reds = ['red', 'darkred', 'lightcoral', 'crimson', 'lightsalmon']
 oranges = ['orange', 'orangered', 'sandybrown', 'goldenrod', 'wheat']

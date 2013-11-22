@@ -1,3 +1,5 @@
+import numpy as np
+
 __all__ = ['ArtistIDManager']
 
 class ArtistIDManager(object):
@@ -64,6 +66,8 @@ True
         return key in self.artist2ID or key in self.ID2artist
 
     def clear(self):
+        for artist in self.artist2ID:
+            artist.remove()
         self.artist2ID.clear()
         self.ID2artist.clear()
         self.nowID = 1
