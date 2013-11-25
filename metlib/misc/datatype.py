@@ -3,6 +3,8 @@
 # datatype.py
 
 import os, sys
+import collections
+from array import array as pythonarray
 #import re
 #from datetime import datetime, timedelta
 #from dateutil.parser import parse
@@ -14,7 +16,7 @@ import numpy as np
 #from matplotlib import mlab
 #from netCDF4 import Dataset
 
-__all__ = ['limited_int', 'Singleton', 'Null', 'NullClass']
+__all__ = ['limited_int', 'Singleton', 'Null', 'NullClass', 'isinteger', 'isfloat', 'isseq']
 
 class limited_int(object):
     def __init__(self, value, vmin, vmax):
@@ -144,6 +146,18 @@ class NullClass(Singleton):
     def __setitem__(self, i): return self
 
 Null = NullClass()
+
+def isinteger(value):
+    return isinstance(value, (int, long, np.integer))
+
+def isfloat(value):
+    return isinstance(value, (float, np.float))
+
+def isseq(value):
+    return isinstance(value, (list, tuple, bytearray, buffer, xrange, pythonarray,
+        collections.deque, 
+        np.ndarray, np.recarray,))
+
 
 if __name__ == '__main__':
     a = limited_int(3, 0, 4)
