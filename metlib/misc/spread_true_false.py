@@ -7,14 +7,20 @@ __all__ = ['spread_something_1d', 'spread_true', 'spread_false']
 
 def spread_something_1d(arr, something, forward_num=0, backward_num=0):
     """spread some special value in a 1d-array to its neighbourhood.
+    something: some certain value or a func that takes arr as input.
     """
     res = deepcopy(arr)
-    w = np.where(arr == something)
+    if callable(something):
+        w = np.where(something(arr))
+        vs = arr[w]
+    else:
+        w = np.where(arr == something)
+        vs = np.array([something] * len(w[0]))
     total_length = arr.shape[0]
-    for i in w[0]:
+    for wi, i in enumerate(w[0]):
         end = min(total_length, i+forward_num)
         beg = max(0, i-backward_num)
-        res[beg:end] = something
+        res[beg:end] = vs[wi]
     return res
 
 def spread_true(arr, forward_num=0, backward_num=0):

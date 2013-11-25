@@ -9,6 +9,7 @@ from metlib.io.rec2csv_neat import rec2csv_neat
 from metlib.misc import ma_out, grep, strip_ext, sub_ext, get_ext
 from metlib.misc import split_job, savepickle, loadpickle, struni, str2list, get_sys_argv
 from metlib.misc import limited_int, Singleton, NullClass, Null
+from metlib.misc import isinteger, isfloat, isseq
 from metlib.misc import int_sign, second_derivate
 from metlib.misc import parse_bool
 from metlib.plot import axgrid, axstack
