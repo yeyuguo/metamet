@@ -50,7 +50,7 @@ def plot_lidar_on_ax(dts, height, data,
     if plotter == 'pcolormesh':
         image = ax.pcolormesh(dts_num, height, np.ma.masked_invalid(data.transpose()), vmin=vmin, vmax=vmax, cmap=cmap, **kwargs)
     else:
-        image = ax.imshow(np.ma.masked_invalid(data.transpose()), interpolation='none', aspect='auto', vmin=vmin, vmax=vmax, origin='lower', extent=(dts_num[0], dts_num[-1], height[0], height[-1]), cmap=cmap)
+        image = ax.imshow(np.ma.masked_invalid(data.transpose()), interpolation='none', aspect='auto', vmin=vmin, vmax=vmax, origin='lower', extent=(dts_num[0], dts_num[-1], height[0], height[-1]), cmap=cmap, **kwargs)
     ax.xaxis.axis_date()
     ax.xaxis.set_major_formatter(dtfmt)
     plt.setp(ax.xaxis.get_ticklabels(), fontsize='x-small')

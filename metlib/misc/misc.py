@@ -8,6 +8,7 @@ import pickle
 #from datetime import datetime, timedelta
 #from dateutil.parser import parse
 import numpy as np
+from numpy import array
 import collections
 #import matplotlib
 #matplotlib.use('Agg')
@@ -16,8 +17,9 @@ import collections
 #from matplotlib import mlab
 #from netCDF4 import Dataset
 from metlib.misc.datatype import Null
+from metlib.misc.datatype import isseq
 
-__all__ = ['struni', 'grep', 'strip_ext', 'sub_ext', 'get_ext', 'savepickle', 'loadpickle', 'str2list', 'get_sys_argv', 'parse_bool']
+__all__ = ['struni', 'grep', 'strip_ext', 'sub_ext', 'get_ext', 'savepickle', 'loadpickle', 'str2list', 'get_sys_argv', 'parse_bool', 'Setter']
 
 def struni(obj):
     """ return str(obj) if possible, else return unicode(obj).
@@ -214,6 +216,74 @@ def parse_bool(s):
         return np.array([_tobool(ss) for ss in s])
     else:
         return bool(s)
+
+class Setter(object):
+    """Setter is a base-class for loading and saving settings.
+    Example
+    -------
+    >>> class HasSetter(Setter):
+    ...     def __init__(self, a, b):
+    ...         self.a = a
+    ...         self.b = b
+    ... o = HasSetter(3, 5)
+    ... o.save_setting('settings.rc', prefix='set_o.', attrs=['a', 'b'])
+
+    settings.rc will be like:
+        set_o.a = 3
+        set_o.b = 5
+
+    >>> o2 = HasSetter(0, 0)
+    ... print o2.a, o2.b
+    <<< 0 0
+    
+    >>> o2.load_setting('settings.rc', prefix='set_o.')
+    ... print o2.a, o2.b
+    <<< 3 5
+
+    """ 
+    def load_setting(self, setting, prefix=''):
+        if isseq(setting):
+            setting_list = setting
+        elif isinstance(setting, (str, unicode)):
+            setting_file = open(setting)
+            setting_list = []
+            current_lines = []
+            for l in setting_file:
+                l = l.rstrip()
+                if not l:
+                    continue
+                current_lines.append(l)
+                if not l.endswith(','):
+                    joined = '\n'.join(current_lines)
+                    setting_list.append(joined)
+                    current_lines = []
+            if current_lines:
+                setting_list.append('\n'.join(current_lines))
+        for setting_item in setting_list:
+            if setting_item.startswith(prefix):
+                try:
+                    setting_item = setting_item.lstrip(prefix)
+                    cmd = 'self.' + setting_item
+                    exec cmd
+                except Exception as e:
+                    pass
+
+    def save_setting(self, setting_file, filemode='w', prefix='', attrs=None):
+        setting_list = self.get_setting(prefix, attrs)
+        with open(setting_file, filemode) as outfile:
+            for setting_item in setting_list:
+                outfile.write(setting_item)
+                outfile.write('\n')
+
+    def get_setting(self, prefix='', attrs=None):
+        res = []
+        if attrs is None:
+            for attr, value in self.__dict__.iteritems():
+                res.append('%s%s = %s' % (prefix, attr, repr(value)))
+        else:
+            for attr in attrs:
+                res.append('%s%s = %s' % (prefix, attr, repr(eval('self.%s' % attr))))
+        return res
 
 if __name__ == '__main__':
     l = ['abcde', 'asldkfj', 'sdjfowij', 'sdfoijw', '1243450', '1204023']
