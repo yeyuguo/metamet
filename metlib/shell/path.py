@@ -14,7 +14,7 @@ def sorted_walk(top, **kwarg):
         stuff[2].sort()
     return res
 
-def list_all_file(top='.', fname_pattern=r'.*', dir_pattern=r'.*', **kwarg):
+def list_all_file(top='.', fname_pattern=r'.*', dir_pattern=r'.*', ignore_hidden=True, **kwarg):
     """returns a list of filenames that matches the 2 regex patterns, 
     kwargs: os.path's kwargs, i.e. topdown=True[, onerror=None[, followlinks=False]]"""
     try:
@@ -26,7 +26,13 @@ def list_all_file(top='.', fname_pattern=r'.*', dir_pattern=r'.*', **kwarg):
     for walktuple in walktuplelist:
         d = walktuple[0]
         if re.search(dir_pattern, d):
+            if ignore_hidden:
+                if os.path.basename(d).startswith('.'):
+                    continue
             for fname in walktuple[2]:
-                 if re.search(fname_pattern, fname):
+                if re.search(fname_pattern, fname):
+                    if ignore_hidden:
+                        if fname.startswith('.') or fname.endswith('~'):
+                            continue
                     filelist.append(os.path.join(d, fname))
     return filelist
