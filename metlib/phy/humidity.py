@@ -4,7 +4,7 @@ import numpy as np
 from .constants import *
 
 def hum_r2q(r):
-    "Humidity conversion r(mix ratio) to q(bi shi)"
+    "Humidity conversion r(mix ratio) to q(specific humidity)"
     return r / (1.0 + r)
 
 def hum_q2r(q): #TODO
@@ -16,9 +16,12 @@ def hum_e2r(e, p=p_std):
     return epsilon_vapor * e / (p - e)
 
 def hum_e2q(e, p=p_std):
-    "Humidity conversion e(vapor pressure) to q(bi shi)"
+    "Humidity conversion e(vapor pressure) to q(specific humidity)"
     return epsilon_vapor * e / (p - 0.378 * e)
-#TODO hum_r2e, hum_q2e
+#TODO hum_r2e 
+def hum_q2e(q, p=p_std):
+    "Humidity conversion q(specific humidity) to e(vapor pressure)"
+    return p * q / (epsilon_vapor + 0.378 * q)
 
 def hum_e2rho_v(e, T=T_std):
     "Humidity conversion e(vapor pressure) to rho_v(vapor density)"
@@ -35,3 +38,26 @@ def hum_esi(T):
     if T < 50.0:
         T = T + 273.15
     return 6.1078 * np.exp(21.8745584*(T-273.16)/(T-7.66))
+
+def hum_rh2e(rh, T, water_surface=True):
+    "Humidity conversion RH to e (vapor pressure)"
+    if water_surface:
+        return (rh / 100.0) * hum_es(T)
+    else:
+        return (rh / 100.0) * hum_esi(T)
+
+def hum_rh2q(rh, T, p=p_std, water_surface=True):
+    "Humidity conversion RH to q (specific humidity)"
+    return hum_e2q(hum_rh2e(rh, T, water_surface), p)
+
+def T2Tv(T, hum, humidity_type='RH', p=p_std, water_surface=True):
+    "T to Tv"
+    if humidity_type == 'e':
+        e = hum
+    elif humidity_type == 'RH':
+        e = hum_rh2e(hum, T, water_surface)
+    elif humidity_type == 'q':
+        e = hum_q2e(hum, p)
+    else:
+        pass
+    return T * (1.0-e/p*(1.0-epsilon_vapor))
