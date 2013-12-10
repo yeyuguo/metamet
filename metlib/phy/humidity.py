@@ -50,14 +50,3 @@ def hum_rh2q(rh, T, p=p_std, water_surface=True):
     "Humidity conversion RH to q (specific humidity)"
     return hum_e2q(hum_rh2e(rh, T, water_surface), p)
 
-def T2Tv(T, hum, humidity_type='RH', p=p_std, water_surface=True):
-    "T to Tv"
-    if humidity_type == 'e':
-        e = hum
-    elif humidity_type == 'RH':
-        e = hum_rh2e(hum, T, water_surface)
-    elif humidity_type == 'q':
-        e = hum_q2e(hum, p)
-    else:
-        pass
-    return T * (1.0-e/p*(1.0-epsilon_vapor))
