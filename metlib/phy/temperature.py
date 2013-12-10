@@ -2,6 +2,7 @@
 
 import numpy as np
 from .constants import *
+from .humidity import *
 
 def T2Tv(T, hum, humidity_type='RH', p=p_std, water_surface=True):
     "T to Tv. T: deg C"
