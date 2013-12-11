@@ -1,4 +1,5 @@
 from scipy.constants import *
+import numpy as np
 
 # NOTICE: R_star from US Atmos 1976 is a strange stuff
 R_star = 8.31432E3  # J / ((k mol) * K)
