@@ -12,31 +12,30 @@ def hum_q2r(q): #TODO
     pass
 
 def hum_e2r(e, p=p_std):
-    "Humidity conversion e(vapor pressure) to r(mix ratio)"
+    "Humidity conversion e(vapor pressure) to r(mix ratio). Pressure Unit: hPa."
     return epsilon_vapor * e / (p - e)
 
 def hum_e2q(e, p=p_std):
-    "Humidity conversion e(vapor pressure) to q(specific humidity)"
+    "Humidity conversion e(vapor pressure) to q(specific humidity). Pressure Unit: hPa."
     return epsilon_vapor * e / (p - 0.378 * e)
 #TODO hum_r2e 
 def hum_q2e(q, p=p_std):
-    "Humidity conversion q(specific humidity) to e(vapor pressure)"
+    "Humidity conversion q(specific humidity) to e(vapor pressure). Pressure Unit: hPa."
     return p * q / (epsilon_vapor + 0.378 * q)
 
 def hum_e2rho_v(e, T=T_std):
     "Humidity conversion e(vapor pressure) to rho_v(vapor density)"
+    T = auto2K(T)
     return epsilon_vapor * e / (R_d * T)
 
 def hum_es(T):
     "Compute e_satuation for water surface"
-    if T < 100.0:
-        T = T + 273.15
+    T = auto2K(T)
     return 6.1078 * np.exp(17.2693882*(T-273.16)/(T-35.86))
 
 def hum_esi(T):
     "Compute e_satuation for ice surface"
-    if T < 50.0:
-        T = T + 273.15
+    T = auto2K(T)
     return 6.1078 * np.exp(21.8745584*(T-273.16)/(T-7.66))
 
 def hum_rh2e(rh, T, water_surface=True):

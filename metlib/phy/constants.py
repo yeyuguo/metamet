@@ -10,9 +10,37 @@ c_pd = 1004.0       # J / (kg * K)
 c_vd = 717.0        # J / (kg * K)
 
 epsilon_vapor = 0.622
-p_std = 101325.0    # Pa
+p_std = 1013.25    # hPa
 T_std = 273.15      # K
 T_room = 298.0      # K
+
+def C2K(T):
+    "Temperature deg C to K"
+    return T + 273.15
+
+def K2C(T):
+    "Temperature K to deg C"
+    return T - 273.15
+
+def auto2K(T, max_C=75.0):
+    "Automatically temperature K/C to K. Treat value > max_C as K, else C"
+    if np.isscalar(T):
+        if T <= max_C:
+            T = T + 273.15
+    else:
+        T = np.array(T).copy()
+        T[T <= max_C] += 273.15
+    return T
+
+def auto2C(T, max_C=75.0):
+    "Automatically temperature K/C to C. Treat value > max_C as K, else C"
+    if np.isscalar(T):
+        if T > max_C:
+            T = T - 273.15
+    else:
+        T = np.array(T).copy()
+        T[T > max_C] -= 273.15
+    return T
 
 # # units['unit'] is the ratio to a standard unit:
 # # for length: meter
