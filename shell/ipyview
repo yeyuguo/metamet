@@ -4,15 +4,16 @@
 
 import os, sys
 import re
+import numpy as np
+import pandas as pd
 #from datetime import datetime, timedelta
 #from dateutil.parser import parse
-#import numpy as np
 #import matplotlib
 #matplotlib.use('Agg')
 #import matplotlib.pyplot as plt
 #from mpl_toolkits.basemap import Basemap
 #from matplotlib import mlab
-#from netCDF4 import Dataset
+from netCDF4 import Dataset
 from pylab import *
 from metlib import *
 
@@ -31,6 +32,14 @@ def load_everything(fname):
         ext = get_ext(fname)
         if ext == '.npy':
             return np.load(fname)
+        elif ext in ('.nc', '.ncf'):
+            return Dataset(fname, mode='r')
+        elif ext in ('.h5', '.h5f', '.hdf', '.hdf5'):
+            return pd.HDFStore(fname, mode='r')
+        elif ext in ('.csv'):
+            return pd.DataFrame.from_csv(fname)
+        elif ext in ('.txt'):
+            return np.loadtxt(fname)
     except Exception as e:
         warner.write("Error while loading : %s \n" % fname)
         warner.write(e)
