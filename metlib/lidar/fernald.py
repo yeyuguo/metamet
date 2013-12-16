@@ -35,9 +35,9 @@ def fernald(data, lidar_constant, lidar_ratio, betam, fill_index=0, fill_aver_nu
     intbm = np.zeros_like(betam)
     intbm[..., start_i:] = np.add.accumulate(betam[..., start_i:]*dz)
     if np.ndim(lidar_constant) == 1 and np.shape(lidar_constant)[0] == len(data):
-        lidar_constant = np.array(lidar_constant)[:, np.newaxis]
+        lidar_constant = np.array(lidar_constant)[:, np.newaxis, np.newaxis]
     if np.ndim(lidar_ratio) == 1 and np.shape(lidar_ratio)[0] == len(data):
-        lidar_ratio = np.array(lidar_ratio)[:, np.newaxis]
+        lidar_ratio = np.array(lidar_ratio)[:, np.newaxis, np.newaxis]
     CE = np.zeros_like(data['data'])
     if C_contains_E:
         CE[:] = lidar_constant
@@ -83,7 +83,7 @@ def fernald_ref(data, lidar_ratio, betam, ref_height, ref_sigma_a, ref_aver_num,
     dz = data['bin_size'] / 1000.0    # convert to km
 
     if np.ndim(lidar_ratio) == 1 and np.shape(lidar_ratio)[0] == len(data):
-        lidar_ratio = np.array(lidar_ratio)[:, np.newaxis]
+        lidar_ratio = np.array(lidar_ratio)[:, np.newaxis, np.newaxis]
     ref_index = height_to_index(ref_height, data, elev_angle)
     ref_beg_index = ref_index - ref_aver_num / 2
     ref_end_index = ref_beg_index + ref_aver_num
