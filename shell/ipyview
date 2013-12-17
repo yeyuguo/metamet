@@ -16,6 +16,8 @@ import pandas as pd
 from netCDF4 import Dataset
 from pylab import *
 from metlib import *
+from metlib.color import *
+from metlib.lidar import *
 
 from IPython import Config, embed
 
@@ -33,11 +35,18 @@ def load_everything(fname):
         if ext == '.npy':
             return np.load(fname)
         elif ext in ('.nc', '.ncf'):
-            return Dataset(fname, mode='r')
+            data = Dataset(fname, mode='r')
+            if 'lidarname' in data.ncattrs():
+                return LidarDataset(fname)
+            else:
+                return data
         elif ext in ('.h5', '.h5f', '.hdf', '.hdf5'):
             return pd.HDFStore(fname, mode='r')
         elif ext in ('.csv'):
             return pd.DataFrame.from_csv(fname)
+        elif ext in ('.zip'):
+            varnames = loadbasket(fname)
+            return varnames
         elif ext in ('.txt'):
             return np.loadtxt(fname)
     except Exception as e:
