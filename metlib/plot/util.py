@@ -20,7 +20,17 @@ from metlib import Null, isseq
 
 __all__ = ['format_ticks']
 
-def format_ticks(ax, fmt=None, axis='x', fontsize=None, fontweight=None, **kwargs):
+def format_ticks(ax=None, fmt=None, axis='x', fontsize=None, fontweight=None, **kwargs):
+    """Format ticks.
+    ax: ax, default gca().
+    fmt: date format like "%Y%m%d", or format string like "%.2f", or a func, or sequence of strs, or sequence of (position, str), default None.
+    axis: 'x' | 'y' | 'z', default 'x'.
+    fontsize: fontsize, default None.
+    fontweight: fontweight, default None.
+    """
+    if not ax:
+        ax = plt.gca()
+
     if axis == 'x':
         theaxis = ax.xaxis
     elif axis == 'y':
