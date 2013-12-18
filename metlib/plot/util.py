@@ -31,7 +31,7 @@ def format_ticks(ax, fmt=None, axis='x', fontsize=None, fontweight=None, **kwarg
         theaxis = Null
 
     if fmt:
-        datefmt_pattern = r'%H|%M|%S|%Y|%m|%W'
+        datefmt_pattern = r'%H|%I|%M|%S|%Y|%y|%m|%w|%W|%a|%A|%b|%B|%p|%z|%Z|%j|%U|%c|%x|%X'
         str_pattern = r'%'
         if callable(fmt):
             fmt = FuncFormatter(fmt)
