@@ -14,7 +14,7 @@ from metlib.misc import isinteger, isfloat, isseq
 from metlib.misc import int_sign, second_derivate
 from metlib.misc import parse_bool
 from metlib.misc import Setter
-from metlib.plot import axgrid, axstack
+from metlib.plot import axgrid, axstack, format_ticks
 from metlib.phy.wind import wswd2uv, uv2wswd
 from metlib.shell import force_makedirs, expand_path, get_rel_path, find_link_orig, filesize, force_rm, list_all_file, get_output
 from metlib.color.color_collections import *
