@@ -5,5 +5,6 @@ from .rec_combine import *
 from .coordinate import *
 from .basket import *
 from .boundary import *
+from .series import *
 
 __all__ = filter(lambda s:not s.startswith('_'),dir())
