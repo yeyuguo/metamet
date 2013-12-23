@@ -38,6 +38,7 @@ class FileCollector(object):
         :D  set destdir
         :P  set prefix
         :O  set postfix
+        :F  input file
     """
 
     def __init__(self):
@@ -61,6 +62,7 @@ class FileCollector(object):
                 ':R':('CpMvLn', 'rm'),
                 ':H':self.help,
                 ':U':self.undo,
+                ':F':self.loadfile,
                 }
         self.prompts = {
                 'cp':'[copy>>> ',
@@ -163,6 +165,42 @@ class FileCollector(object):
         else:
             raise RuntimeError('Unknown mode: %s' % self.attrs['CpMvLn'])
 
+    def loadfile(self):
+        cmdfname = raw_input('Enter Command File Name:\n')
+        cmdfname = expand_path(cmdfname)
+        cmdf = open(cmdfname)
+        for userinput in cmdf:
+            userinput = userinput.rstrip()
+            try:
+                if userinput in self.cmdmaps:
+                    cmd = self.cmdmaps[userinput]
+                    if callable(cmd):
+                        cmd()
+                    elif isinstance(cmd, tuple):
+                        self.set_attr(cmd[0], cmd[1])
+                    else:
+                        self.set_attr(cmd)
+                else:
+                    cand_files = glob('%s/%s%s*%s' % (self.attrs['srcdir'], 
+                        self.attrs['prefix'], 
+                        userinput,
+                        self.attrs['postfix']
+                        ))
+                    if len(cand_files) == 0:
+                        print "No file found"
+                    else:
+                        for f in cand_files:
+                            try:
+                                self.do_file(f)
+                            except Exception as e:
+                                print e
+                        self.lastfiles.append((self.attrs['CpMvLn'], cand_files))
+            except EOFError:
+                print
+                return
+            except Exception as e:
+                print e
+    
     def help(self):
         print self.__doc__
 
