@@ -1,4 +1,5 @@
 import numpy as np
+from metlib.misc.datatype import isinteger
 
 __all__ = ['ArtistIDManager']
 
@@ -27,7 +28,7 @@ True
         self.nowID = 1
 
     def isID(self, key):
-        return isinstance(key, (int, long, np.integer))
+        return isinstance(key, (int, long, np.integer, str, unicode, np.string_))
 
     def get_new_ID(self):
         res = self.nowID
@@ -47,7 +48,7 @@ True
             else:
                 self.ID2artist[key] = [value]
             self.artist2ID[value] = key
-            if key >= self.nowID:
+            if isinteger(key) and key >= self.nowID:
                 self.nowID = key + 1
         else:
             self.__setitem__(value, key)
@@ -57,6 +58,8 @@ True
             if key not in self.artist2ID:
                 return
             key = self.artist2ID[key]
+        if key not in self.ID2artist:
+            return
         for artist in self.ID2artist[key]:
             artist.remove()
             del self.artist2ID[artist]
