@@ -20,7 +20,7 @@ from parser import *
 
 __all__ = ['three_month_anomaly']
 
-def three_month_anomaly(dts, data, beg_year, beg_month, end_year, end_month, day=1, least_days=0return_base=False):
+def three_month_anomaly(dts, data, beg_year, beg_month, end_year, end_month, day=1, least_days=0, return_base=False):
     """three_month_anomaly calculates 3-month anomaly of given data series.
     dts: datetime seq.
     data: data seq.
