@@ -136,14 +136,14 @@ deepcopy: if True, the vars taken out are deepcopied, to protect the version in 
                 fn = self.dump_var(vname)
                 outflist.append(fn)
         force_makedirs(os.path.dirname(filename))
-        with ZipFile(filename, 'w') as outzip:
+        with ZipFile(filename, 'w', allowZip64=True) as outzip:
             for fn in outflist:
                 outzip.write(fn, os.path.basename(fn))
 
     def load(self, filename, varnames=None):
         if not os.path.exists(self.tmp_path):
             self.make_tmp()
-        with ZipFile(filename) as inzip:
+        with ZipFile(filename, allowZip64=True) as inzip:
             for fname in inzip.namelist():
                 vn = strip_ext(fname)
                 if isinstance(varnames, (str, unicode)):
