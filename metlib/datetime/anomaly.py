@@ -20,7 +20,7 @@ from parser import *
 
 __all__ = ['three_month_anomaly']
 
-def three_month_anomaly(dts, data, beg_year, beg_month, end_year, end_month, day=1, least_days=0):
+def three_month_anomaly(dts, data, beg_year, beg_month, end_year, end_month, day=1, least_days=0return_base=False):
     """three_month_anomaly calculates 3-month anomaly of given data series.
     dts: datetime seq.
     data: data seq.
@@ -61,6 +61,10 @@ def three_month_anomaly(dts, data, beg_year, beg_month, end_year, end_month, day
                 stack[yyyy-beg_year, mm-1] = np.nan
     basevalue = np.ma.masked_invalid(stack).mean(axis=0)
     anomaly_stack = stack - basevalue[np.newaxis, ...]
-    return anomaly_stack.reshape(result_shape)[beg_month-1:beg_month-1+len(beg_dts)].data
+    anom_res = anomaly_stack.reshape(result_shape)[beg_month-1:beg_month-1+len(beg_dts)].data
+    if return_base:
+        return anom_res, basevalue
+    else:
+        return anom_res
 
 
