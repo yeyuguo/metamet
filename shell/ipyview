@@ -28,27 +28,31 @@ ipythonconfig = Config({
     'TerminalInteractiveShell': {'banner1': '', 'editor': 'vim', 'pylab': 'qt'}, 
     })
 
-def load_everything(fname):
+def load_everything(fname, basket_dest=''):
     try:
         fname = expand_path(fname)
         ext = get_ext(fname)
         if ext == '.npy':
-            return np.load(fname)
+            return np.load(fname), "npy"
         elif ext in ('.nc', '.ncf'):
             data = Dataset(fname, mode='r')
             if 'lidarname' in data.ncattrs():
-                return LidarDataset(fname)
+                return LidarDataset(fname), "LidarDataset"
             else:
-                return data
+                return data, "netcdf"
         elif ext in ('.h5', '.h5f', '.hdf', '.hdf5'):
-            return pd.HDFStore(fname, mode='r')
+            return pd.HDFStore(fname, mode='r'), "pd.HDFStore"
         elif ext in ('.csv'):
-            return pd.DataFrame.from_csv(fname)
+            return pd.DataFrame.from_csv(fname), "pd.DataFrame"
         elif ext in ('.zip'):
-            varnames = loadbasket(fname)
-            return varnames
+            if basket_dest:
+                globald[basket_dest] = dict()
+                varnames = loadbasket(fname, dest=globald[basket_dest])
+            else:
+                varnames = loadbasket(fname)
+            return varnames, "basket"
         elif ext in ('.txt'):
-            return np.loadtxt(fname)
+            return np.loadtxt(fname), "txt"
     except Exception as e:
         warner.write("Error while loading : %s \n" % fname)
         warner.write(e)
@@ -59,19 +63,37 @@ if __name__ == '__main__':
     
     globald = sys.modules['__main__'].__dict__
     if len(remain_args) == 1:
-        data = load_everything(remain_args[0])
-        print "data :"
-        print data
+        loaded_data, loaded_type = load_everything(remain_args[0])
+        print "----------------"
+        if loaded_type == "basket":
+            print "Loaded Basket variables:", loaded_data
+        else:
+            data = loaded_data
+            print "file: %s, recognized as: %s" % (remain_args[0], loaded_type)
+            print "  ", "data :"
+            print data
     else:
         for i, fname in enumerate(remain_args):
+            print "----------------"
             varname = 'data%d' % i
-            globald[varname] = load_everything(fname)
-            print varname, ":"
-            print globald[varname]
+            loaded_data, loaded_type = load_everything(fname)
+            if loaded_type == "basket":
+                print "Loaded Basket variables:", loaded_data
+            else:
+                globald[varname] = loaded_data
+                print "file: %s, recognized as: %s" % (fname, loaded_type)
+                print "  ", varname, ":"
+                print globald[varname]
 
     for varname, fname in _sys_argv_kwargs.iteritems():
-        globald[varname] = load_everything(fname)
-        print varname, ":"
-        print globald[varname]
+        print "----------------"
+        loaded_data, loaded_type = load_everything(fname, basket_dest=varname)
+        if loaded_type == "basket":
+            print "Loaded Basket file", fname, "into dict:", varname, ", which contains:", loaded_data
+        else:
+            globald[varname] = loaded_data
+            print "file: %s, recognized as: %s" % (fname, loaded_type)
+            print "  ", varname, ":"
+            print globald[varname]
 
     embed(config=ipythonconfig)
