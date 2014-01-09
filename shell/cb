@@ -1,0 +1,61 @@
+#!/bin/bash
+
+# cb is a clipboard for files.
+
+
+cbdatafile=~/.cbdata
+touch $cbdatafile
+
+onhelp()
+{
+	echo "cb is a clipboard for files."
+	echo "Usage:"
+	echo "    cb 		: list all clipped items."
+	echo "    cb TAG 	: show the entry TAG."
+	echo "    cb add FILE 	: add entry FILE:full path of FILE."
+	echo "    cb add TAG FILE 	: add entry TAG:full path of FILE."
+	echo "    cb del TAG 	: delete entry TAG."
+	echo "    cb rm  TAG 	: delete entry TAG."
+	exit
+}
+
+search() 
+{
+	bookmark=$1
+	res=`grep "^${bookmark}:" $cbdatafile`
+	if [ "$res" != "" ] ; then
+		echo $res | cut -d ":" -f 2-
+	fi
+}
+
+if [ $# == 0 ] ; then
+	cat $cbdatafile
+elif [ $# == 1 ] ; then
+	if [ "$1" == "--help" ] || [ "$1" == "-h" ] ; then
+		onhelp
+	fi
+	search $1
+elif [ $# == 2 ] ; then
+	if [ $1 == "del" ] || [ "$1" == "rm" ] ; then
+		res=`search $2`
+		if [ "${res}" != "" ] ; then
+			echo del ${2}:${res}
+			sed -i -e "/^${2}:/d" $cbdatafile
+		else
+			echo Nothing to delete.
+		fi
+	elif [ $1 == 'add' ] ; then
+		sed -i -e "/^${2}:/d" $cbdatafile
+		fname="`pwd`/${2}"
+		echo add ${2}: ${fname}
+		echo "${2}:${fname}" >> $cbdatafile
+	fi
+elif [ $# == 3 ] ; then
+	if [ $1 == 'add' ] ; then
+		sed -i -e "/^${2}:/d" $cbdatafile
+		fname="`pwd`/${3}"
+		echo add ${2}: ${fname}	
+		echo "${2}:${fname}" >> $cbdatafile
+	fi
+fi
+
