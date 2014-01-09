@@ -51,6 +51,8 @@ def load_everything(fname, basket_dest=''):
             else:
                 varnames = loadbasket(fname)
             return varnames, "basket"
+        elif ext in ('.pickle', '.pic'):
+            return loadpickle(fname), "pickle"
         elif ext in ('.txt'):
             return np.loadtxt(fname), "txt"
     except Exception as e:
