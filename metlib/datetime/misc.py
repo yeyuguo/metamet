@@ -13,9 +13,10 @@ import numpy as np
 #from matplotlib import mlab
 from matplotlib.dates import date2num as mpl_date2num
 from matplotlib.dates import num2date as mpl_num2date
+from metlib.misc.datatype import isseq
 
 from .parser import *
-__all__ = ['month2season', 'str2datetime', 'datetime_match', 'datetime_filter',
+__all__ = ['month2season', 'datetime2season', 'str2datetime', 'datetime_match', 'datetime_filter',
         'season_names', 'month_names', 'month_short_names', 'matlab_num2date', 'matlab_date2num']
 
 season_names = ['Spring', 'Summer', 'Autumn', 'Winter']
@@ -41,8 +42,23 @@ def month2season(month, outformat='0123'):
             raise ValueError, 'outformat: "%s" length less than 4' % outformat
         season_names = np.array(list(outformat))
 
-    season_index = (np.array(month, dtype=int)+9) / 3 % 4
+    if isseq(month):
+        season_index = (np.array(month, dtype=int)+9) / 3 % 4
+    else:
+        season_index = (int(month) + 9) / 3 % 4
     return season_names[season_index]
+
+def datetime2season(dts, outformat='0123'):
+    """Converts datetime to season number or names.
+    Parameters:
+        month : int or seq of int ( 1 - 12 )
+        outformat: '0123', '1234', 'name' or ANY seq with at least 4 elements
+"""
+    if isseq(dts):
+        months = [dt.month for dt in T(dts)]
+    else:
+        months = T(dts).month
+    return month2season(months, outformat=outformat)
 
 def str2datetime(fmt='%Y-%m-%d %H:%M:%S', *arrays ):
     """Converts str arrays into datetime arrays.
