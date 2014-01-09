@@ -17,7 +17,6 @@ onhelp()
 	echo '    g del TAG'
 	echo 'Delete all tags'
 	echo '    g delall'
-	exit
 }
 
 search() 
@@ -33,11 +32,15 @@ if [ $# == 0 ] ; then
 	cat $gotodatafile | sort | sed -e "s/:/:\t/"
 elif [ $# == 1 ] ; then
 	if [ "$1" == "--help" ] || [ "$1" == "-h" ] ; then
-		onhelp
+		echo "`onhelp`"
 	elif [ "$1" == "delall" ] ; then
-		echo "deleting everything."
-		rm -f $gotodatafile
-		touch $gotodatafile
+		echo "Delete all? yes/no"
+		read answer
+		if [ "$answer" ==  "yes" ] ; then
+			echo "Deleting everything."
+			rm -f $gotodatafile
+			touch $gotodatafile
+		fi
 	else
 		pathname=`search $1`
 		if [ "$pathname" != "" ] && [ "$pathname" != "." ] ; then
@@ -48,13 +51,13 @@ elif [ $# == 2 ] ; then
 	if [ $1 == "del" ] ; then
 		pathname=`search $2`
 		if [ "${pathname}" != "" ] ; then
-			echo "deleting ${2}: 	${pathname}"
+			echo "Deleting ${2}: 	${pathname}"
 			sed -i -e "/^${2}:/d" $gotodatafile
 		fi
 	elif [ $1 == 'add' ] ; then
 		sed -i -e "/^${2}:/d" $gotodatafile
 		pathname="`pwd`"
-		echo adding "${2}: 	${pathname}"
+		echo Adding "${2}: 	${pathname}"
 		echo "${2}:${pathname}" >> $gotodatafile
 	fi
 fi
