@@ -4,7 +4,7 @@ from glob import glob
 import re
 import shutil
 
-__all__ = ['filesize', 'force_rm', 'force_makedirs', 'expand_path', 'get_rel_path', 'find_link_orig']
+__all__ = ['filesize', 'force_rm', 'force_makedirs', 'expand_path', 'get_rel_path', 'find_link_orig', 'RM', 'CP', 'MKDIR', 'P', 'MV', 'DIRNAME', 'BASENAME']
 
 def filesize(f):
     """Return the size of f in bytes"""
@@ -84,3 +84,22 @@ def find_link_orig(path, max_depth=99):
         count += 1
     return path
 
+P = expand_path
+RM = force_rm
+MKDIR = force_makedirs
+DIRNAME = os.path.dirname
+BASENAME = os.path.basename
+MV = shutil.move
+
+def CP(src, dest, symlinks=True, ignore=None):
+    true_dest = find_link_orig(dest)
+    if os.path.isdir(src):
+        if os.path.isdir(true_dest):
+            dest = os.path.join(dest, os.path.basename(src))
+        else:
+            RM(dest)
+        return shutil.copytree(src, dest)
+    else:
+        if not os.path.isdir(true_dest):
+            RM(dest)
+        return shutil.copy(src, dest)

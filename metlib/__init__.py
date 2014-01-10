@@ -16,7 +16,7 @@ from metlib.misc import parse_bool
 from metlib.misc import Setter
 from metlib.plot import axgrid, axstack, format_ticks
 from metlib.phy.wind import wswd2uv, uv2wswd
-from metlib.shell import force_makedirs, expand_path, get_rel_path, find_link_orig, filesize, force_rm, list_all_file, get_output
+from metlib.shell import force_makedirs, expand_path, get_rel_path, find_link_orig, filesize, force_rm, list_all_file, get_output, LS, MKDIR, CD, P, CP, MV, RM, DIRNAME, BASENAME
 from metlib.color.color_collections import *
 import metlib.color.cm as metlib_cm
 

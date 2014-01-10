@@ -33,5 +33,5 @@ def parse_cshrc(fname):
             os.environ[tokens[1]] = value
 
 def get_output(cmd):
-    return subprocess.check_output(cmd, shell=True)
+    return subprocess.check_output(cmd, shell=True).rstrip('\n')
     
