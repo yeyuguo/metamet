@@ -16,7 +16,8 @@ from matplotlib.dates import num2date as mpl_num2date
 from metlib.misc.datatype import isseq
 
 from .parser import *
-__all__ = ['month2season', 'datetime2season', 'str2datetime', 'datetime_match', 'datetime_filter',
+__all__ = ['month2season', 'datetime2season', 'datetime2yearseason',
+        'str2datetime', 'datetime_match', 'datetime_filter',
         'season_names', 'month_names', 'month_short_names', 'matlab_num2date', 'matlab_date2num']
 
 season_names = ['Spring', 'Summer', 'Autumn', 'Winter']
@@ -51,7 +52,7 @@ def month2season(month, outformat='0123'):
 def datetime2season(dts, outformat='0123'):
     """Converts datetime to season number or names.
     Parameters:
-        month : int or seq of int ( 1 - 12 )
+        dts: datetime / datetime seq.
         outformat: '0123', '1234', 'name' or ANY seq with at least 4 elements
 """
     if isseq(dts):
@@ -59,6 +60,39 @@ def datetime2season(dts, outformat='0123'):
     else:
         months = T(dts).month
     return month2season(months, outformat=outformat)
+
+def datetime2yearseason(dts, seasonformat='name', sep='_', DJF='JF_year'):
+    """Converts datetime to "Year_Season" strs
+    Parameters:
+        dts: datetime / datetime seq;
+        seasonformat: '0123', '1234', 'name' or ANY seq with at least 4 elements;
+        sep: result str is "Year" + sep + "Season";
+        DJF: 
+            'JF_year' (default): December belongs to the next year (same as Jan/Feb).
+            'D_year': Jan/Feb belongs to the prev year (same as Dec).
+            '': Dec/Jan/Feb belongs to its own year.
+    Returns:
+        "Year_Season" str/seq.
+"""
+    dts = T(dts)
+    if isseq(dts):
+        scalar_res = False
+    else:
+        scalar_res = True
+        dts = np.array([dts])
+
+    seasons = datetime2season(dts, seasonformat)
+    years = np.array([dt.year for dt in dts])
+    months = np.array([dt.month for dt in dts])
+    if DJF == 'JF_year':
+        years[months == 12] += 1
+    elif DJF == 'D_year':
+        years[months == 1] -= 1
+        years[months == 2] -= 1
+    res = np.array(['%s%s%s' % (year, sep, season) for year, season in zip(years, seasons)])
+    if scalar_res:
+        res = res[0]
+    return res
 
 def str2datetime(fmt='%Y-%m-%d %H:%M:%S', *arrays ):
     """Converts str arrays into datetime arrays.
