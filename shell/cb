@@ -17,7 +17,7 @@ onhelp()
 	echo "    cb note TAG NOTE 	: add entry TAG:NOTE."
 	echo "    cb del TAG 	: delete entry TAG."
 	echo "    cb delall 	: delete all entries."
-	exit
+	exit 0
 }
 
 search() 
@@ -43,7 +43,8 @@ elif [ $# == 1 ] ; then
 			touch $cbdatafile
 		fi
 	else
-		search $1
+		res=`search $1`
+		echo "$res"
 	fi
 elif [ $# == 2 ] ; then
 	if [ $1 == "del" ] || [ "$1" == "rm" ] ; then
@@ -73,3 +74,4 @@ elif [ $# == 3 ] ; then
 	fi
 fi
 
+exit 0
