@@ -3,13 +3,16 @@
 # download.py
 
 import os
-import requests
+import sys
 import time
 from datetime import datetime
 from dateutil import tz
 from dateutil.parser import parse
 from metlib.shell.fileutil import *
-
+try:
+    import requests
+except ImportError:
+    sys.stderr.write('Warning: package "requests" is required to use metlib.misc.download\n')
 
 __all__ = ['Downloader', 'download']
 
