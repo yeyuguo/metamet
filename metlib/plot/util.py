@@ -16,7 +16,7 @@ from matplotlib.ticker import FuncFormatter, FixedFormatter, ScalarFormatter, Lo
 #from mpl_toolkits.basemap import Basemap
 #from matplotlib import mlab
 #from netCDF4 import Dataset
-from metlib import Null, isseq
+from metlib.misc.datatype import Null, isseq
 
 __all__ = ['format_ticks']
 
