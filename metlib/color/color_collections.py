@@ -49,6 +49,19 @@ class ColorBox(object):
             self.i = (self.i + 1) % len(self.colors)
             return res
 
+color_lists = ['reds', 'oranges', 'yellows', 'greens', 'blues', 'grays', 'greys', 'whites', 'purples', 'pinks', 'browns', 
+        'seasons1', 'seasons2', 'seasons3', 'months1', 'months2', 'months3',
+        'crayon', 'crayon_dark', 'crayon_dark_random',
+        'pop_poster', 'pop_poster_random',
+        'brewer_set1', 'brewer_set2', 'brewer_set3', 
+        'brewer_pastel1', 'brewer_pastel2',
+        'brewer_accent', 'brewer_dark2',
+        'brewer_paired', 'brewer_paired2',
+        'brewer_BrBG', 'brewer_PiYG', 'brewer_PRGn', 'brewer_PuOr',
+        'brewer_RdBu', 'brewer_RdGy', 'brewer_RdYlBu', 'brewer_RdYlGn',
+        'brewer_spectral'
+        ]
+
 reds = ['red', 'darkred', 'lightcoral', 'crimson', 'lightsalmon']
 oranges = ['orange', 'orangered', 'sandybrown', 'goldenrod', 'wheat']
 yellows = ['yellow', 'goldenrod', 'khaki', 'darkkhaki', 'moccasin']
@@ -79,8 +92,8 @@ crayon = ['#EE204D', '#FFAACC', '#926EAE', '#1F75FE', '#1A4876', '#1CAC78', '#9F
 crayon_dark = ['#EE204D', '#926EAE', '#1F75FE', '#1A4876', '#1CAC78', '#BACF6C', '#FF7538', '#B4674D', '#EA7E5D', '#CB4154', '#95918C', '#202020']
 crayon_dark_random = ['#1F75FE', '#CB4154', '#1CAC78', '#FF7538', '#926EAE', '#EA7E5D', '#202020', '#1A4876', '#EE204D', '#BACF6C', '#B4674D', '#95918C']
 
-pop_poster = ['#861D2B', '#CA3226', '#E66B1E', '#E9B64B', '#FBD21A', '#BCC03E', '#69A646', '#318266', '#34A883', '#1F6597', '#273F61', '#8B4AA0', '#95879E', '#6E5248']
-pop_poster_random = ['#1F6597', '#CA3226', '#69A646', '#E66B1E', '#8B4AA0', '#6E5248', '#34A883', '#273F61', '#861D2B', '#318266', '#E9B64B', '#95879E', '#FBD21A', '#BCC03E']
+pop_poster = ['#861D2B', '#CA3226', '#E66B1E', '#FBD21A', '#BCC03E', '#69A646', '#318266', '#34A883', '#1F6597', '#273F61', '#8B4AA0', '#95879E', '#6E5248']
+pop_poster_random = ['#1F6597', '#CA3226', '#69A646', '#E66B1E', '#8B4AA0', '#6E5248', '#34A883', '#273F61', '#861D2B', '#318266', '#95879E', '#FBD21A', '#BCC03E']
 
 brewer_set1 = ['#E41A1C', '#377EB8', '#4DAF4A', '#984EA3', '#FF7F00', '#FFFF33', '#A65628', '#F781BF', '#999999']        
 brewer_set2 = [ '#66c2a5', '#fc8d62', '#8da0cb', '#e78ac3', '#a6d854', '#ffd92f', '#e5c494', '#b3b3b3']        
@@ -104,12 +117,55 @@ brewer_spectral = [ '#9e0142', '#d53e4f', '#f46d43', '#fdae61', '#fee08b', '#fff
     
 
 if __name__ == '__main__':
+    import sys
     import numpy as np
     import matplotlib.pyplot as plt
     from matplotlib.colors import ListedColormap
-    def plot_color_list(clist):
+    from metlib.plot.axgrid import axgrid
+
+    def plot_color_list(clist, figname=None):
         plt.figure()
         cmap = ListedColormap(clist, name='tmp_cmap')
         data = np.arange(len(clist)).reshape((1,len(clist)))
         plt.pcolor(data, cmap=cmap)
-        plt.show()
+        if figname is None:
+            plt.show()
+        else:
+            plt.savefig(figname)
+
+    def plot_all_color_list(figname=None):
+        fig = plt.figure(figsize=(8, 12))
+        N = len(color_lists)
+        axs = axgrid(fig, nrow=N, ncol=1,
+                left=0.3, right=0.05, top=0.02, bottom=0.02,
+                vspace=0.3/N).flatten()
+        for ax in axs:
+            plt.setp(ax.get_xticklabels(), visible=False)
+            plt.setp(ax.get_yticklabels(), visible=False)
+            plt.setp(ax.get_xticklines(), visible=False)
+            plt.setp(ax.get_yticklines(), visible=False)
+        for i, ax in enumerate(axs):
+            cl = eval(color_lists[i])
+            for ii, c in enumerate(cl):
+                ax.axvspan(ii, ii+1, color=c)
+            ax.set_ylabel(color_lists[i], fontsize='small', fontweight='semibold', 
+                    rotation=0.0, ha='right', va='center')
+            ax.set_xlim(0, len(cl))
+
+        if figname is None:
+            plt.show()
+        else:
+            plt.savefig(figname)
+        
+
+    if len(sys.argv) >= 3:
+        figname = sys.argv[2]
+    else:
+        figname = None
+
+    if len(sys.argv) >= 2:
+        if sys.argv[1] == 'all':
+            plot_all_color_list(figname)
+        else:
+            plot_color_list(sys.argv[1], figname)
+
