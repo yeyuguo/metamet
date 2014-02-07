@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.dates import DateFormatter
-from metlib import T, TD
+from metlib.datetime import T, TD
 __all__ = ['plot_lidar_on_ax', 'plot_lidar', 'LidarPlot']
 
 def plot_lidar_on_ax(dts, height, data, 

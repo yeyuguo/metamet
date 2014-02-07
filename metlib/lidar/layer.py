@@ -6,7 +6,7 @@ import os, sys, re
 import numpy as np
 from copy import copy, deepcopy
 from .peak import *
-from metlib.misc import Null, limited_int
+from metlib.misc.datatype import Null, limited_int
 
 
 class LayerCell(object):
