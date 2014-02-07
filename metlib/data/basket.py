@@ -17,7 +17,7 @@ import numpy as np
 #from netCDF4 import Dataset
 from zipfile import ZipFile
 from metlib.shell.fileutil import *
-from metlib.misc import loadpickle, savepickle, get_ext, strip_ext, str2list
+from metlib.misc.misc import loadpickle, savepickle, get_ext, strip_ext, str2list
 
 __all__ = ['Basket', 'loadbasket', 'savebasket']
 
