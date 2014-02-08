@@ -4,8 +4,10 @@
 
 import os, sys
 import numpy as np
+from datetime import timedelta
+from metlib.misc.datatype import isinteger
 
-__all__ = ['Limiter']
+__all__ = ['Limiter', 'intersection']
 
 class Limiter(object):
     def __init__(self, min_value, max_value):
@@ -52,5 +54,25 @@ class Limiter(object):
     def __repr__(self):
         return "Limiter[%s,%s]" % (self.min_value, self.max_value)
     
+def intersection(a, b):
+    """calculate the length of 2 lines' intersection.
+    a, b: (beg, end) tuple of two lines; or two arrays.
+    returns: intersection length of the two lines.
+    e.g., intersection( (3, 6), (4, 8) ) -> 2, which is 4 ~ 6.
+    """
+    ab = np.r_[a, b]
+    res = np.abs(a[-1] - a[0]) + np.abs(b[-1] - b[0]) - (np.max(ab) - np.min(ab))
+    if isinstance(res, timedelta):
+        zerotd = timedelta(seconds=0)
+        if res < zerotd:
+            res = zerotd
+    elif isinteger(res):
+        if res < 0:
+            res = 0
+    else:
+        if res < 0.0:
+            res = 0.0
+    return res
+
 if __name__ == '__main__':
     pass
