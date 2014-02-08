@@ -15,7 +15,7 @@ import pandas as pd
 #from matplotlib import mlab
 from netCDF4 import Dataset
 from pylab import *
-from metlib import *
+from metlib.kits import *
 from metlib.color import *
 from metlib.lidar import *
 
