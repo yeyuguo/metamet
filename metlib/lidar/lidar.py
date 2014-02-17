@@ -169,6 +169,8 @@ class LidarDataset(object):
                     f.variables[vname].setncattr('units', _std_datetime_units)
                     f.variables[vname][:] = date2num(self.vars[vname], _std_datetime_units)
             else:
+                if t.startswith('O'):
+                    t = str
                 f.createVariable(vname, t, dimnames)
                 f.variables[vname][:] = self.vars[vname]
             f.variables[vname].setncattr('aver_method', self.var_aver_methods[vname])
