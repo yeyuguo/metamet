@@ -56,9 +56,8 @@ Returns:
         true_flags = flags
     if isinstance(pattern, (str, unicode, type(re.compile(r'')) ) ):
         res = []
-        seq = [struni(item) for item in seq]
         for item in seq:
-            if re.search(pattern, item, true_flags):
+            if re.search(pattern, struni(item), true_flags):
                 res.append(item)
     elif callable(pattern):
         res = filter(pattern, seq)
