@@ -49,3 +49,10 @@ def hum_rh2q(rh, T, p=p_std, water_surface=True):
     "Humidity conversion RH to q (specific humidity)"
     return hum_e2q(hum_rh2e(rh, T, water_surface), p)
 
+def hum_tdew2rh(Tdew, T, *args, **kwargs):
+    "Humidity conversion Tdew to RH"
+    T = auto2C(T)
+    Tdew = auto2C(Tdew)
+    RH = 100.0*(np.exp((17.625*Tdew)/(243.04+Tdew))/np.exp((17.625*T)/(243.04+T)))
+    return RH
+
