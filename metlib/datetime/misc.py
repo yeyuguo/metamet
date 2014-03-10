@@ -18,7 +18,10 @@ from metlib.misc.datatype import isseq
 from .parser import *
 __all__ = ['month2season', 'datetime2season', 'datetime2yearseason',
         'str2datetime', 'datetime_match', 'datetime_filter',
-        'season_names', 'month_names', 'month_short_names', 'matlab_num2date', 'matlab_date2num']
+        'season_names', 'month_names', 'month_short_names', 
+        'matlab_num2date', 'matlab_date2num',
+        'mpl_date2num', 'mpl_num2date',
+        ]
 
 season_names = ['Spring', 'Summer', 'Autumn', 'Winter']
 month_names  = ['January', 'February', 'March', 'April', 'May', 'June',
