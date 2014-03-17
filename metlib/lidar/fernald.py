@@ -88,7 +88,7 @@ def fernald_ref(data, lidar_ratio, betam, ref_height, ref_sigma_a, ref_aver_num,
     ref_beg_index = ref_index - ref_aver_num / 2
     ref_end_index = ref_beg_index + ref_aver_num
     Xref = np.ma.masked_invalid(data['data'][..., ref_beg_index:ref_end_index]).mean(axis=-1)[..., np.newaxis]
-    Xref_beta = Xref / (betam[ref_index] + ref_sigma_a / sa)
+    Xref_beta = Xref / (betam[ref_index] + ref_sigma_a / lidar_ratio)
 
     intbm = np.zeros_like(betam)
     intbm[..., ref_index:] = np.add.accumulate(betam[..., ref_index:]*dz, axis=-1)
