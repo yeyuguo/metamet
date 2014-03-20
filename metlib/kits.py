@@ -5,7 +5,7 @@ from matplotlib import mlab
 
 from metlib.datetime import *
 from metlib.data._all import rec_combine, rec_from_seqs, Basket, loadbasket, savebasket
-from metlib.data._all import Limiter
+from metlib.data._all import Limiter, nearest_i
 from metlib.io.rec2csv_neat import rec2csv_neat
 from metlib.misc._all import ma_out, grep, strip_ext, sub_ext, get_ext
 from metlib.misc._all import split_job, savepickle, loadpickle, struni, str2list, get_sys_argv
