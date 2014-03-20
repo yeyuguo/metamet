@@ -6,5 +6,6 @@ from .coordinate import *
 from .basket import *
 from .boundary import *
 from .series import *
+from .misc import *
 
 __all__ = filter(lambda s:not s.startswith('_'),dir())
