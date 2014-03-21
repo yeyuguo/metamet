@@ -79,7 +79,7 @@ def parse_timedelta(timestr):
         if isinstance(timestr, (int, long, np.integer)):
             timestr = str(timestr)
         timestr = timestr.strip()
-        m = re.match(r'([-0-9]+)([dhmsYMW]*)', timestr)
+        m = re.match(r'([-+0-9]+)([dhmsYMW]*)', timestr)
         if not m:
             res = None
         else:
