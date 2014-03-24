@@ -60,7 +60,7 @@ def fernald(data, lidar_constant, lidar_ratio, betam, fill_index=0, fill_aver_nu
 
     if apply_on_data:
         data['data'] = sigma_a
-        data.desc += ',retrievaled'
+        data.desc += ',retrieved'
     
     return sigma_a.copy()
 
@@ -110,7 +110,7 @@ def fernald_ref(data, lidar_ratio, betam, ref_height, ref_sigma_a, ref_aver_num,
 
     if apply_on_data:
         data['data'] = sigma_a
-        data.desc += ',retrievaled'
+        data.desc += ',retrieved'
     
     return sigma_a.copy()
 if __name__ == '__main__':
