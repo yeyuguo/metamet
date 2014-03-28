@@ -56,3 +56,8 @@ def hum_tdew2rh(Tdew, T, *args, **kwargs):
     RH = 100.0*(np.exp((17.625*Tdew)/(243.04+Tdew))/np.exp((17.625*T)/(243.04+T)))
     return RH
 
+def hum_rh2tdew(rh, T, *args, **kwargs):
+    "Humidity conversion RH to Tdew (C)"
+    T = auto2C(T)
+    Tdew = 243.04*(np.log(rh/100.0)+((17.625*T)/(243.04+T)))/(17.625-np.log(rh/100.0)-((17.625*T)/(243.04+T)))
+    return Tdew
