@@ -18,7 +18,7 @@ def spread_something_1d(arr, something, forward_num=0, backward_num=0):
         vs = np.array([something] * len(w[0]))
     total_length = arr.shape[0]
     for wi, i in enumerate(w[0]):
-        end = min(total_length, i+forward_num)
+        end = min(total_length, i+forward_num+1)
         beg = max(0, i-backward_num)
         res[beg:end] = vs[wi]
     return res
