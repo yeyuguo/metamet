@@ -104,7 +104,7 @@ deepcopy: if True, the vars taken out are deepcopied, to protect the version in 
 
     def load_var(self, filename):
         ext = get_ext(filename)
-        if ext == '.npy' or '.madump':
+        if ext == '.npy' or ext == '.madump':
             var = np.load(filename)
         elif ext == '.pickle':
             var = loadpickle(filename)
