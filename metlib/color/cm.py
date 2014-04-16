@@ -33,12 +33,18 @@ _cm_pop_poster_data = list(pop_poster)
 _cm_crayon_data = crayon[:14]
 _cm_crayon_dark_data = crayon_dark[:10]
 
+_cm_solid_data = (
+        (0.0, '#A506A2'), (1.0/7.0, '#3A1FBE'), (2.0/7.0, '#045990'), (2.5/7.0, '#018950'),
+        (3.0/7.0, '#24CC00'), (3.5/7.0, '#8DF200') , (4.0/7.0, '#FFFF00'),  (5.0/7.0, '#FFB500'), (6.0/7.0, '#FF6800'), 
+        (6.5/7.0, '#FF0000'), (1.0, '#DF0000')
+        )
+
 _cm_night_data = [(0.0, '#27013a'), (0.1667, '#4763f7'), (0.3, '#82d6fa'), (0.45, '#92fee5'), (0.5, '#8ffe41'), (0.6667, '#efd743'), (0.85, '#cc2338'), (0.89, '#cd243e'), (0.94, '#e07ef0'), (0.985, '#f3d9f6'), (1.0, '#eedadc')]     
 _cm_delight_data = ['#FFFFFF', '#874ac8', '#5419ad', '#2a36d6', '#0251fc', '#00e8ff', '#00f300', '#009000', '#5fc400', '#ffff00', '#ff7e00', '#ff0000', '#6d0000']            
 
 _cm_halfgray1_data = ( (0.0, '1.0'), (1.0, '0.5') )
 _cm_halfgray2_data = ( (0.0, '1.0'), (1.0, '0.3') )
-_cm_halfgray3_data = ( (0.0, '1.0'), (0.25, '0.9'), (0.5, '0.75'), (0.7, '0.65'), (1.0, '0.3') )
+_cm_halfgray3_data = ( (0.0, '1.0'), (0.35, '0.9'), (0.5, '0.8'), (0.7, '0.65'), (1.0, '0.3') )
 
 todo_dict = {
         'cm_night':_cm_night_data,
@@ -54,6 +60,7 @@ todo_dict = {
         'cm_pop_poster':_cm_pop_poster_data,
         'cm_crayon':_cm_crayon_data,
         'cm_crayon_dark':_cm_crayon_dark_data,
+        'cm_solid':_cm_solid_data,
         'cm_brewer_PuOr': brewer_PuOr,
         'cm_brewer_BrBG': brewer_BrBG,
         'cm_brewer_PRGn': brewer_PRGn,
