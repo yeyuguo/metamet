@@ -74,7 +74,7 @@ purples = ['purple', 'indigo', 'plum', 'blueviolet', 'mediumpurple']
 pinks = ['hotpink', 'mediumvioletred', 'pink', 'magenta', 'lightcoral']
 browns = ['sienna', 'saddlebrown', 'burlywood', 'brown', 'chocolate']
 
-seasons1 = ['#006500', '#FF0F0F', '#DEB402', '#3BC7FD']
+seasons1 = ['#006500', '#FF0F0F', '#DEB402', '#3E39FF']
 seasons2 = ['darkgreen', 'red', 'goldenrod', 'blue']
 seasons3 = ['lightgreen', 'salmon',  'khaki', 'deepskyblue']
 
