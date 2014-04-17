@@ -18,7 +18,7 @@ from .process import fill_lower_part
 __all__ = ['fernald', 'fernald_ref']
 def fernald(data, lidar_constant, lidar_ratio, betam, fill_index=0, fill_aver_num=1, C_contains_E=False, apply_on_data=False):
     """fernald 1984's retrieval method.
-    data: a LidarDataset object which contains normalized data.
+    data: a LidarDataset object which contains normalized data or a faked one (dict-like).
     lidar_constant: lidar constant.
     lidar_ratio: lidar ratio.
     betam: molecular backscatter
@@ -26,6 +26,15 @@ def fernald(data, lidar_constant, lidar_ratio, betam, fill_index=0, fill_aver_nu
     fill_aver_num: fill lower part with this number of samples
     C_contains_E: whether the lidar constant is C or C*E
     apply_on_data: whether to apply the result on data.
+
+    Returns: aerosol extinction coeffecient (sigma) with the same shape of data['data'].
+
+    data should contain the following key-like entries: 
+        'data' (in shape of (TIME, CHANNEL, BIN) or (TIME, BIN) or (BIN,));
+        'bin_size' (in km);
+        'first_data_bin' (suggested);
+        'energy' (if C_contains_E==False);
+    do not apply_on_data if data is not a true LidarDataset.
     """
     try:
         start_i = data['first_data_bin']
@@ -75,6 +84,14 @@ def fernald_ref(data, lidar_ratio, betam, ref_height, ref_sigma_a, ref_aver_num,
     ref_aver_num: average several points around that height.
     elev_angle: elev angle of lidar.
     apply_on_data: whether to apply the result on data.
+
+    Returns: aerosol extinction coeffecient (sigma) with the same shape of data['data'].
+
+    data should contain the following key-like entries: 
+        'data' (in shape of (TIME, CHANNEL, BIN) or (TIME, BIN) or (BIN,));
+        'bin_size' (in km);
+        'first_data_bin' (suggested);
+    do not apply_on_data if data is not a true LidarDataset.
     """
     try:
         start_i = data['first_data_bin']
