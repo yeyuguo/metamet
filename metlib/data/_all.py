@@ -1,5 +1,5 @@
 from .data_bin import *
-from .data_2d_bin import *
+#from .data_2d_bin import *
 from .lookup_table import *
 from .rec_combine import *
 from .coordinate import *
