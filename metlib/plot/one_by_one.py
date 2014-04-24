@@ -45,7 +45,9 @@ class OnePlotter(object):
 class OneByOneBase(object):
     def __init__(self, ax=None):
         if ax is None:
-            self.ax = plt.gca()
+            ax = plt.gca()
+        self.ax = ax
+            
         self._plotter_list = []
 
     def __getitem__(self, key):
