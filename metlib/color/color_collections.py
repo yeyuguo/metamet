@@ -38,10 +38,10 @@ class ColorBox(object):
         self.colors = colors
         self.i = 0
 
-    def __call__(self, random='False'):
+    def __call__(self, random=False):
         return self.get_color(random)
 
-    def get_color(self, random='False'):
+    def get_color(self, random=False):
         if random:
             return choice(self.colors)
         else:
