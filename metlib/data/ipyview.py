@@ -21,7 +21,10 @@ from metlib.data.misc import *
 from metlib.data.boundary import *
 from metlib.lidar import *
 
-__all__ = ['load_everything', 'ipyview']
+__all__ = ['ipyview']
+
+speaker = sys.stdout
+warner = sys.stderr
 
 def load_everything(fname, basket_dest=''):
     try:
@@ -90,7 +93,6 @@ def ipyview(*args, **kwargs):
             print "file: %s, recognized as: %s" % (fname, loaded_type)
             print "  ", varname, ":"
             print globald[varname]
-
 
 if __name__ == '__main__':
     pass
