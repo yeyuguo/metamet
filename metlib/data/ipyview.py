@@ -72,6 +72,7 @@ def ipyview(*args, **kwargs):
             print "Loaded Basket variables:", loaded_data
         else:
             data = loaded_data
+            globald['data'] = data
             print "file: %s, recognized as: %s" % (args[0], loaded_type)
             print "  ", "data :"
             print data
