@@ -18,54 +18,16 @@ from pylab import *
 from metlib.kits import *
 from metlib.color import *
 from metlib.lidar import *
+from metlib.data.misc import *
+from metlib.data.misc import *
+from metlib.data.boundary import *
 from metlib.data.ipyview import *
 
-from IPython import Config, embed
+from IPython import embed
 
 plt.ion()
-speaker = sys.stdout
-warner = sys.stderr
-
-ipythonconfig = Config({
-    'TerminalInteractiveShell': {'banner1': '', 'editor': 'vim', 'pylab': 'qt'}, 
-    })
 
 if __name__ == '__main__':
     remain_args = get_sys_argv([], [], [])
-    
-    globald = sys.modules['__main__'].__dict__
-    if len(remain_args) == 1:
-        loaded_data, loaded_type = load_everything(remain_args[0])
-        print "----------------"
-        if loaded_type == "basket":
-            print "Loaded Basket variables:", loaded_data
-        else:
-            data = loaded_data
-            print "file: %s, recognized as: %s" % (remain_args[0], loaded_type)
-            print "  ", "data :"
-            print data
-    else:
-        for i, fname in enumerate(remain_args):
-            print "----------------"
-            varname = 'data%d' % i
-            loaded_data, loaded_type = load_everything(fname)
-            if loaded_type == "basket":
-                print "Loaded Basket variables:", loaded_data
-            else:
-                globald[varname] = loaded_data
-                print "file: %s, recognized as: %s" % (fname, loaded_type)
-                print "  ", varname, ":"
-                print globald[varname]
-
-    for varname, fname in _sys_argv_kwargs.iteritems():
-        print "----------------"
-        loaded_data, loaded_type = load_everything(fname, basket_dest=varname)
-        if loaded_type == "basket":
-            print "Loaded Basket file", fname, "into dict:", varname, ", which contains:", loaded_data
-        else:
-            globald[varname] = loaded_data
-            print "file: %s, recognized as: %s" % (fname, loaded_type)
-            print "  ", varname, ":"
-            print globald[varname]
-
-    embed(config=ipythonconfig)
+    ipyview(*remain_args, **_sys_argv_kwargs)
+    embed()
