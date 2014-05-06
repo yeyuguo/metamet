@@ -25,6 +25,7 @@ __all__ = ['ipyview']
 
 speaker = sys.stdout
 warner = sys.stderr
+globald = sys.modules['__main__'].__dict__
 
 def load_everything(fname, basket_dest=''):
     try:
@@ -59,7 +60,11 @@ def load_everything(fname, basket_dest=''):
         warner.write('\n')
 
 def ipyview(*args, **kwargs):
-    globald = sys.modules['__main__'].__dict__
+    """ipyview automatically loads data files as variables in global scope.
+    args: filenames. Loaded varnames will be data or data1, data2 ...
+    kwargs: filenames for variables with specified names, e.g., a='a.npy', b='some.csv'.
+"""
+
     if len(args) == 1:
         loaded_data, loaded_type = load_everything(args[0])
         print "----------------"
