@@ -21,7 +21,7 @@ from metlib.data.misc import *
 from metlib.data.boundary import *
 from metlib.lidar import *
 
-__all__ = ['ipyview']
+__all__ = ['load_everything', 'ipyview']
 
 def load_everything(fname, basket_dest=''):
     try:
@@ -58,13 +58,13 @@ def load_everything(fname, basket_dest=''):
 def ipyview(*args, **kwargs):
     globald = sys.modules['__main__'].__dict__
     if len(args) == 1:
-        loaded_data, loaded_type = load_everything(remain_args[0])
+        loaded_data, loaded_type = load_everything(args[0])
         print "----------------"
         if loaded_type == "basket":
             print "Loaded Basket variables:", loaded_data
         else:
             data = loaded_data
-            print "file: %s, recognized as: %s" % (remain_args[0], loaded_type)
+            print "file: %s, recognized as: %s" % (args[0], loaded_type)
             print "  ", "data :"
             print data
     else:
