@@ -17,17 +17,17 @@ from matplotlib.ticker import FuncFormatter, FixedFormatter, ScalarFormatter, Lo
 #from matplotlib import mlab
 #from netCDF4 import Dataset
 import itertools
+import warnings
 from metlib.misc.datatype import Null, isseq
 
 __all__ = ['format_ticks', 'flip_legend']
 
-def format_ticks(ax=None, fmt=None, axis='x', fontsize=None, fontweight=None, **kwargs):
+def format_ticks(ax=None, fmt=None, axis='x', **kwargs):
     """Format ticks.
     ax: ax, default gca().
     fmt: date format like "%Y%m%d", or format string like "%.2f", or a func, or sequence of strs, or sequence of (position, str), default None.
     axis: 'x' | 'y' | 'z', default 'x'.
-    fontsize: fontsize, default None.
-    fontweight: fontweight, default None.
+    kwargs: anything that can be applied to ticklabels, e.g., fontsize, fontweight, etc.
     """
     if not ax:
         ax = plt.gca()
@@ -69,11 +69,14 @@ def format_ticks(ax=None, fmt=None, axis='x', fontsize=None, fontweight=None, **
         if fmter:
             theaxis.set_major_formatter(fmter)
 
-    if fontsize:
-        plt.setp(theaxis.get_ticklabels(), fontsize=fontsize)
-
-    if fontweight:
-        plt.setp(theaxis.get_ticklabels(), fontweight=fontweight)
+    ticklabels = theaxis.get_ticklabels()
+    for key, value in kwargs.iteritems():
+        little_kwargs = {key:value}
+        try:
+            plt.setp(ticklabels, **little_kwargs)
+        except Exception as e:
+            warnings.warn(e)
+            
 
 def flip_legend(ax, *args, **kwargs):
     """flip_legend() plots the legend of an axes as plt.legend(), but the labels fills rows first.
