@@ -11,6 +11,7 @@ def load_aeronet(fname, keep_fields='all', header=False):
     """loads aeronet lev 2.0 csv file.
     fname: data file name
     keep_fields: 'all' or a list of fields
+    header: whether to return header information along with the data.
     """
     std_day = datetime(1900,1,1,0,0,0)
     def date2daynum(datestr):
