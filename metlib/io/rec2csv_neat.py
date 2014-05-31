@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import sys
-from datetime import datetime
+from datetime import datetime, date
 
 __all__ = ['rec2csv_neat']
 
@@ -16,7 +16,7 @@ def rec2csv_neat(rec, f, formatd={}, delimiter=','):
         if fn in formatd:
             the_fmt = formatd[fn]
             if isinstance(the_fmt, (str, unicode)):
-                if fn.lower() in ('datetime', 'date', 'time'):
+                if isinstance(rec[fn][0], (date, datetime)) :
                     formaters[fn] = lambda dt: dt.strftime(formatd[fn])
                 else:
                     formaters[fn] = lambda val: formatd[fn] % (val, )
