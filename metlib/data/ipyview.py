@@ -74,7 +74,7 @@ def ipyview(*args, **kwargs):
             data = loaded_data
             globald['data'] = data
             print "file: %s, recognized as: %s" % (args[0], loaded_type)
-            print "  ", "data :"
+            print ">>>", "data :"
             print data
     else:
         for i, fname in enumerate(args):
@@ -86,7 +86,7 @@ def ipyview(*args, **kwargs):
             else:
                 globald[varname] = loaded_data
                 print "file: %s, recognized as: %s" % (fname, loaded_type)
-                print "  ", varname, ":"
+                print ">>>", varname, ":"
                 print globald[varname]
 
     for varname, fname in kwargs.iteritems():
@@ -97,7 +97,7 @@ def ipyview(*args, **kwargs):
         else:
             globald[varname] = loaded_data
             print "file: %s, recognized as: %s" % (fname, loaded_type)
-            print "  ", varname, ":"
+            print ">>>", varname, ":"
             print globald[varname]
 
 if __name__ == '__main__':

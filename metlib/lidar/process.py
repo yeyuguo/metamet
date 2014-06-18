@@ -37,7 +37,8 @@ def correct_background(data, sample_number=None):
 def correct_afterpulse(data, ap_data, zero_check_max_index=30):
     """correct afterpulse noise.
     data: a LidarDataset object.
-    ap_data: afterpulse data. 
+    ap_data: afterpulse data (energy normalized). 
+    zero_check_max_index: set negative results below this index as 0.
     """
     min_len = np.min((data.dims['BIN'], ap_data.shape[-1]))
     zcmi = np.min((min_len, zero_check_max_index))
@@ -50,7 +51,7 @@ def correct_afterpulse(data, ap_data, zero_check_max_index=30):
 def correct_overlap(data, ol_data):
     """correct overlap.
     data: a LidarDataset object.
-    ol_data: overlap data.
+    ol_data: overlap data (values > 1 in the near range). 
     """
     min_len = np.min((data.dims['BIN'], ol_data.shape[-1]))
     data['data'][...,:min_len] *= ol_data[..., :min_len]
