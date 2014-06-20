@@ -5,20 +5,13 @@
 import os, sys
 import collections
 from array import array as pythonarray
-#import re
-#from datetime import datetime, timedelta
-#from dateutil.parser import parse
 import numpy as np
-#import matplotlib
-#matplotlib.use('Agg')
-#import matplotlib.pyplot as plt
-#from mpl_toolkits.basemap import Basemap
-#from matplotlib import mlab
-#from netCDF4 import Dataset
 
-__all__ = ['limited_int', 'Singleton', 'Null', 'NullClass', 'isinteger', 'isfloat', 'isseq']
+__all__ = ['limited_int', 'Singleton', 'Null', 'NullClass', 
+            'isnull', 'isinteger', 'isfloat', 'isseq', 'isstr']
 
 class limited_int(object):
+    """An integer-like class with max and min limits."""
     def __init__(self, value, vmin, vmax):
         self.value = long(value)
         self.set_limit(vmin, vmax)
@@ -147,6 +140,9 @@ class NullClass(Singleton):
 
 Null = NullClass()
 
+def isnull(value):
+    return isinstance(value, (type(None), NullClass))
+
 def isinteger(value):
     return isinstance(value, (int, long, np.integer))
 
@@ -158,6 +154,8 @@ def isseq(value):
         collections.deque, 
         np.ndarray, np.recarray,))
 
+def isstr(value):
+    return isinstance(value, (str, unicode))
 
 if __name__ == '__main__':
     a = limited_int(3, 0, 4)

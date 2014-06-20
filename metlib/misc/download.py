@@ -131,7 +131,6 @@ class Downloader(object):
                 print "Download ended with possible errors."
             return False
 
-    
     def retrieve_file(self):
         outf = open(self.dest, 'a')
         begpos = self.local_size

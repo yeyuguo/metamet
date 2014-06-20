@@ -4,17 +4,9 @@
 
 import os
 import re
-#from datetime import datetime, timedelta
-#from dateutil.parser import parse
 from math import ceil
 from multiprocessing import Process
 import signal
-#import matplotlib
-#matplotlib.use('Agg')
-#import matplotlib.pyplot as plt
-#from mpl_toolkits.basemap import Basemap
-#from matplotlib import mlab
-#from netCDF4 import Dataset
 
 __all__ = ['JobSplitter', 'split_job']
 

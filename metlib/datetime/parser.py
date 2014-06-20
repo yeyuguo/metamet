@@ -13,11 +13,15 @@ def parse_datetime(timestr, force_datetime=True):
     timestr: single value or seq of:
                 int/str: YYYYMMDD[HH[MM[SS]]] , delimiters are also allowed, 
                     e.g.: YYYY-MM-DD HH:MM:SS.
+                    Julian Days, e.g., YYYYJJJ[...] is also OK.
                 datetime/date
     force_datetime: 
                 if True: return datetime even if input is date.
                 if False: return date if input is date.
     """
+    numonly_pattern = re.compile(r'\D*')
+    jfmtstr_all = '%Y%j%H%M%S'
+    gfmtstr_all = '%Y%m%d%H%M%S'
     return_single = False
     if isinstance(timestr, (int, long, np.integer, str, unicode, datetime, date)):
         timestrs = [timestr]
@@ -37,6 +41,7 @@ def parse_datetime(timestr, force_datetime=True):
             continue
         if isinstance(timestr, (int, long, np.integer)):
             timestr = str(timestr)
+            
         if len(timestr) == 10:
             if re.match(r'^\d{10}$', timestr):
                 timestr = timestr + '00'
@@ -45,7 +50,19 @@ def parse_datetime(timestr, force_datetime=True):
         try:
             res = parse(timestr)
         except ValueError:
-            res = None
+            try:
+                numonly_str = re.sub(numonly_pattern, '', timestr)
+                nl = len(numonly_str)
+                if nl >= 7:
+                    if nl % 2 == 1:   #YYYYJJJ[...]
+                        fmtstr = jfmtstr_all[:4+nl-7]
+                    else:             #YYYYMMDD[...]
+                        fmtstr = gfmtstr_all[:4+nl-8]
+                    res = datetime.strptime(numonly_str, fmtstr)
+                else:
+                    res = parse(numonly_str)
+            except Exception:
+                res = None
         res_list.append(res)
     if return_single:
         return res_list[0]

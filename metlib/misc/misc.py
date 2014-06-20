@@ -4,7 +4,7 @@
 
 import os, sys
 import re
-import pickle
+
 #from datetime import datetime, timedelta
 #from dateutil.parser import parse
 import numpy as np
@@ -19,7 +19,7 @@ import collections
 from metlib.misc.datatype import Null
 from metlib.misc.datatype import isseq
 
-__all__ = ['struni', 'grep', 'strip_ext', 'sub_ext', 'get_ext', 'savepickle', 'loadpickle', 'str2list', 'get_sys_argv', 'parse_bool', 'Setter']
+__all__ = ['struni', 'grep', 'str2list', 'get_sys_argv', 'parse_bool', 'Setter']
 
 def struni(obj):
     """ return str(obj) if possible, else return unicode(obj).
@@ -64,19 +64,6 @@ Returns:
 
     return res
 
-def strip_ext(path):
-    """strips .ext from a path"""
-    return os.path.splitext(path)[0]
-
-def get_ext(path):
-    """get .ext from a path"""
-    return os.path.splitext(path)[1]
-
-def sub_ext(orig, new_ext):
-    """sub .ext with a new one"""
-    if not new_ext.startswith('.'):
-        new_ext = '.' + new_ext
-    return strip_ext(orig) + new_ext
 
 def str2list(s, pattern=',|;|:|#|\||\s+'):
     return re.split(pattern, s)
@@ -183,17 +170,6 @@ Example
 
     return other_args
 
-def savepickle(fname, obj):
-    outf = open(fname, 'w')
-    pickle.dump(obj, outf)
-    outf.close()
-
-def loadpickle(fname):
-    infile = open(fname)
-    obj = pickle.load(infile)
-    infile.close()
-    return obj
-
 def parse_bool(s):
     def _tobool(ss):
         ss = ss.upper()
@@ -289,7 +265,5 @@ if __name__ == '__main__':
     print grep(re.compile('sd'), l)
     print grep(r"^\d*$", l)
     print grep(lambda s: s.startswith('a'), l)
-    p = 'abc/def/gh.hi.sf'
-    print strip_ext(p)
-    print get_ext(p)
-    print sub_ext(p, 'txt')
+  
+
