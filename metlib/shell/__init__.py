@@ -1,4 +1,3 @@
-from .path import *
 from .script_helper import *
 from .fileutil import *
 

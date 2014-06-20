@@ -4,20 +4,12 @@
 
 import os, sys
 import copy
-#import re
-#from datetime import datetime, timedelta
-#from dateutil.parser import parse
 import numpy as np
-
-#import matplotlib
-#matplotlib.use('Agg')
-#import matplotlib.pyplot as plt
-#from mpl_toolkits.basemap import Basemap
-#from matplotlib import mlab
-#from netCDF4 import Dataset
 from zipfile import ZipFile
 from metlib.shell.fileutil import *
-from metlib.misc.misc import loadpickle, savepickle, get_ext, strip_ext, str2list
+from metlib.io.misc import loadpickle, savepickle
+from metlib.shell.fileutil import get_ext, strip_ext
+from metlib.misc.misc import str2list
 
 __all__ = ['Basket', 'loadbasket', 'savebasket']
 

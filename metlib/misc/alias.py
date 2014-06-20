@@ -13,7 +13,7 @@ import numpy as np
 #from matplotlib import mlab
 #from netCDF4 import Dataset
 
-__all__ = ['ma_out', 'expand_path']
+__all__ = ['ma_out']
 
 def ma_out(arr, vmin=-np.inf, vmax=np.inf, fill_value=None):
     """masked values outside (vmin, vmax) and invalid values.
@@ -23,10 +23,3 @@ def ma_out(arr, vmin=-np.inf, vmax=np.inf, fill_value=None):
     if fill_value is not None:
         res = res.filled(fill_value)
     return res
-
-def expand_path(path):
-    """expand ~ and $ in the path"""
-    return os.path.expanduser(os.path.expandvars(path))
-
-if __name__ == '__main__':
-    print expand_path('~/$PYTHONPATH')

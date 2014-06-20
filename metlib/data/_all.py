@@ -6,6 +6,9 @@ from .coordinate import *
 from .basket import *
 from .boundary import *
 from .series import *
+from .exp_interp import *
+from .maths import *
+from .spread_true_false import *
 from .misc import *
 
 __all__ = filter(lambda s:not s.startswith('_'),dir())
