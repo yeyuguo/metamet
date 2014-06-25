@@ -6,13 +6,13 @@ from matplotlib import mlab
 from metlib.datetime import *
 from metlib.data._all import rec_combine, rec_from_seqs, Basket, loadbasket, savebasket
 from metlib.data._all import Limiter, nearest_i
+from metlib.data.maths import int_sign, second_derivate
 from metlib.io.rec2csv_neat import rec2csv_neat
 from metlib.io.misc import savepickle, loadpickle
 from metlib.misc._all import ma_out, grep
 from metlib.misc._all import split_job, struni, str2list, get_sys_argv
 from metlib.misc._all import limited_int, Singleton, NullClass, Null
 from metlib.misc._all import isinteger, isfloat, isseq, isstr, isnull
-from metlib.misc._all import int_sign, second_derivate
 from metlib.misc._all import parse_bool
 from metlib.misc._all import Setter
 from metlib.plot._all import axgrid, axstack, format_ticks
