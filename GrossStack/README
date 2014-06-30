@@ -1,6 +1,6 @@
-GlassSea is a helper system for running models. It is based on Dai Zhanpeng's "runpool" design for seperating different runs into their own folder, so that they can run at the same time.
+GrossStack is a helper system for running models. It is based on Dai Zhanpeng's "runpool" design for seperating different runs into their own folder, so that they can run at the same time.
 
-GlassSea is often abrev....ed as G3S in the system.
+GrossStack is often abrev....ed as G3S in the system.
 
 -----------------------------------------------------------------------------
 System requirements:
@@ -17,7 +17,7 @@ metamet/shell provides several useful scripts for running models. For convenient
 Concepts:
 
 G3S: 
-	Environment variable G3S is required to tell the root path of the GlassSea system.
+	Environment variable G3S is required to tell the root path of the GrossStack system.
 
 CASE:
 	A set of model configurations is called a CASE.
@@ -95,10 +95,5 @@ ${G3S}/log/G3S/${CASENAME}/log.${RUNNAME}.log
 Use ${G3S}/sys/util/LOG "message" in your script to add other inforamtion to this file.
 
 This log file should be clean and clear for flow diagnosis purpose. Please only add very important infomation to it. Verbose logs should be directed to other log files.
-
--------------------------------------------------------------------------------
-The name GlassSea comes from The Revelation to John 4:6
-
-	And before the throne there was a sea of glass like unto crystal ...
 
 
