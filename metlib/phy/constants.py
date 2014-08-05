@@ -4,14 +4,24 @@ import numpy as np
 # NOTICE: R_star from US Atmos 1976 is a strange stuff
 R_star = 8.31432E3  # J / ((k mol) * K)
 
-M_d = 28.9644    # g / mol
-M_v = 18.0159    # g / mol
+M_d = 28.9644       # g / mol
+M_v = 18.0159       # g / mol
 R_d = 287.05        # J / (kg * K)
+R_v = 461.5         # J / (kg * K)
+epsilon_vapor = 0.622  # epsilon_vapor = R_d / R_v
+
+# # Heat capacity
+# # Dry air
 c_pd = 1004.0       # J / (kg * K)
 c_vd = 717.0        # J / (kg * K)
+# # vapor
+c_pv = 1850.0       # J / (kg * K)
+c_vv = 1390.0       # J / (kg * K)
+# # water & ice
+c_water = 4218.0    # J / (kg * K)
+c_ice = 2106.0      # J / (kg * K)
 
-epsilon_vapor = 0.622
-p_std = 1013.25    # hPa
+p_std = 1013.25     # hPa
 T_std = 273.15      # K
 T_room = 298.0      # K
 
