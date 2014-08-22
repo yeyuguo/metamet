@@ -3,9 +3,10 @@ import os
 from glob import glob
 import re
 import shutil
+from metlib.shell.script_helper import get_output
 
-__all__ = ['filesize', 'sorted_walk', 'list_all_file', 'expand_path', 
-            'force_rm', 'force_makedirs', 'expand_path', 'get_rel_path', 'find_link_orig', 
+__all__ = ['filesize', 'sorted_walk', 'list_all_file',  
+            'force_rm', 'force_makedirs', 'expand_path', 'CB', 'get_rel_path', 'find_link_orig', 
             'strip_ext', 'sub_ext', 'get_ext', 
             'LS', 'LS_R', 'CD', 'P', 'DIRNAME', 'BASENAME', 
             'RM', 'CP', 'MKDIR', 'MV']
@@ -88,6 +89,10 @@ def CD(path=None):
 def expand_path(path):
     """expand ~ and $ in the path"""
     return os.path.expanduser(os.path.expandvars(path))
+
+def CB(tag):
+    """Using the metamet/shell/cb (short for clipboard) to get recorded text snippets, e.g., long file names, etc."""
+    return get_output('cb %s' % tag)
 
 def force_rm(fname, regex=False):
     """force to rm fname, no matter whether fname is file, dir or link"""
