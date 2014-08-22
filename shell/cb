@@ -2,6 +2,11 @@
 
 # cb is a clipboard for files.
 
+if [ -e ./CBDATA ] ; then
+	cblocalfile=CBDATA
+else
+	cblocalfile=/dev/null
+fi
 
 cbdatafile=~/.cbdata
 touch $cbdatafile
@@ -17,19 +22,34 @@ onhelp()
 	echo "    cb note TAG NOTE 	: add entry TAG:NOTE."
 	echo "    cb del TAG 	: delete entry TAG."
 	echo "    cb delall 	: delete all entries."
+	echo "Files:"
+	echo "    global data: ~/.cbdata"
+	echo "    local data: ./CBDATA  (only for fetching information, add or del won't affect this file.)"
 	exit 0
 }
 
 search() 
 {
 	bookmark=$1
-	res=`grep "^${bookmark}:" $cbdatafile`
+	res=`cat $cblocalfile $cbdatafile | grep "^${bookmark}:" | head -n 1`
+	if [ "$res" != "" ] ; then
+		echo $res | cut -d ":" -f 2-
+	fi
+}
+
+search_nonlocal() 
+{
+	bookmark=$1
+	res=`cat $cbdatafile | grep "^${bookmark}:" | head -n 1`
 	if [ "$res" != "" ] ; then
 		echo $res | cut -d ":" -f 2-
 	fi
 }
 
 if [ $# == 0 ] ; then
+	if [ "$cblocalfile" != "/dev/null" ] ; then
+		cat $cblocalfile | sort | sed -e "s/:/:\t/"
+	fi
 	cat $cbdatafile | sort | sed -e "s/:/:\t/"
 elif [ $# == 1 ] ; then
 	if [ "$1" == "--help" ] || [ "$1" == "-h" ] ; then
@@ -48,7 +68,7 @@ elif [ $# == 1 ] ; then
 	fi
 elif [ $# == 2 ] ; then
 	if [ $1 == "del" ] || [ "$1" == "rm" ] ; then
-		res=`search $2`
+		res=`search_nonlocal $2`
 		if [ "${res}" != "" ] ; then
 			echo "deleting ${2}: 	${res}"
 			sed -i -e "/^${2}:/d" $cbdatafile
