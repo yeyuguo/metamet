@@ -44,7 +44,7 @@ elif [ $# == 1 ] ; then
 	else
 		pathname=`search $1`
 		if [ "$pathname" != "" ] && [ "$pathname" != "." ] ; then
-			cd $pathname
+			cd "$pathname"
 		fi
 	fi
 elif [ $# == 2 ] ; then

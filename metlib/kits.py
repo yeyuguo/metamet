@@ -18,7 +18,7 @@ from metlib.misc._all import Setter
 from metlib.plot._all import axgrid, axstack, format_ticks
 from metlib.phy.wind import wswd2uv, uv2wswd
 from metlib.shell import get_rel_path, find_link_orig, CD
-from metlib.shell import strip_ext, sub_ext, get_ext, expand_path, P, DIRNAME, BASENAME
+from metlib.shell import strip_ext, sub_ext, get_ext, expand_path, CB, P, DIRNAME, BASENAME
 from metlib.shell import filesize, get_output
 from metlib.shell import list_all_file, LS, LS_R
 from metlib.shell import force_makedirs, force_rm, CP, MV, RM, MKDIR
